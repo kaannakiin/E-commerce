@@ -17,13 +17,15 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { IMaskInput } from "react-imask";
 import classes from "./modules/LoginPage.module.css";
+import { useSearchParams } from "next/navigation";
 export function AuthenticationImage() {
-  const session = useSession();
+  const params = useSearchParams();
+  const callbackUrl = params.get("callbackUrl") || "/";
+
   const {
     register: LoginRegister,
     handleSubmit: LoginHandleSubmit,
@@ -39,7 +41,7 @@ export function AuthenticationImage() {
   } = useForm<RegisterSchemaType>({ resolver: zodResolver(RegisterSchema) });
 
   const onSubmitLogin: SubmitHandler<LoginSchemaType> = async (data) => {
-    await Login(data).then((res) => {
+    await Login(data, callbackUrl).then((res) => {
       if (res.success) {
         LoginSetError("email", {
           message: "Başarıyla giriş yaptınız. Yönlendiriliyorsunuz.",
@@ -51,7 +53,10 @@ export function AuthenticationImage() {
   const onSubmitRegister: SubmitHandler<RegisterSchemaType> = async (data) => {
     await Register(data).then(async (res) => {
       if (res.success) {
-        await Login({ email: data.email, password: data.password });
+        await Login(
+          { email: data.email, password: data.password },
+          callbackUrl
+        );
       }
       if (res.error) {
         console.log(res);

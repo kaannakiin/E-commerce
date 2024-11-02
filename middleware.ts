@@ -12,11 +12,13 @@ export default auth((req) => {
     req.auth?.user?.role === Role.ADMIN;
   if (login) {
     if (nextUrl.pathname.startsWith(PROTECT_FOR_LOGIN_USERS)) {
-      return NextResponse.redirect("/");
+      return NextResponse.redirect(new URL("/hesabim", nextUrl.origin));
     }
   }
   if (!login && nextUrl.pathname.startsWith("/hesabim")) {
-    return NextResponse.redirect("/giris");
+    return NextResponse.redirect(
+      new URL(PROTECT_FOR_LOGIN_USERS, nextUrl.origin)
+    );
   }
   if (!isAdmin) {
     if (nextUrl.pathname.startsWith("/admin")) {

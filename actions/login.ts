@@ -3,13 +3,14 @@
 import { signIn } from "@/auth";
 import { LoginSchema, LoginSchemaType } from "@/zodschemas/authschema";
 import { AuthError } from "next-auth";
-export const Login = async (data: LoginSchemaType) => {
+export const Login = async (data: LoginSchemaType, callbackUrl) => {
   try {
     const { email, password } = LoginSchema.parse(data);
     await signIn("credentials", {
       email,
       password,
       redirect: true,
+      redirectTo: callbackUrl || "/",
     });
     return { success: "Giriş başarılı" };
   } catch (error) {
