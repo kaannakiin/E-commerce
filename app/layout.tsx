@@ -1,3 +1,4 @@
+import Header from "@/components/Header";
 import {
   ColorSchemeScript,
   MantineColorsTuple,
@@ -6,6 +7,7 @@ import {
 } from "@mantine/core";
 import "@mantine/core/styles.css";
 import type { Metadata } from "next";
+import { SessionProvider } from "next-auth/react";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -41,6 +43,7 @@ const theme = createTheme({
     primary: primaryColor,
     secondary: secondaryColor,
   },
+  primaryColor: "primary",
   cursorType: "pointer",
 });
 export default function RootLayout({
@@ -49,17 +52,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="tr" suppressHydrationWarning>
       <head>
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider
-          forceColorScheme="light"
-          theme={theme}
-        >
-          {children}
-        </MantineProvider>
+        <SessionProvider>
+          <MantineProvider forceColorScheme="light" theme={theme}>
+            <Header />
+            <main>{children}</main>
+          </MantineProvider>
+        </SessionProvider>
       </body>
     </html>
   );
