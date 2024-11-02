@@ -1,180 +1,83 @@
 "use client";
-
-import { Drawer, rem, TextInput } from "@mantine/core";
-import Image from "next/image";
+import { rem } from "@mantine/core";
 import { useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
+import { Spotlight, spotlight, SpotlightActionData } from "@mantine/spotlight";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+}
 
 const SearchDrawer = () => {
-  const [open, setOpen] = useState(false);
+  const products: Product[] = [
+    {
+      id: "1",
+      name: "Yoga Matı",
+      description: "Premium kalite yoga matı",
+      price: 299.99,
+      category: "Yoga Ekipmanları",
+    },
+    {
+      id: "2",
+      name: "Pilates Topu",
+      description: "65cm fitness topu",
+      price: 199.99,
+      category: "Pilates Ekipmanları",
+    },
+    // Diğer ürünler...
+  ];
+  const productActions: SpotlightActionData[] = products.map((product) => ({
+    id: product.id,
+    label: product.name,
+    description: `${product.description} - ${product.price.toFixed(2)} TL`,
+    group: product.category,
+    onClick: () => handleProductClick(product),
+    leftSection: (
+      <IoSearchOutline style={{ width: rem(24), height: rem(24) }} />
+    ),
+  }));
+
+  // Ürüne tıklandığında çalışacak fonksiyon
+  const handleProductClick = (product: Product) => {
+    // Ürün detay sayfasına yönlendirme veya modal açma
+    console.log("Seçilen ürün:", product);
+    // Örnek: router.push(`/products/${product.id}`);
+  };
+
   return (
     <>
       <IoSearchOutline
         size={28}
         className="cursor-pointer"
-        onClick={() => setOpen(true)}
+        onClick={() => spotlight.open()}
       />
-      <Drawer
-        opened={open}
-        onClose={() => setOpen(false)}
-        position="right"
-        size={rem(400)}
-        overlayProps={{ backgroundOpacity: 0.5, blur: 4 }}
-        withCloseButton={false}
-      >
-        <div className="w-full h-full py-10 flex flex-col gap-10">
-          <h1 className="text-center text-2xl">Ürün ara</h1>
-          <div>
-            <TextInput
-              rightSection={
-                <IoSearchOutline size={20} className="cursor-pointer" />
-              }
-              size="md"
-              placeholder="Aramak istediğiniz ürünü yazınız"
-            />
-          </div>{" "}
-          <h1 className="text-center mb-4 font-semibold text-2xl">
-            Arama Sonuçları
-          </h1>
-          <div className="flex flex-col gap-4 w-full  ">
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-            <div className="flex flex-row gap-2">
-              <div className="w-20 h-20 relative">
-                <Image
-                  src={"https://placehold.co/80x80/000000/FFFFFF.png"}
-                  alt="deneme"
-                  fill
-                  sizes="100%"
-                />
-              </div>
-              <div className="flex-1 flex flex-col border border-black px-5">
-                <p className="text-xl ">Ürün Adı</p>
-                <p className="text-gray-500">100TL</p>
-                <p className="text-gray-500">Variantlar</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Drawer>
+      <Spotlight
+        actions={productActions}
+        nothingFound="Ürün bulunamadı..."
+        highlightQuery
+        limit={7}
+        searchProps={{
+          leftSection: (
+            <IoSearchOutline style={{ width: rem(20), height: rem(20) }} />
+          ),
+          placeholder: "Ürün ara...",
+        }}
+        filter={(query, actions) => {
+          // Gelişmiş arama filtresi
+          const searchWords = query.toLowerCase().trim().split(" ");
+
+          return actions.filter((action) => {
+            const searchText = `${(action as SpotlightActionData).label} ${
+              (action as SpotlightActionData).description
+            }`.toLowerCase();
+            return searchWords.every((word) => searchText.includes(word));
+          });
+        }}
+      />
     </>
   );
 };

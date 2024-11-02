@@ -11,9 +11,10 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
     "@hookform/resolvers": "^3.9.0",
-    "@mantine/carousel": "^7.13.3",
-    "@mantine/core": "^7.13.3",
-    "@mantine/hooks": "^7.13.3",
+    "@mantine/carousel": "^7.13.4",
+    "@mantine/core": "^7.13.4",
+    "@mantine/hooks": "^7.13.4",
+    "@mantine/spotlight": "^7.13.4",
     "@prisma/client": "^5.21.1",
     "bcryptjs": "^2.4.3",
     "date-fns": "^4.1.0",
