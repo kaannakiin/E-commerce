@@ -19,7 +19,6 @@ const Footer = () => {
 
   return (
     <div className="flex flex-row w-full px-5 ">
-      {/* LOGO SECTION */}
       <div className="flex flex-col w-full">
         <div className="w-full relative h-12">
           <Image
@@ -30,7 +29,7 @@ const Footer = () => {
             className="object-contain"
           />
         </div>
-        <Divider my={10} />
+
         {/* LEFT SECTION */}
         <div className="hidden md:flex flex-row items-start justify-between w-full">
           {/* Üyelik */}
@@ -139,8 +138,8 @@ const Footer = () => {
             </AccordionItem>
           </Accordion>
         </div>
-        <Divider my={10} />
-        <div className="flex flex-row  justify-between w-full">
+
+        <div className="flex flex-row  justify-between  gap-2 lg:gap-0 w-full px-4">
           <div className="flex flex-row gap-2 ">
             <Link href={"/"} className="flex flex-row items-center">
               <FaInstagram size={24} />
