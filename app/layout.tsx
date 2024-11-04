@@ -6,7 +6,6 @@ import {
   createTheme,
 } from "@mantine/core";
 import "@mantine/core/styles.css";
-import "@mantine/spotlight/styles.css";
 import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import "./globals.css";
