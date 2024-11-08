@@ -145,14 +145,8 @@ const Footer = () => {
               <FaInstagram size={24} />
             </Link>
             <Link href={"/"} className="flex flex-row items-center">
-              <FaYoutube size={24} />
-            </Link>{" "}
-            <Link href={"/"} className="flex flex-row items-center">
               <FaTiktok size={24} className="text-black" />
             </Link>{" "}
-            <Link href={"/"} className="flex flex-row items-center">
-              <FaPinterest size={24} />
-            </Link>
           </div>
           <div className="w-[200px] lg:w-[400px] relative h-10  ">
             <Image

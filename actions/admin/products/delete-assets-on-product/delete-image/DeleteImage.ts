@@ -4,17 +4,16 @@ import { prisma } from "@/lib/prisma";
 import path from "path";
 import fs from "fs/promises";
 
-export async function DeleteImage(id: string) {
+export async function DeleteImgToProduct(id: string) {
   try {
     const adminGuard = await isAdmin();
     if (!adminGuard) return { message: "Unauthorized", status: 401 };
-
     if (!id) {
       return { message: "Image ID is required", status: 400 };
     }
     const existingImage = await prisma.image.findUnique({
       where: {
-        url: id.toString() + ".jpg",
+        url: id.toString(),
       },
     });
     if (!existingImage) {
@@ -29,12 +28,10 @@ export async function DeleteImage(id: string) {
       );
       await fs.unlink(publicPath);
       await fs.unlink(thumbnailPath);
-    } catch (error) {
-      return { message: "File system error", status: 500 };
-    }
+    } catch (error) {}
     await prisma.image.delete({
       where: {
-        url: id + ".jpg",
+        url: id,
       },
     });
     return {

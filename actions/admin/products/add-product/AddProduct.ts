@@ -5,10 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { RecordImgToAsset } from "@/lib/recordImage";
 import { slugify } from "@/utils/slugify";
 import {
-  AddProductSchemaType,
   AddProductSchema,
+  AddProductSchemaType,
 } from "@/zodschemas/authschema";
-import { Role, VariantType } from "@prisma/client";
+import { VariantType } from "@prisma/client";
 import { ZodError } from "zod";
 
 export async function AddProduct(data: AddProductSchemaType) {

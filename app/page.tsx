@@ -1,3 +1,13 @@
+import FeedCategoryCarousels from "@/components/FeedCategoryCarousels";
+import FeedFeaturedProducts from "@/components/FeedFeaturedProducts";
+import { HeroHeader } from "@/components/HeroHeader";
+
 export default function Home() {
-  return <div>s </div>;
+  return (
+    <div className="flex flex-col">
+      <HeroHeader />
+      <FeedCategoryCarousels />
+      <FeedFeaturedProducts />
+    </div>
+  );
 }
