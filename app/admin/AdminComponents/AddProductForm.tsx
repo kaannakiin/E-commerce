@@ -1,7 +1,6 @@
 "use client";
-import { createProductFormData } from "@/lib/createFormData";
-import { fetchWrapper } from "@/lib/fetchWrapper";
-import "@mantine/carousel/styles.css";
+import { AddProduct } from "@/actions/admin/products/add-product/AddProduct";
+import { formattedPrice } from "@/lib/format";
 import {
   AddColorVariant,
   AddColorVariantType,
@@ -14,15 +13,14 @@ import {
   SizeType,
   WeightUnitType,
 } from "@/zodschemas/authschema";
-import { FaRegTrashCan } from "react-icons/fa6";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Carousel } from "@mantine/carousel";
+import "@mantine/carousel/styles.css";
 import {
   ActionIcon,
   Button,
-  ColorInput,
   ColorPicker,
   ColorSwatch,
-  FileInput,
   Modal,
   MultiSelect,
   NativeSelect,
@@ -33,19 +31,28 @@ import {
   Table,
   TextInput,
 } from "@mantine/core";
-import { Carousel } from "@mantine/carousel";
+import { VariantType } from "@prisma/client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { formattedPrice } from "@/lib/format";
-import { VariantType } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { AddProduct } from "@/actions/admin/products/add-product/AddProduct";
+import { FaRegTrashCan } from "react-icons/fa6";
+import ImageDropzone from "./ImageDropzone";
+import FeedbackDialog from "@/components/FeedbackDialog";
 
 const AddProductForm = ({ feedCat }) => {
   const [variant, setVariant] = useState<string>();
   const [openModals, setOpenModals] = useState<{ [key: number]: boolean }>({});
   const [variantModal, setVariantModal] = useState<boolean>(false);
+  const [feedbackState, setFeedbackState] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({
+    isOpen: false,
+    message: "",
+    type: "success",
+  });
   const router = useRouter();
   const {
     register: productRegister,
@@ -69,7 +76,8 @@ const AddProductForm = ({ feedCat }) => {
     register: weightRegister,
     handleSubmit: weightHandleSubmit,
     setValue: weightSetValue,
-
+    trigger: weightTrigger,
+    watch: weightWatch,
     formState: {
       errors: weightError,
       isSubmitting: weightIsSubmitting,
@@ -85,6 +93,8 @@ const AddProductForm = ({ feedCat }) => {
     register: colorRegister,
     handleSubmit: colorHandleSubmit,
     setValue: setColorValue,
+    trigger: colorTrigger,
+    watch: colorWatch,
     formState: {
       errors: colorErrors,
       isSubmitting: colorIsSubmitting,
@@ -100,6 +110,8 @@ const AddProductForm = ({ feedCat }) => {
     register: sizeRegister,
     handleSubmit: sizeHandleSubmit,
     setValue: sizeSetValue,
+    trigger: sizeTrigger,
+    watch: sizeWatch,
     formState: {
       errors: sizeErrors,
       isSubmitting: sizeIsSubmitting,
@@ -115,24 +127,63 @@ const AddProductForm = ({ feedCat }) => {
     productSetValue("variants", [...productGetValues("variants"), data]);
     setVariantModal(false);
     setVariant(undefined);
+    setFeedbackState({
+      isOpen: true,
+      message: "Varyant başarıyla eklendi",
+      type: "success",
+    });
   };
+
   const onColorSubmit: SubmitHandler<AddColorVariantType> = (data) => {
     productSetValue("variants", [...productGetValues("variants"), data]);
     setVariantModal(false);
     setVariant(undefined);
+    setFeedbackState({
+      isOpen: true,
+      message: "Varyant başarıyla eklendi",
+      type: "success",
+    });
   };
+
   const onSizeSubmit: SubmitHandler<AddSizeVariantType> = (data) => {
     productSetValue("variants", [...productGetValues("variants"), data]);
     setVariantModal(false);
     setVariant(undefined);
-  };
-  const onProductSubmit: SubmitHandler<AddProductSchemaType> = async (data) => {
-    await AddProduct(data).then((res) => {
-      if (res.success) {
-        router.push("/admin/urunler");
-      }
+    setFeedbackState({
+      isOpen: true,
+      message: "Varyant başarıyla eklendi",
+      type: "success",
     });
   };
+
+  const onProductSubmit: SubmitHandler<AddProductSchemaType> = async (data) => {
+    try {
+      const result = await AddProduct(data);
+      if (result.success) {
+        setFeedbackState({
+          isOpen: true,
+          message: "Ürün başarıyla eklendi",
+          type: "success",
+        });
+        setTimeout(() => {
+          router.push("/admin/urunler");
+        }, 2000);
+      } else {
+        setFeedbackState({
+          isOpen: true,
+          message: "Bir hata oluştu",
+          type: "error",
+        });
+      }
+    } catch (error) {
+      setFeedbackState({
+        isOpen: true,
+        message: "Ürün eklenirken bir hata oluştu",
+        type: "error",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col py-5 px-10 gap-10">
       <div className="w-full flex flex-col lg:flex-row gap-5  ">
@@ -204,6 +255,7 @@ const AddProductForm = ({ feedCat }) => {
             data={["Renk", "Beden", "Ağırlık"]}
             value={variant}
             onChange={(e) => {
+              if (e === null) return;
               setVariant(e);
               setVariantModal(true);
             }}
@@ -215,7 +267,10 @@ const AddProductForm = ({ feedCat }) => {
             title={`Varyant Ekle - ${variant}`}
           >
             {variant === "Renk" && (
-              <form onSubmit={colorHandleSubmit(onColorSubmit)}>
+              <form
+                onSubmit={colorHandleSubmit(onColorSubmit)}
+                className="space-y-4"
+              >
                 <ColorPicker
                   format="hex"
                   {...colorRegister("value")}
@@ -281,16 +336,14 @@ const AddProductForm = ({ feedCat }) => {
                   variant="filled"
                   size="sm"
                 />
-                <FileInput
-                  {...colorRegister("imageFile")}
-                  onChange={(files) => setColorValue("imageFile", files)}
+                <ImageDropzone
+                  name="imageFile"
+                  setValue={setColorValue}
+                  trigger={colorTrigger} // form hook'undan trigger'ı da almamız gerekiyor
+                  value={colorWatch("imageFile")} // form hook'undan watch'u da almamız gerekiyor
                   error={colorErrors.imageFile?.message}
-                  multiple
-                  clearable
-                  size="sm"
-                  variant="filled"
-                  label="Ürün fotoğrafları"
-                  description="En az bir fotoğraf yüklemelisiniz. Yüklediğiniz fotoğraflar en fazla 10MB boyutunda olmalıdır."
+                  maxFiles={5}
+                  required
                 />
                 <NumberInput
                   {...colorRegister("stock", { setValueAs: (v) => Number(v) })}
@@ -315,7 +368,10 @@ const AddProductForm = ({ feedCat }) => {
               </form>
             )}
             {variant === "Beden" && (
-              <form onSubmit={sizeHandleSubmit(onSizeSubmit)}>
+              <form
+                onSubmit={sizeHandleSubmit(onSizeSubmit)}
+                className="space-y-4"
+              >
                 <Select
                   data={["XS", "S", "M", "L", "XL", "XXL"]}
                   {...sizeRegister("value")}
@@ -362,16 +418,14 @@ const AddProductForm = ({ feedCat }) => {
                   variant="filled"
                   size="sm"
                 />
-                <FileInput
-                  {...sizeRegister("imageFile")}
-                  onChange={(files) => sizeSetValue("imageFile", files)}
+                <ImageDropzone
+                  name="imageFile"
+                  setValue={sizeSetValue}
+                  trigger={sizeTrigger} // form hook'undan trigger'ı da almamız gerekiyor
+                  value={sizeWatch("imageFile")} // form hook'undan watch'u da almamız gerekiyor
                   error={sizeErrors.imageFile?.message}
-                  multiple
-                  clearable
-                  size="sm"
-                  variant="filled"
-                  label="Ürün fotoğrafları"
-                  description="En az bir fotoğraf yüklemelisiniz. Yüklediğiniz fotoğraflar en fazla 10MB boyutunda olmalıdır."
+                  maxFiles={5}
+                  required
                 />
                 <NumberInput
                   {...sizeRegister("stock", { setValueAs: (v) => Number(v) })}
@@ -459,16 +513,14 @@ const AddProductForm = ({ feedCat }) => {
                   variant="filled"
                   size="sm"
                 />
-                <FileInput
-                  {...weightRegister("imageFile")}
-                  onChange={(files) => weightSetValue("imageFile", files)}
+                <ImageDropzone
+                  name="imageFile"
+                  setValue={weightSetValue}
+                  trigger={weightTrigger} // form hook'undan trigger'ı da almamız gerekiyor
+                  value={weightWatch("imageFile")} // form hook'undan watch'u da almamız gerekiyor
                   error={weightError.imageFile?.message}
-                  multiple
-                  clearable
-                  size="sm"
-                  variant="filled"
-                  label="Ürün fotoğrafları"
-                  description="En az bir fotoğraf yüklemelisiniz. Yüklediğiniz fotoğraflar en fazla 10MB boyutunda olmalıdır."
+                  maxFiles={5}
+                  required
                 />
                 <NumberInput
                   {...weightRegister("stock", { setValueAs: (v) => Number(v) })}
@@ -595,6 +647,12 @@ const AddProductForm = ({ feedCat }) => {
           </Table>
         </ScrollArea>
       </div>
+      <FeedbackDialog
+        isOpen={feedbackState.isOpen}
+        onClose={() => setFeedbackState((prev) => ({ ...prev, isOpen: false }))}
+        message={feedbackState.message}
+        type={feedbackState.type}
+      />
     </div>
   );
 };

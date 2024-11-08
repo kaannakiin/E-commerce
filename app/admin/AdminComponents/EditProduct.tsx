@@ -1,6 +1,8 @@
 "use client";
-import "@mantine/carousel/styles.css";
+import { DeleteImgToProduct } from "@/actions/admin/products/delete-assets-on-product/delete-image/DeleteImage";
+import { EditProduct as ProductEdit } from "@/actions/admin/products/edit-product/EditProduct";
 import CustomImage from "@/components/CustomImage";
+import FeedbackDialog from "@/components/FeedbackDialog";
 import {
   EditProductSchema,
   EditProductSchemaType,
@@ -8,15 +10,13 @@ import {
   WeightUnit,
   WeightUnitType,
 } from "@/zodschemas/authschema";
-import { FaCheck } from "react-icons/fa";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Carousel } from "@mantine/carousel";
+import "@mantine/carousel/styles.css";
 import {
   Button,
   CloseButton,
   ColorInput,
-  Dialog,
-  FileInput,
-  Group,
   NativeSelect,
   NumberInput,
   TagsInput,
@@ -25,20 +25,28 @@ import {
   TextInput,
 } from "@mantine/core";
 import { VariantType } from "@prisma/client";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { Carousel } from "@mantine/carousel";
 import { useRouter } from "next/navigation";
-import { DeleteImage } from "@/actions/admin/products/delete-assets-on-product/delete-image/DeleteImage";
-import { EditProduct as ProductEdit } from "@/actions/admin/products/edit-product/EditProduct";
 import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { FaImage } from "react-icons/fa";
+import ImageDropzone from "./ImageDropzone";
 
 const EditProduct = ({ product, categories }) => {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({
+    isOpen: false,
+    message: "",
+    type: "success",
+  });
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    trigger,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<EditProductSchemaType>({
@@ -50,14 +58,14 @@ const EditProduct = ({ product, categories }) => {
       categories: product.product.categories.map((category) => category.id),
       variants: [
         {
-          type: product.type as VariantType, // type eklemeyi unutmayın
+          type: product.type as VariantType,
           price: product.price,
           discount: product.discount,
           stock: product.stock,
           value: product.value,
           active: product.isPublished,
           unit: product.unit,
-          imageFile: [], // imageFile için boş array
+          imageFile: [],
         },
       ],
     },
@@ -66,20 +74,30 @@ const EditProduct = ({ product, categories }) => {
   const onSubmit: SubmitHandler<EditProductSchemaType> = async (data) => {
     await ProductEdit(data, product.id, product.product.id).then((res) => {
       if (res.success) {
+        setDialogState({
+          isOpen: true,
+          message: res.message,
+          type: "success",
+        });
+        reset();
         router.refresh();
-        setDialogOpen(true);
-        setTimeout(() => {
-          setDialogOpen(false);
-        }, 1000);
+      } else {
+        setDialogState({
+          isOpen: true,
+          message: res.message,
+          type: "error",
+        });
       }
     });
   };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="w-full px-5 py-4 border flex flex-col md:flex-row gap-4 border-black mt-5">
         {/* LEFT */}
         <div className="md:w-52 flex flex-col gap-5">
-          {
+          {/* Diğer importlar aynı kalacak */}
+          {product.Image.length > 0 ? (
             <Carousel height={208}>
               {product.Image.map((image, index) => (
                 <Carousel.Slide key={index}>
@@ -87,9 +105,7 @@ const EditProduct = ({ product, categories }) => {
                     <CloseButton
                       className="absolute top-2 right-2 z-10 hover:bg-gray-100/80"
                       onClick={async () => {
-                        await DeleteImage(
-                          image.url.replace(/\.[^/.]+$/, "")
-                        ).then((res) => {
+                        await DeleteImgToProduct(image.url).then((res) => {
                           if (res.success) router.refresh();
                         });
                       }}
@@ -102,7 +118,17 @@ const EditProduct = ({ product, categories }) => {
                 </Carousel.Slide>
               ))}
             </Carousel>
-          }
+          ) : (
+            <div className="relative w-full h-52 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
+              <FaImage size={40} className="text-gray-400 mb-2" />
+              <Text size="sm" color="dimmed" className="text-center px-4">
+                Henüz ürün resmi eklenmemiş
+              </Text>
+              <Text size="xs" color="dimmed" className="text-center mt-1">
+                Aşağıdaki alandan resim yükleyebilirsiniz
+              </Text>
+            </div>
+          )}
           <div className="w-full shadow-xl p-4 flex flex-col gap-2 rounded-lg">
             <h1 className="text-xl">Status</h1>
             <NativeSelect
@@ -176,16 +202,14 @@ const EditProduct = ({ product, categories }) => {
               {...register("shortDescription")}
               error={errors.shortDescription?.message}
             />
-            <FileInput
-              label="Ürün Resmi yükleyin"
-              multiple
-              clearable
-              onChange={(files) => {
-                if (files) {
-                  setValue("variants.0.imageFile", files);
-                }
-              }}
+            <ImageDropzone
+              name="variants.0.imageFile"
+              setValue={setValue}
+              trigger={trigger}
+              value={watch("variants.0.imageFile")}
               error={errors.variants?.[0]?.imageFile?.message}
+              maxFiles={5}
+              required
             />
           </div>
           <div className="flex flex-col gap-4 shadow-lg rounded-lg p-5">
@@ -290,26 +314,12 @@ const EditProduct = ({ product, categories }) => {
           </div>
         </div>
       </div>
-      <Dialog
-        opened={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        size={"lg"}
-        radius={"lg"}
-      >
-        <div className="flex flex-col items-center justify-center p-4 text-center">
-          <div className="mb-4 rounded-full bg-green-100 p-3">
-            <FaCheck size={32} className="text-green-500" />
-          </div>
-
-          <Text size="xl" fw={600} className="mb-2">
-            Ürün Başarıyla Güncellendi!
-          </Text>
-
-          <Text size="sm" c="dimmed" className="mb-4">
-            Tüm değişiklikleriniz başarıyla kaydedildi.
-          </Text>
-        </div>
-      </Dialog>
+      <FeedbackDialog
+        isOpen={dialogState.isOpen}
+        onClose={() => setDialogState((prev) => ({ ...prev, isOpen: false }))}
+        message={dialogState.message}
+        type={dialogState.type}
+      />
     </form>
   );
 };

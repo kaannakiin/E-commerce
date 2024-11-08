@@ -14,9 +14,10 @@ const CustomImage = ({ src, quality }) => {
     const props = [`width=${width}`, `quality=${quality}`, `url=${src}`].join(
       "&"
     );
-    return `http://localhost:3000/api/user/image/get-image?${props}`;
+    return `/api/user/asset/get-image?${props}`;
   };
   const [loading, setLoading] = useState(true);
+
   return (
     <div className=" w-full h-full">
       <Image
@@ -25,9 +26,11 @@ const CustomImage = ({ src, quality }) => {
         priority
         alt="Thumbnail"
         src={src}
-        className="object-contain h-full w-full"
+        className={`${
+          quality === 21 ? "object-cover" : "object-contain"
+        } h-full w-full `}
         loader={({ src }) =>
-          `http://localhost:3000/api/user/image/get-image?url=${src}&thumbnail=true`
+          `/api/user/asset/get-image?url=${src}&thumbnail=true`
         }
       />
       <Image
@@ -35,7 +38,9 @@ const CustomImage = ({ src, quality }) => {
         sizes="100vw"
         alt="Thumbnail"
         quality={quality}
-        className={`object-contain h-full w-full transition-opacity duration-150 ease-in-out ${
+        className={`${
+          quality === 21 ? "object-cover" : "object-contain"
+        } h-full w-full transition-opacity duration-150 ease-in-out ${
           loading ? "opacity-0" : "opacity-100"
         }`}
         src={src}

@@ -280,3 +280,161 @@ export type AddSizeVariantType = z.infer<typeof AddSizeVariant>;
 export type EditSizeVariantType = z.infer<typeof EditSizeVariant>;
 export type AddWeightVariantType = z.infer<typeof AddWeightVariant>;
 export type EditWeightVariantType = z.infer<typeof EditWeightVariant>;
+
+export const AddCategorySchema = z.object({
+  name: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Kategori adı zorunludur"),
+  description: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Kategori açıklaması zorunludur"),
+  active: z.boolean({ message: "Bu alan boş olamaz" }),
+  imageFile: z.array(z.instanceof(File)).superRefine((files, ctx) => {
+    if (!files || files.length === 0)
+      ctx.addIssue({
+        code: "custom",
+        message: "En az bir fotoğraf eklemelisiniz",
+      });
+    files.forEach((file) => {
+      if (file.size >= MAX_FILE_SIZE) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+        });
+      }
+      if (!SUPPORTED_FORMATS.includes(file.type)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp`,
+        });
+      }
+    });
+  }),
+});
+
+export type AddCategorySchemaType = z.infer<typeof AddCategorySchema>;
+export const EditCategorySchema = z.object({
+  name: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Kategori adı zorunludur"),
+  description: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Kategori açıklaması zorunludur"),
+  active: z.boolean({ message: "Bu alan boş olamaz" }),
+  imageFile: z
+    .array(z.instanceof(File))
+    .optional()
+    .superRefine((files, ctx) => {
+      if (!files) return;
+      files.forEach((file) => {
+        if (file.size >= MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+          });
+        }
+        if (!SUPPORTED_FORMATS.includes(file.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp`,
+          });
+        }
+      });
+    }),
+});
+export type EditCategorySchemaType = z.infer<typeof EditCategorySchema>;
+
+export const AddHeroSchema = z.object({
+  title: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Başlık zorunludur"),
+  text: z.string({ message: "Bu alan boş olamaz" }).min(1, "Metin zorunludur"),
+  buttonTitle: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Buton başlığı zorunludur"),
+  buttonLink: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Link zorunludur"),
+  imageFile: z
+    .array(z.instanceof(File))
+    .length(1, "Bir adet fotoğraf eklemelisiniz")
+    .superRefine((files, ctx) => {
+      if (!files || files.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Bir fotoğraf eklemelisiniz",
+        });
+      }
+      if (files.length > 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Sadece bir fotoğraf yükleyebilirsiniz",
+        });
+      }
+      files.forEach((file) => {
+        if (file.size >= MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+          });
+        }
+
+        const SUPPORTED_FORMATS = [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+          "video/mp4",
+        ];
+
+        if (!SUPPORTED_FORMATS.includes(file.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+          });
+        }
+      });
+    }),
+});
+export type AddHeroSchemaType = z.infer<typeof AddHeroSchema>;
+export const EditHeroSchema = z.object({
+  title: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Başlık zorunludur"),
+  text: z.string({ message: "Bu alan boş olamaz" }).min(1, "Metin zorunludur"),
+  buttonTitle: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Buton başlığı zorunludur"),
+  buttonLink: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, "Link zorunludur"),
+  imageFile: z
+    .optional(z.array(z.instanceof(File)))
+    .superRefine((files, ctx) => {
+      // Eğer files null/undefined veya boş array ise kontrol etme
+      if (!files || files.length === 0) return;
+
+      files.forEach((file) => {
+        if (file.size >= MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+          });
+        }
+        const SUPPORTED_FORMATS = [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+          "video/mp4",
+        ];
+        if (!SUPPORTED_FORMATS.includes(file.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+          });
+        }
+      });
+    }),
+});
+export type EditHeroSchemaType = z.infer<typeof EditHeroSchema>;

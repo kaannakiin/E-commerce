@@ -1,8 +1,8 @@
-import path from "path";
-import fs from "fs/promises";
-import sharp from "sharp";
-import { randomUUID } from "crypto";
 import { CustomFile } from "@/types/types";
+import { randomUUID } from "crypto";
+import fs from "fs/promises";
+import path from "path";
+import sharp from "sharp";
 
 interface ProcessedImage {
   url: string;
@@ -26,10 +26,6 @@ export const RecordImgToAsset = async (
   files: File[]
 ): Promise<ProcessedImage[]> => {
   const ASSETS_DIR = path.join(process.cwd(), "assets");
-  const STORAGE_CONFIG = {
-    maxWidth: 2048,
-    quality: 80,
-  };
 
   const createdFiles: string[] = [];
 
@@ -64,7 +60,7 @@ export const RecordImgToAsset = async (
         createdFiles.push(thumbnailPath);
 
         processedImages.push({
-          url: `${fileName}`,
+          url: `${fileName.replace(/\.jpg$/, "")}`,
         });
       } catch (error) {
         console.error(`Error processing image ${file.name}:`, error);

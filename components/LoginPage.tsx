@@ -59,7 +59,6 @@ export function AuthenticationImage() {
         );
       }
       if (res.error) {
-        console.log(res);
         RegisterSetError("root", {
           message:
             typeof res.error === "string"

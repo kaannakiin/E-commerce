@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
     );
     const thumbnail = req.nextUrl.searchParams.get("thumbnail") === "true";
 
-    // URL kontrolü
     if (!url) {
       return NextResponse.json(
         {
