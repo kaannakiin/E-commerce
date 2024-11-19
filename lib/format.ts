@@ -8,6 +8,10 @@ export const formattedDate = (date: string) => {
   }).format(new Date(date));
 };
 
+export const getTurkeyTime = () => {
+  const now = new Date();
+  return new Date(now.toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }));
+};
 export const formattedPrice = (price: number) => {
   return price.toLocaleString("tr-TR", { currency: "TRY", style: "currency" });
 };

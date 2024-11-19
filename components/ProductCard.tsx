@@ -6,14 +6,17 @@ import CustomImage from "@/components/CustomImage";
 import Link from "next/link";
 import { useMediaQuery } from "@mantine/hooks";
 import { formatPrice } from "@/lib/formatter";
+import { calculatePrice } from "@/lib/calculatePrice";
 
 const ProductCard = ({ product }) => {
-  const discountedPrice = product.discount
-    ? product.price - (product.price * product.discount) / 100
-    : product.price;
+  const calculateTaxedPrice = calculatePrice(
+    product.price,
+    product.discount,
+    product.product.taxRate,
+  );
   const matches = useMediaQuery("(min-width: 56.25em)");
   return (
-    <div className="w-full flex flex-col gap-1">
+    <div className="flex w-full flex-col gap-1">
       <Carousel
         withControls={product.Image.length > 1}
         align={"start"}
@@ -27,7 +30,7 @@ const ProductCard = ({ product }) => {
         {product.Image.map((image, index) => (
           <Carousel.Slide
             key={index}
-            className="w-full aspect-[4.3/5] relative"
+            className="relative aspect-[4.3/5] w-full"
           >
             <CustomImage src={image.url} quality={21} />
           </Carousel.Slide>
@@ -35,9 +38,9 @@ const ProductCard = ({ product }) => {
       </Carousel>
       <Link
         href={`/${product.product.categories[0].slug}/${product.slug}`}
-        className="flex flex-col w-full mt-1 sm:mt-2"
+        className="mt-1 flex w-full flex-col sm:mt-2"
       >
-        <div className="w-full flex flex-row uppercase text-sm sm:text-lg md:text-xl font-thin items-center justify-between">
+        <div className="flex w-full flex-row items-center justify-between text-sm font-thin uppercase sm:text-lg md:text-xl">
           <span>{product.product.name}</span>
           {product.type === "COLOR" && (
             <span>
@@ -45,22 +48,22 @@ const ProductCard = ({ product }) => {
             </span>
           )}
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
           <span className="text-sm sm:text-base md:text-lg">
-            {formatPrice(discountedPrice)}
+            {formatPrice(calculateTaxedPrice.finalPrice)}
           </span>
           {product.discount > 0 && (
-            <span className="text-xs sm:text-sm text-gray-500 line-through">
-              {formatPrice(product.price)}
+            <span className="text-xs text-gray-500 line-through sm:text-sm">
+              {formatPrice(calculateTaxedPrice.originalPrice)}
             </span>
           )}
           {product.discount > 0 && (
-            <span className="text-xs sm:text-sm text-red-500">
-              -%{product.discount}
+            <span className="text-xs text-red-500 sm:text-sm">
+              -%{calculateTaxedPrice.discount}
             </span>
           )}
         </div>
-        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mt-1">
+        <p className="mt-1 line-clamp-2 text-xs text-gray-600 sm:text-sm">
           {product.product.shortDescription}
         </p>
       </Link>

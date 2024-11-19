@@ -30,6 +30,7 @@ const feedFeaturedProduct = cache(async () => {
           select: {
             name: true,
             description: true,
+            taxRate: true,
             categories: {
               select: {
                 slug: true,
@@ -62,8 +63,8 @@ const FeedFeaturedProducts = async () => {
   const result = await feedFeaturedProduct();
   return (
     <section className="w-full px-5 py-8">
-      <h2 className="text-2xl font-bold mb-6 text-center">En Çok Satanlar</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-7xl mx-auto ">
+      <h2 className="mb-6 text-center text-2xl font-bold">En Çok Satanlar</h2>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {result.products.map((product) => (
           <FeaturedProduct key={product.id} variant={product} />
         ))}

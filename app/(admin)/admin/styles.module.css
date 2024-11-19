@@ -1,0 +1,13 @@
+.mainContent {
+  flex: 1;
+  padding: 1.5rem;
+  padding-top: 3.5rem;
+  min-height: 100vh;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .mainContent {
+    padding-top: 1.5rem;
+  }
+}

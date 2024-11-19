@@ -11,7 +11,7 @@ import { ZodError } from "zod";
 export async function EditProduct(
   data: EditProductSchemaType,
   variantId: string,
-  productId: string
+  productId: string,
 ) {
   try {
     EditProductSchema.parse(data);
@@ -36,7 +36,7 @@ export async function EditProduct(
 
       if (data.variants[0].imageFile?.length > 0) {
         const processedImages = await RecordImgToAsset(
-          data.variants[0].imageFile
+          data.variants[0].imageFile,
         );
         images.url = processedImages.map((image) => image.url);
       }
@@ -46,6 +46,7 @@ export async function EditProduct(
         data: {
           name: data.name,
           description: data.description,
+          taxRate: data.taxPrice,
           shortDescription: data.shortDescription,
           categories: {
             set: [],

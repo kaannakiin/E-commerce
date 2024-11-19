@@ -17,8 +17,14 @@ export async function AddProduct(data: AddProductSchemaType) {
     if (!session) {
       return { error: "You are not authorized to perform this action" };
     }
-    const { name, description, shortDescription, categories, variants } =
-      AddProductSchema.parse(data);
+    const {
+      name,
+      description,
+      shortDescription,
+      categories,
+      variants,
+      taxPrice,
+    } = AddProductSchema.parse(data);
 
     const categoryCheck = await prisma.category.findMany({
       where: {
@@ -51,6 +57,7 @@ export async function AddProduct(data: AddProductSchemaType) {
         data: {
           name,
           shortDescription,
+          taxRate: taxPrice,
           description,
           categories: {
             connect: categories.map((category) => ({ id: category })),
@@ -59,7 +66,7 @@ export async function AddProduct(data: AddProductSchemaType) {
             create: await Promise.all(
               variants.map(async (variant) => {
                 const processedImages = await RecordImgToAsset(
-                  variant.imageFile
+                  variant.imageFile,
                 ).catch((error) => {
                   throw new Error(`Failed to process images: ${error.message}`);
                 });
@@ -97,7 +104,7 @@ export async function AddProduct(data: AddProductSchemaType) {
                 }
 
                 return baseVariant;
-              })
+              }),
             ),
           },
         },

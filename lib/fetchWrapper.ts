@@ -6,40 +6,62 @@ interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   status: number;
+  htmlContent?: string;
 }
+
 type RequestBody = Record<string, unknown> | FormData;
+
 const handleResponse = async <T>(
-  response: Response
+  response: Response,
 ): Promise<ApiResponse<T>> => {
   try {
     if (response.status === 204) {
       return { status: response.status };
     }
 
-    const data = await response.json();
+    // Content-Type kontrolü
+    const contentType = response.headers.get("content-type");
 
-    if (!response.ok) {
+    // HTML içeriği kontrolü
+    if (contentType?.includes("text/html")) {
+      const htmlContent = await response.text();
       return {
-        error: data.message || "Bir hata oluştu",
+        htmlContent,
         status: response.status,
       };
     }
 
+    // JSON yanıt kontrolü
+    if (contentType?.includes("application/json")) {
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          error: data.message || "Bir hata oluştu",
+          status: response.status,
+        };
+      }
+      return {
+        data,
+        status: response.status,
+      };
+    }
+
+    // Desteklenmeyen içerik tipi
     return {
-      data,
+      error: `Desteklenmeyen yanıt tipi: ${contentType}`,
       status: response.status,
     };
   } catch (error) {
+    console.error("Response handling error:", error);
     return {
       error: "İstek işlenirken bir hata oluştu",
       status: response.status,
     };
   }
 };
-
 const get = async <T>(
   url: string,
-  options?: HttpRequestOptions
+  options?: HttpRequestOptions,
 ): Promise<ApiResponse<T>> => {
   try {
     const response = await fetch(getUrl(url), {
@@ -57,7 +79,7 @@ const get = async <T>(
 const post = async <T>(
   url: string,
   data: RequestBody,
-  options?: HttpRequestOptions
+  options?: HttpRequestOptions,
 ): Promise<ApiResponse<T>> => {
   try {
     const isFormData = data instanceof FormData;
@@ -83,7 +105,7 @@ const post = async <T>(
 const put = async <T>(
   url: string,
   data: RequestBody,
-  options?: HttpRequestOptions
+  options?: HttpRequestOptions,
 ): Promise<ApiResponse<T>> => {
   try {
     const isFormData = data instanceof FormData;
@@ -108,7 +130,7 @@ const put = async <T>(
 
 const deleteRequest = async <T>(
   url: string,
-  options?: HttpRequestOptions
+  options?: HttpRequestOptions,
 ): Promise<ApiResponse<T>> => {
   try {
     const response = await fetch(getUrl(url), {

@@ -11,3 +11,15 @@ export interface CategoryFormValues {
   active: boolean;
   imageFile: File[];
 }
+export interface BasketItem {
+  id: string;
+  price: number;
+  name: string;
+  itemType: string;
+  category1: string;
+}
+export interface Bill {
+  items: BasketItem[];
+  totalPrice: number;
+  discountAmount: number;
+}

@@ -10,6 +10,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { getFeaturedProducts } from "@/actions/user/get-featured-products";
 import MenuCategory from "./MenuCategory";
+import ShoppingIcon from "./ShoppingIcon";
 
 const feedHeader = cache(async () => {
   try {
@@ -66,44 +67,35 @@ const Header = async () => {
   const { featuredProducts, data } = await feedHeader();
 
   return (
-    <header className="h-20 w-full relative ">
-      <div className="h-full max-w-[1920px] px-2 lg:px-10 mx-auto flex items-center justify-between lg:justify-between">
+    <header className="relative h-20 w-full">
+      <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between px-2 lg:justify-between lg:px-10">
         {/* LEFT SECTION - Only visible on lg and up */}
-        <div className="hidden lg:flex flex-row gap-4 items-center w-1/3">
+        <div className="hidden w-1/3 flex-row items-center gap-4 lg:flex">
           <MenuCategory categories={data} />
         </div>
 
         {/* CENTER SECTION - Logo */}
-        <div className="flex items-center h-full lg:absolute lg:left-1/2 lg:-translate-x-1/2">
-          <Link className="w-52 sm:w-72 h-full relative" href="/">
+        <div className="flex h-full items-center lg:absolute lg:left-1/2 lg:-translate-x-1/2">
+          <Link className="relative h-full w-52 sm:w-72" href="/">
             <Image
               src="/WELLNESSCLUBLOGO.svg"
               alt="Alt"
               fill
               sizes="100vw"
-              className="object-contain h-full w-full"
+              className="h-full w-full object-contain"
             />
           </Link>
         </div>
 
         {/* RIGHT SECTION */}
-        <div className="flex flex-row gap-2 lg:gap-5 items-center">
+        <div className="flex flex-row items-center gap-2 lg:gap-5">
           <SearchSpotlight featuredProducts={featuredProducts} />
           <IoMdHeartEmpty
             size={28}
-            className="lg:block hidden cursor-pointer"
+            className="hidden cursor-pointer lg:block"
           />
           <MenuUser />
-          <Indicator
-            label="0"
-            inline
-            size={16}
-            offset={2}
-            radius="lg"
-            classNames={{ indicator: "font-bold" }}
-          >
-            <HiOutlineShoppingBag className="cursor-pointer" size={28} />
-          </Indicator>
+          <ShoppingIcon />
           {/* Burger menu only visible on mobile */}
           <div className="lg:hidden">
             <BurgerMenu />
