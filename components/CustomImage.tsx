@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -12,14 +13,14 @@ const CustomImage = ({ src, quality }) => {
     src: string;
   }) => {
     const props = [`width=${width}`, `quality=${quality}`, `url=${src}`].join(
-      "&"
+      "&",
     );
     return `/api/user/asset/get-image?${props}`;
   };
   const [loading, setLoading] = useState(true);
 
   return (
-    <div className=" w-full h-full">
+    <div className="h-full w-full">
       <Image
         sizes="10px"
         fill
@@ -28,7 +29,7 @@ const CustomImage = ({ src, quality }) => {
         src={src}
         className={`${
           quality === 21 ? "object-cover" : "object-contain"
-        } h-full w-full `}
+        } h-full w-full`}
         loader={({ src }) =>
           `/api/user/asset/get-image?url=${src}&thumbnail=true`
         }

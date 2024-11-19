@@ -45,6 +45,7 @@ export default {
       if (!user) {
         return token;
       }
+      token.name = user.name + " " + user.surname;
       token.role = user.role;
       token.emailVerified = user.emailVerified;
 

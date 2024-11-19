@@ -84,7 +84,7 @@ const FilterDrawer = ({ count }) => {
   };
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 flex-row px-4 py-2">
+      <div className="flex items-center gap-4 flex-row  py-2">
         <UnstyledButton
           onClick={() => setOpen((prev) => !prev)}
           className="flex items-center gap-2"

@@ -26,9 +26,9 @@ const MenuUser = () => {
         <RiUserLine size={28} className="cursor-pointer" />
       </Menu.Target>
       {session.status !== "loading" && (
-        <Menu.Dropdown className="bg-transparent">
+        <Menu.Dropdown>
           {session.data ? (
-            <div className="w-full flex flex-col gap-2 my-2 ">
+            <div className="my-2 flex w-full flex-col gap-2">
               <Button
                 size="xs"
                 variant="subtle"
@@ -36,7 +36,7 @@ const MenuUser = () => {
                   inner: "p-0",
                   label: "w-full flex items-center gap-2",
                 }}
-                className=" hover:text-white transition-all duration-200"
+                className="transition-all duration-200 hover:text-black"
                 component={Link}
                 href={"/"}
               >
@@ -47,7 +47,7 @@ const MenuUser = () => {
               <Button
                 size="xs"
                 variant="subtle"
-                className=" hover:text-white transition-all duration-200"
+                className="transition-all duration-200 hover:text-black"
                 classNames={{
                   inner: "p-0",
                   label: "w-full flex items-center gap-2",
@@ -62,7 +62,7 @@ const MenuUser = () => {
               <Button
                 size="xs"
                 variant="subtle"
-                className=" hover:text-white transition-all duration-200"
+                className="transition-all duration-200 hover:text-black"
                 classNames={{
                   inner: "p-0",
                   label: "w-full flex items-center gap-2",
@@ -77,7 +77,7 @@ const MenuUser = () => {
               <Button
                 size="xs"
                 variant="subtle"
-                className=" hover:text-white transition-all duration-200"
+                className="transition-all duration-200 hover:text-red-500"
                 classNames={{
                   inner: "p-0",
                   label: "w-full flex items-center gap-2 ",
@@ -89,7 +89,7 @@ const MenuUser = () => {
               </Button>
             </div>
           ) : (
-            <div className="w-full flex flex-col gap-2 my-2">
+            <div className="my-2 flex w-full flex-col gap-2">
               <Button
                 radius={"sm"}
                 variant="subtle"

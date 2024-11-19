@@ -1,6 +1,6 @@
 "use client";
 import { Pagination } from "@mantine/core";
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 const SpecialPagination = ({
   totalPages,
   currentPage,
@@ -17,7 +17,7 @@ const SpecialPagination = ({
     router.replace(`${pathname}?${params.toString()}`);
   };
   return (
-    <div className="w-full flex flex-row justify-center items-center">
+    <div className="flex w-full flex-row items-center justify-center">
       <Pagination
         total={totalPages}
         value={currentPage}

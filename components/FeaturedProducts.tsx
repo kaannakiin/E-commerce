@@ -12,19 +12,20 @@ import {
 import { VariantType } from "@prisma/client";
 import Link from "next/link";
 import CustomImage from "./CustomImage";
+import { formatPrice } from "@/lib/formatter";
+import { calculatePrice } from "@/lib/calculatePrice";
 
 const FeaturedProduct = ({ variant: product }) => {
   const slides = product.Image?.map((image) => (
-    <CarouselSlide key={image.url} className="h-[300px] w-64  ">
+    <CarouselSlide key={image.url} className="h-[300px] w-64">
       <CustomImage src={image.url || "/api/placeholder/320/256"} quality={21} />
     </CarouselSlide>
   ));
-
-  const finalPrice =
-    product.discount === 0
-      ? product.price
-      : (product.price - (product.price * product.discount) / 100).toFixed(0);
-
+  const calculateTaxPrice = calculatePrice(
+    product.price,
+    product.discount,
+    product.product.taxRate,
+  );
   return (
     <Card>
       <Link
@@ -45,7 +46,7 @@ const FeaturedProduct = ({ variant: product }) => {
           </Carousel>
         </CardSection>
 
-        <Group className="w-full flex flex-col" gap={5}>
+        <Group className="flex w-full flex-col" gap={5}>
           <Text size="lg" fw={700} c="primary.8" className="w-full" mt={"xs"}>
             {product.product.name}
           </Text>
@@ -73,7 +74,7 @@ const FeaturedProduct = ({ variant: product }) => {
               {" "}
               {product.discount > 0 && (
                 <Text size="sm" td="line-through" c="dimmed">
-                  {product.price.toFixed(2)} TL
+                  {formatPrice(calculateTaxPrice.originalPrice)}
                 </Text>
               )}
               {product.discount > 0 && (
@@ -82,7 +83,7 @@ const FeaturedProduct = ({ variant: product }) => {
                 </Badge>
               )}
               <Text size="xl" fw={700} c="blue">
-                {finalPrice} TL
+                {formatPrice(calculateTaxPrice.finalPrice)}
               </Text>
             </div>
           </Group>

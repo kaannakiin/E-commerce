@@ -1,15 +1,10 @@
-import Header from "@/components/Header";
-import {
-  ColorSchemeScript,
-  MantineColorsTuple,
-  MantineProvider,
-  createTheme,
-} from "@mantine/core";
+import { ColorSchemeScript, MantineProvider, createTheme } from "@mantine/core";
 import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
 import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import "./globals.css";
-import Footer from "@/components/Footer";
+
 export const metadata: Metadata = {
   title: {
     default: "WELNESSCLUB by Oyku",
@@ -18,7 +13,8 @@ export const metadata: Metadata = {
   description:
     "WELNESSCLUB by Oyku, sağlıklı yaşam ve güzellik ürünlerini bir arada sunan bir e-ticaret platformudur. %s",
 };
-const primaryColor: MantineColorsTuple = [
+
+const primaryColor = [
   "#ecf4ff",
   "#dce4f5",
   "#b9c7e2",
@@ -29,9 +25,9 @@ const primaryColor: MantineColorsTuple = [
   "#44639f",
   "#3a5890",
   "#2c4b80",
-];
+] as const;
 
-const secondaryColor: MantineColorsTuple = [
+const secondaryColor = [
   "#fcf9e9",
   "#f6f0d9",
   "#ebe0b2",
@@ -42,7 +38,8 @@ const secondaryColor: MantineColorsTuple = [
   "#b59c31",
   "#a18a28",
   "#8b771b",
-];
+] as const;
+
 const theme = createTheme({
   fontFamily: "Open Sans, sans-serif",
   colors: {
@@ -52,6 +49,7 @@ const theme = createTheme({
   primaryColor: "primary",
   cursorType: "pointer",
 });
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -65,9 +63,7 @@ export default function RootLayout({
       <body>
         <SessionProvider>
           <MantineProvider forceColorScheme="light" theme={theme}>
-            <Header />
-            <main className="min-h-[700px]">{children}</main>
-            <Footer />
+            {children}
           </MantineProvider>
         </SessionProvider>
       </body>
