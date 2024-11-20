@@ -1,5 +1,6 @@
 "use client";
 import { DeleteProduct } from "@/actions/admin/products/delete-product/DeleteProduct";
+import SearchInput from "@/components/SearchBar";
 import {
   Button,
   ColorSwatch,
@@ -12,9 +13,10 @@ import {
   Tooltip,
   UnstyledButton,
 } from "@mantine/core";
+import { useDebouncedCallback } from "@mantine/hooks";
 import { VariantType } from "@prisma/client";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
   BiEdit,
@@ -57,13 +59,11 @@ const PriceDisplay = ({ price, discount }) => {
 };
 
 const TableProducts = ({ products, totalPages, currentPage }) => {
-  const [searchValue, setSearchValue] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const params = useSearchParams();
-
   const handlePagination = (newPage: number) => {
     const current = new URLSearchParams(Array.from(params.entries()));
     current.set("page", newPage.toString());
@@ -106,22 +106,9 @@ const TableProducts = ({ products, totalPages, currentPage }) => {
   return (
     <ScrollArea>
       <div className="flex w-full flex-row gap-5">
-        <TextInput
+        <SearchInput
           className="w-1/4"
-          placeholder="Ürün arayın"
-          size="sm"
-          value={searchValue}
-          onChange={(event) => setSearchValue(event.currentTarget.value)}
-          rightSection={
-            searchValue && (
-              <UnstyledButton
-                component={Link}
-                href={"/admin/urunler?search=" + searchValue}
-              >
-                <FaSearch />
-              </UnstyledButton>
-            )
-          }
+          placeholder="Ürün Adı ile arama yapabilirsiniz..."
         />
         <Menu
           shadow="lg"

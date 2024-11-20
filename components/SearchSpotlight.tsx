@@ -15,6 +15,7 @@ import { useDebouncedCallback } from "@mantine/hooks";
 import "@mantine/spotlight/styles.css";
 import { SearchProductForSpotlight } from "@/actions/user/search-product-for-spotlight";
 import { formatPrice } from "@/lib/formatter";
+import { calculatePrice } from "@/lib/calculatePrice";
 
 const SearchSpotlight = ({ featuredProducts }) => {
   const [query, setQuery] = React.useState("");
@@ -33,17 +34,18 @@ const SearchSpotlight = ({ featuredProducts }) => {
 
       const transformedData = response.data.flatMap((product) =>
         product.Variant.map((variant) => ({
-          slug: variant.slug,
+          slug: product.categories[0].slug + "/" + variant.slug,
           product: {
             name: product.name,
             shortDescription: product.shortDescription,
+            taxRate: product.taxRate,
           },
           price: variant.price,
           discount: variant.discount || 0,
           type: variant.type,
           value: variant.value,
           Image: variant.Image,
-        }))
+        })),
       );
 
       return transformedData;
@@ -83,64 +85,79 @@ const SearchSpotlight = ({ featuredProducts }) => {
 
   const currentProducts =
     searchResults === null ? featuredProducts : searchResults;
-  const spotlightItems = currentProducts.map((item) => ({
-    id: item.slug,
-    label: item.product.name,
-    description: item.product.shortDescription,
-    onClick: () => (window.location.href = `/products/${item.slug}`),
-    render: () => (
-      <Group justify="space-between" p="md" className="hover:bg-gray-50 w-full">
-        <Group gap="md">
-          <div className="w-20 h-20 relative">
-            <CustomImage
-              src={item.Image[0].url.replace(/\.[^/.]+$/, "")}
-              quality={50}
-            />
-          </div>
-          <Stack gap="xs">
-            <Text fw={500} size="sm" className="text-gray-900">
-              {item.product.name}
-            </Text>
-            <Text size="xs" c="dimmed" className="line-clamp-1">
-              {item.product.shortDescription}
-            </Text>
-            {item.type === "COLOR" && (
-              <Group gap="xs">
-                <Text size="xs" c="dimmed">
-                  Renk:
+  const spotlightItems = currentProducts.map((item) => {
+    const priceCalculation = calculatePrice(
+      item.price,
+      item.discount,
+      item.product.taxRate,
+    );
+    return {
+      id: item.slug,
+      label: item.product.name,
+      description: item.product.shortDescription,
+      onClick: () => (window.location.href = `/${item.slug}`),
+      render: () => (
+        <Group
+          justify="space-between"
+          p="md"
+          className="w-full hover:bg-gray-50"
+        >
+          <Group gap="md" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+            <div className="relative h-20 w-20 flex-shrink-0">
+              <CustomImage
+                src={item.Image[0].url.replace(/\.[^/.]+$/, "")}
+                objectFit="contain"
+                quality={20}
+              />
+            </div>
+            <Stack gap="xs" style={{ minWidth: 0, flex: 1, maxWidth: "60%" }}>
+              <Text fw={500} size="sm" className="truncate text-gray-900">
+                {item.product.name}
+              </Text>
+              <div className="max-w-full">
+                <Text
+                  size="xs"
+                  c="dimmed"
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {item.product.shortDescription}
                 </Text>
-                <ColorSwatch color={item.value} size={20} />
-              </Group>
+              </div>
+              {item.type === "COLOR" && (
+                <Group gap="xs">
+                  <Text size="xs" c="dimmed">
+                    Renk:
+                  </Text>
+                  <ColorSwatch color={item.value} size={20} />
+                </Group>
+              )}
+            </Stack>
+          </Group>
+          <Stack gap="xs" align="flex-end" className="ml-4 flex-shrink-0">
+            <Text size="sm" fw={700}>
+              {formatPrice(priceCalculation.finalPrice)}
+            </Text>
+            {item.discount > 0 && (
+              <>
+                <Text size="sm" td="line-through" c="dimmed">
+                  {formatPrice(priceCalculation.originalPrice)}
+                </Text>
+                <Badge color="red" variant="light">
+                  %{priceCalculation.discount} İndirim
+                </Badge>
+              </>
             )}
           </Stack>
         </Group>
-        <Stack gap="xs" align="flex-end">
-          {item.discount > 0 ? (
-            <>
-              <Badge color="red" variant="light">
-                %{item.discount} İndirim
-              </Badge>
-              <Group gap="xs">
-                <Text size="sm" td="line-through" c="dimmed">
-                  {formatPrice(item.price)}
-                </Text>
-                <Text size="sm" fw={700} c="red">
-                  {formatPrice(
-                    (item.price - (item.price * item.discount) / 100).toFixed(2)
-                  )}{" "}
-                  TL
-                </Text>
-              </Group>
-            </>
-          ) : (
-            <Text size="sm" fw={700}>
-              {formatPrice(item.price)}
-            </Text>
-          )}
-        </Stack>
-      </Group>
-    ),
-  }));
+      ),
+    };
+  });
+
   return (
     <>
       <IoSearchOutline
@@ -148,7 +165,18 @@ const SearchSpotlight = ({ featuredProducts }) => {
         className="cursor-pointer"
         onClick={() => spotlight.open()}
       />
-      <Spotlight.Root>
+      <Spotlight.Root
+        styles={{
+          action: {
+            "&[data-selected]": {
+              backgroundColor: "transparent", // Seçili durumda bg'yi kaldırır
+            },
+            "&:hover": {
+              backgroundColor: "transparent", // Hover durumunda bg'yi kaldırır
+            },
+          },
+        }}
+      >
         <Spotlight.Search
           onChange={(event) => handleSearch(event.currentTarget.value)}
           placeholder="Ürün ara"

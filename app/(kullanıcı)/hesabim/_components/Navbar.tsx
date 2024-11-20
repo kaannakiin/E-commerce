@@ -87,12 +87,12 @@ const Navbar = ({ session }) => {
           <Button
             variant="light"
             component={Link}
-            href={"/hesabim/begendigim-urunler"}
+            href={"/hesabim/favoriler"}
             leftSection={<CiHeart />}
             className="transition-colors duration-200 hover:bg-pink-50"
             fullWidth
           >
-            Beğendiğim Ürünler
+            Favorilerim{" "}
           </Button>
         </Stack>
       </Paper>

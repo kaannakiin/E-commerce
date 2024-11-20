@@ -1,25 +1,14 @@
-import { Group, Select, TextInput } from "@mantine/core";
+import SearchInput from "@/components/SearchBar";
+import { Group, Select } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
-import { useDebouncedCallback } from "@mantine/hooks";
 import { OrderStatus } from "@prisma/client";
 import "dayjs/locale/tr";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React from "react";
-import { FaSearch } from "react-icons/fa";
 
 const OrderSearchHeader = () => {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const inputOnChange = useDebouncedCallback((e) => {
-    const newParams = new URLSearchParams(params.toString());
-    if (e) {
-      newParams.set("search", e.trim());
-    } else {
-      newParams.delete("search");
-    }
-    router.replace(`${pathname}?${newParams.toString()}`);
-  }, 800);
 
   const dateOnChange = (dates: [Date | null, Date | null]) => {
     const newParams = new URLSearchParams(params.toString());
@@ -56,22 +45,9 @@ const OrderSearchHeader = () => {
       style={{ backgroundColor: "white" }}
       className="w-full"
     >
-      <TextInput
-        placeholder="Sipariş numarası, müşteri adı, e-posta"
-        rightSection={<FaSearch size={14} />}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          inputOnChange(e.currentTarget.value);
-        }}
-        styles={{
-          input: {
-            backgroundColor: "#f8f9fa",
-            border: "none",
-            "&:focus": {
-              border: "1px solid #228be6",
-            },
-          },
-        }}
-        className="lg:w-1/3"
+      <SearchInput
+        className="w-1/4"
+        placeholder="Sipariş Numarası ile arama yapabilirsiniz."
       />
       <div className="flex flex-col justify-end gap-5 lg:flex-1 lg:flex-row">
         <DatePickerInput

@@ -22,6 +22,12 @@ export const SearchProductForSpotlight = async (query: string) => {
       select: {
         name: true,
         shortDescription: true,
+        taxRate: true,
+        categories: {
+          select: {
+            slug: true,
+          },
+        },
         Variant: {
           where: {
             isPublished: true,
@@ -46,7 +52,7 @@ export const SearchProductForSpotlight = async (query: string) => {
     });
 
     const productsWithVariants = products.filter(
-      (product) => product.Variant.length > 0
+      (product) => product.Variant.length > 0,
     );
 
     // Check if any products were found

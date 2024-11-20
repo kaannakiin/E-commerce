@@ -32,9 +32,9 @@ export default {
   },
   callbacks: {
     async session({ session, token }) {
-      session.user.emailVerified = token.emailVerified as boolean;
-
       if (token && session.user) {
+        session.user.emailVerified = token.emailVerified as boolean;
+        session.user.id = token.sub;
         session.user.role = token.role as Role;
       }
       return session;
@@ -48,8 +48,22 @@ export default {
       token.name = user.name + " " + user.surname;
       token.role = user.role;
       token.emailVerified = user.emailVerified;
-
+      token.sub = user.id; // User ID'sini token'a ekle
       return token;
+    },
+    async redirect({ url, baseUrl }) {
+      // callbackUrl'den basePath'i temizle
+      const cleanUrl = url.replace(/^https?:\/\/[^\/]+/, "");
+
+      if (cleanUrl.startsWith("/")) {
+        return cleanUrl; // Direkt path'i döndür
+      }
+
+      if (url.startsWith(baseUrl)) {
+        return url.slice(baseUrl.length);
+      }
+
+      return "/";
     },
   },
   adapter: PrismaAdapter(prisma),

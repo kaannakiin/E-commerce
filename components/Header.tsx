@@ -1,16 +1,15 @@
-import { Divider, Indicator } from "@mantine/core";
+import { prisma } from "@/lib/prisma";
+import { Divider } from "@mantine/core";
 import Image from "next/image";
 import Link from "next/link";
-import { HiOutlineShoppingBag } from "react-icons/hi2";
-import { IoMdHeartEmpty } from "react-icons/io";
-import SearchSpotlight from "./SearchSpotlight";
-import BurgerMenu from "./BurgerMenu";
-import MenuUser from "./MenuUser";
 import { cache } from "react";
-import { prisma } from "@/lib/prisma";
-import { getFeaturedProducts } from "@/actions/user/get-featured-products";
+import { IoMdHeartEmpty } from "react-icons/io";
+import BurgerMenu from "./BurgerMenu";
 import MenuCategory from "./MenuCategory";
+import MenuUser from "./MenuUser";
+import SearchSpotlight from "./SearchSpotlight";
 import ShoppingIcon from "./ShoppingIcon";
+import { auth } from "@/auth";
 
 const feedHeader = cache(async () => {
   try {
@@ -23,7 +22,9 @@ const feedHeader = cache(async () => {
         slug: true,
       },
     });
-    const featuredProducts = await prisma.variant.findMany({
+
+    // Önce variant'ları al
+    const variants = await prisma.variant.findMany({
       where: {
         isPublished: true,
         isSpotlightFeatured: true,
@@ -44,12 +45,34 @@ const feedHeader = cache(async () => {
         product: {
           select: {
             name: true,
+            categories: {
+              select: {
+                slug: true,
+              },
+            },
+            taxRate: true,
             shortDescription: true,
           },
         },
       },
       take: 10,
     });
+
+    // Sonra verileri transform et
+    const featuredProducts = variants.map((variant) => ({
+      slug: variant.product.categories[0].slug + "/" + variant.slug,
+      product: {
+        name: variant.product.name,
+        shortDescription: variant.product.shortDescription,
+        taxRate: variant.product.taxRate,
+      },
+      price: variant.price,
+      discount: variant.discount || 0,
+      type: variant.type,
+      value: variant.value,
+      Image: variant.Image,
+    }));
+
     return {
       data,
       featuredProducts,
@@ -65,7 +88,11 @@ const feedHeader = cache(async () => {
 
 const Header = async () => {
   const { featuredProducts, data } = await feedHeader();
-
+  const session = await auth();
+  const isUser = session?.user ? true : false;
+  const favoritesUrl = isUser
+    ? "/hesabim/favoriler"
+    : "/giris?callbackUrl=/hesabim/favoriler";
   return (
     <header className="relative h-20 w-full">
       <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between px-2 lg:justify-between lg:px-10">
@@ -90,11 +117,15 @@ const Header = async () => {
         {/* RIGHT SECTION */}
         <div className="flex flex-row items-center gap-2 lg:gap-5">
           <SearchSpotlight featuredProducts={featuredProducts} />
-          <IoMdHeartEmpty
-            size={28}
-            className="hidden cursor-pointer lg:block"
-          />
-          <MenuUser />
+          <Link href={favoritesUrl}>
+            {" "}
+            <IoMdHeartEmpty
+              size={28}
+              className="hidden cursor-pointer lg:block"
+            />
+          </Link>
+
+          <MenuUser isUser={isUser} />
           <ShoppingIcon />
           {/* Burger menu only visible on mobile */}
           <div className="lg:hidden">

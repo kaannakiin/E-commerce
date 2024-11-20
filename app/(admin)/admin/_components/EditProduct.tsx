@@ -19,6 +19,7 @@ import {
   ColorInput,
   NativeSelect,
   NumberInput,
+  Switch,
   TagsInput,
   Text,
   Textarea,
@@ -64,6 +65,7 @@ const EditProduct = ({ product, categories }) => {
           discount: product.discount,
           stock: product.stock,
           value: product.value,
+          isSpotlightPublished: product.isSpotlightFeatured,
           active: product.isPublished,
           unit: product.unit,
           imageFile: [],
@@ -81,7 +83,7 @@ const EditProduct = ({ product, categories }) => {
           type: "success",
         });
         reset();
-        router.refresh();
+        router.push("/admin/urunler");
       } else {
         setDialogState({
           isOpen: true,
@@ -188,6 +190,13 @@ const EditProduct = ({ product, categories }) => {
         <div className="flex-1 flex-col p-5">
           <div className="flex flex-col gap-4 rounded-lg p-5">
             <h1 className="mb-2 text-lg text-gray-700">Genel Bilgiler</h1>
+            <Switch
+              {...register("variants.0.isSpotlightPublished")}
+              onLabel="Aktif"
+              size="lg"
+              offLabel="Pasif"
+              description="Arama Çubuğunda göstermek için açabilirsiniz. Maksimum 10 ürün gösterilir."
+            />
             <TextInput
               label="Ürün Adı"
               {...register("name")}

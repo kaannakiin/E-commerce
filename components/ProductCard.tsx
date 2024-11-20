@@ -1,71 +1,184 @@
 "use client";
+import { CategoryVariant } from "@/app/(kullanıcı)/(kategoriler)/[slug]/page";
+import { AddFavorite } from "@/app/(kullanıcı)/(kategoriler)/_actions/ProductAction";
+import CustomImage from "@/components/CustomImage";
+import { calculatePrice } from "@/lib/calculatePrice";
+import { formatPrice } from "@/lib/formatter";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { ColorSwatch } from "@mantine/core";
-import CustomImage from "@/components/CustomImage";
-import Link from "next/link";
+import { ActionIcon, ColorSwatch, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { formatPrice } from "@/lib/formatter";
-import { calculatePrice } from "@/lib/calculatePrice";
+import { VariantType } from "@prisma/client";
+import { signIn } from "next-auth/react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { LiaTimesSolid } from "react-icons/lia";
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({
+  product,
+  isFavorited = false,
+}: {
+  product: CategoryVariant;
+  isFavorited: boolean;
+}) => {
   const calculateTaxedPrice = calculatePrice(
     product.price,
     product.discount,
     product.product.taxRate,
   );
+  console.log("Product Debug:", {
+    type: product.type,
+    typeType: typeof product.type,
+    enumValues: VariantType,
+    checkColor: VariantType.COLOR,
+    isColorMatch: product.type === VariantType.COLOR,
+    value: product.value,
+    rawProduct: product,
+  });
   const matches = useMediaQuery("(min-width: 56.25em)");
+  const [isFave, setIsFave] = useState(isFavorited);
+  const pathname = usePathname();
+  const isInFavoritesPage = pathname === "/hesabim/favoriler";
+  const onClickHeart = async (slug: string) => {
+    await AddFavorite(product.id, slug).then(async (res) => {
+      if (res.success) {
+        setIsFave(!isFave);
+      }
+      if (res.isMustLogin) {
+        await signIn(undefined, {
+          redirectTo: `/${product.product.categories[0].slug}/${product.slug}`,
+          redirect: true,
+        });
+      }
+    });
+  };
   return (
-    <div className="flex w-full flex-col gap-1">
-      <Carousel
-        withControls={product.Image.length > 1}
-        align={"start"}
-        classNames={{
-          root: "group",
-          controls: matches
-            ? "opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out top-1/2 -translate-y-1/2"
-            : "top-1/2 -translate-y-1/2",
-        }}
-      >
-        {product.Image.map((image, index) => (
-          <Carousel.Slide
-            key={index}
-            className="relative aspect-[4.3/5] w-full"
-          >
-            <CustomImage src={image.url} quality={21} />
-          </Carousel.Slide>
-        ))}
-      </Carousel>
+    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-500 hover:shadow-xl">
+      {/* Image Container */}
+      <div className="relative aspect-[3/4] w-full">
+        <Carousel
+          withControls={product.Image.length > 1}
+          align="start"
+          loop
+          styles={{
+            root: { height: "100%" },
+            viewport: { height: "100%" },
+            container: { height: "100%" },
+            slide: { height: "100%" },
+          }}
+          classNames={{
+            controls: matches
+              ? "opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out top-1/2 -translate-y-1/2"
+              : "top-1/2 -translate-y-1/2",
+            control:
+              "bg-white/80 backdrop-blur-sm hover:bg-white border-none shadow-md",
+          }}
+        >
+          {product.Image.map((image, index) => (
+            <Carousel.Slide key={index}>
+              <div className="relative h-full w-full overflow-hidden">
+                <div className="relative h-full w-full transform transition-transform duration-500 group-hover:scale-105">
+                  <CustomImage
+                    src={image.url}
+                    quality={21}
+                    priority={index === 0}
+                    objectFit="contain"
+                    alt={product.product.name}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+              </div>
+            </Carousel.Slide>
+          ))}
+        </Carousel>
+
+        {/* Hover Overlay with Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+        {/* Discount Badge */}
+        {product.discount > 0 && (
+          <div className="absolute left-4 top-4 z-20 rounded-xl bg-red-500/90 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm">
+            -%{calculateTaxedPrice.discount}
+          </div>
+        )}
+
+        {/* Favorite Button */}
+        <ActionIcon
+          onClick={() =>
+            onClickHeart(
+              `/${product.product.categories[0].slug}/${product.slug}`,
+            )
+          }
+          className={`absolute right-4 top-4 z-20 ${isInFavoritesPage ? "h-4 w-4" : "h-11 w-11"} rounded-full bg-white/80 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white`}
+        >
+          {isInFavoritesPage ? (
+            <LiaTimesSolid className="h-4 w-4 font-bold text-gray-700 transition-colors duration-300 hover:text-red-500" />
+          ) : isFave ? (
+            <FaHeart className="text-xl text-red-500" />
+          ) : (
+            <FaRegHeart className="text-xl text-gray-700 transition-colors duration-300 group-hover:text-red-500" />
+          )}
+        </ActionIcon>
+      </div>
+
+      {/* Product Info */}
       <Link
         href={`/${product.product.categories[0].slug}/${product.slug}`}
-        className="mt-1 flex w-full flex-col sm:mt-2"
+        className="flex flex-1 flex-col p-5 transition-all duration-300"
       >
-        <div className="flex w-full flex-row items-center justify-between text-sm font-thin uppercase sm:text-lg md:text-xl">
-          <span>{product.product.name}</span>
-          {product.type === "COLOR" && (
-            <span>
-              <ColorSwatch size="sm" color={product.value} />
-            </span>
+        <div className="mb-2 flex items-start justify-between gap-4">
+          <h3 className="text-lg font-medium text-gray-900 group-hover:text-gray-700">
+            {product.product.name}
+          </h3>
+          {product.type === VariantType.COLOR && (
+            <div className="relative flex items-center">
+              <ColorSwatch size={30} color={product.value} withShadow={false} />
+            </div>
+          )}
+
+          {product.type === VariantType.SIZE && (
+            <div className="flex items-center">
+              <Text size="sm" c="dimmed">
+                Beden: <span className="font-medium">{product.value}</span>
+              </Text>
+            </div>
+          )}
+
+          {product.type === VariantType.WEIGHT && (
+            <div className="flex items-center">
+              <Text size="sm" c="dimmed">
+                Ağırlık:{" "}
+                <span className="font-medium">
+                  {product.value} {product.unit}
+                </span>
+              </Text>
+            </div>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm sm:text-base md:text-lg">
-            {formatPrice(calculateTaxedPrice.finalPrice)}
-          </span>
-          {product.discount > 0 && (
-            <span className="text-xs text-gray-500 line-through sm:text-sm">
-              {formatPrice(calculateTaxedPrice.originalPrice)}
+
+        <p className="mb-4 line-clamp-2 text-sm text-gray-500 group-hover:text-gray-600">
+          {product.product.shortDescription}
+        </p>
+
+        <div className="mt-auto flex items-center justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-semibold text-gray-900">
+              {formatPrice(calculateTaxedPrice.finalPrice)}
             </span>
-          )}
+            {product.discount > 0 && (
+              <span className="text-sm text-gray-500 line-through">
+                {formatPrice(calculateTaxedPrice.originalPrice)}
+              </span>
+            )}
+          </div>
           {product.discount > 0 && (
-            <span className="text-xs text-red-500 sm:text-sm">
+            <span className="rounded-lg bg-red-100/80 px-2 py-1 text-sm font-medium text-red-600">
               -%{calculateTaxedPrice.discount}
             </span>
           )}
         </div>
-        <p className="mt-1 line-clamp-2 text-xs text-gray-600 sm:text-sm">
-          {product.product.shortDescription}
-        </p>
       </Link>
     </div>
   );

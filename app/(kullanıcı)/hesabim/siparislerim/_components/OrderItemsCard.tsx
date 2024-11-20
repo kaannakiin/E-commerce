@@ -1,10 +1,9 @@
 "use client";
+import AddToCartButton from "@/components/AddToCartButton";
 import CustomImage from "@/components/CustomImage";
-import { OrderItems } from "../page";
 import { calculatePrice } from "@/lib/calculatePrice";
 import { formatPrice } from "@/lib/formatter";
-import AddToCartButton from "@/components/AddToCartButton";
-import { Group, Text, ColorSwatch } from "@mantine/core";
+import { OrderItems } from "../page";
 
 const OrderItemsCard = ({ order }: { order: OrderItems[] }) => {
   return (
