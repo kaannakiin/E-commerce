@@ -1,6 +1,4 @@
 "use server";
-
-import { isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { RecordImgToAsset } from "@/lib/recordImage";
 import { slugify } from "@/utils/slugify";
@@ -13,10 +11,6 @@ import { ZodError } from "zod";
 
 export async function AddProduct(data: AddProductSchemaType) {
   try {
-    const session = await isAdmin();
-    if (!session) {
-      return { error: "You are not authorized to perform this action" };
-    }
     const {
       name,
       description,

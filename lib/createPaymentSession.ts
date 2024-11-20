@@ -1,23 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
 import { prisma } from "./prisma";
-function processData(data) {
-  const groupedByID = new Map();
-
-  data.forEach((item) => {
-    if (groupedByID.has(item.id)) {
-      const existingItem = groupedByID.get(item.id);
-      existingItem.quantity = (existingItem.quantity || 1) + 1;
-      groupedByID.set(item.id, existingItem);
-    } else {
-      groupedByID.set(item.id, {
-        ...item,
-        quantity: 1,
-      });
-    }
-  });
-
-  return Array.from(groupedByID.values());
-}
 
 export async function createPaymentSession(data, bill, discountCode) {
   try {

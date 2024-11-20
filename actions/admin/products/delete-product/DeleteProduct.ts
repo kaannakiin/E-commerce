@@ -1,17 +1,10 @@
 "use server";
 
-import { isAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import path from "path";
-import fs from "fs/promises";
-import { Prisma } from "@prisma/client";
 import { DeleteImage } from "@/lib/deleteImageFile";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 export async function DeleteProduct(variantId: string) {
   try {
-    const adminCheck = await isAdmin();
-    if (!adminCheck) {
-      return { message: "Unauthorized", status: 403 };
-    }
     if (!variantId) {
       return { message: "Variant ID gereklidir", status: 400 };
     }
@@ -43,14 +36,14 @@ export async function DeleteProduct(variantId: string) {
         });
 
         await Promise.all(
-          existingVariant.Image.map((image) => DeleteImage(image.url))
+          existingVariant.Image.map((image) => DeleteImage(image.url)),
         );
       }
 
       if (existingVariant.product.Variant.length === 1) {
         // Tüm ürüne ait resimleri sil
         const allImages = existingVariant.product.Variant.flatMap(
-          (v) => v.Image
+          (v) => v.Image,
         );
         await Promise.all(allImages.map((image) => DeleteImage(image.url)));
 
