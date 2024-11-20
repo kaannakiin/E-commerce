@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import EmptyStateProduct from "@/components/EmptyStateProduct";
 import FilterDrawer from "@/components/FilterDrawer";
 import SpecialPagination from "@/components/Pagination";
@@ -10,7 +11,7 @@ import { notFound } from "next/navigation";
 import { cache, Fragment } from "react";
 
 // Types
-interface CategoryVariant {
+export interface CategoryVariant {
   id: string;
   type: VariantType;
   value: string;
@@ -19,9 +20,11 @@ interface CategoryVariant {
   discount: number;
   stock: number;
   createdAt: Date;
+  unit?: string;
   product: {
     name: string;
     shortDescription: string;
+    taxRate: number;
     categories: {
       name: string;
       slug: string;
@@ -200,7 +203,17 @@ const feedCat = cache(
     }
   },
 );
+const getFavorites = cache(async (userId: string | undefined) => {
+  if (!userId) return [];
 
+  return prisma.favoriteVariants.findMany({
+    where: {
+      userId,
+      deletedAt: null, // Sadece silinmemiş favorileri getir
+    },
+    select: { variantId: true },
+  });
+});
 // Schema Generator
 const generateSchemaOrg = (
   category: CategoryInfo | null,
@@ -301,7 +314,24 @@ export async function generateMetadata(
     },
   };
 }
-
+type ProductType = {
+  id: string;
+  type: string;
+  value: string;
+  price: number;
+  slug: string;
+  discount: number;
+  stock: number;
+  createdAt: Date;
+  product: {
+    name: string;
+    taxRate: number;
+    shortDescription: string;
+    categories: Array<{ name: string; slug: string }>;
+  };
+  Image: Array<{ url: string }>;
+  unit?: string;
+};
 // Main Page Component
 const page = async (props: { params: Params; searchParams: SearchParams }) => {
   const params = await props.searchParams;
@@ -311,7 +341,6 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
   const minPrice = parseInt(params.minPrice as string, 10) || 0;
   const maxPrice = parseInt(params.maxPrice as string, 10) || 10000;
   const slug = (await props.params).slug;
-
   // Category existence check
   const categoryCheck = await checkCategory(slug);
   if (!categoryCheck) {
@@ -342,7 +371,9 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
     response.categoryVariants,
     baseUrl,
   );
-
+  const session = await auth();
+  const favorites = await getFavorites(session?.user?.id);
+  const favoriteIds = favorites.map((f) => f.variantId);
   return (
     <Fragment>
       <script
@@ -359,7 +390,11 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
           {response.count > 0 ? (
             <div className="grid w-full grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
               {response.categoryVariants.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isFavorited={favoriteIds.includes(product.id)}
+                />
               ))}
             </div>
           ) : (

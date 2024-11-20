@@ -417,6 +417,7 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
                           <CustomImage
                             src={item.variant.Image[0].url}
                             quality={20}
+                            objectFit="contain"
                           />
                         </div>
                       )}

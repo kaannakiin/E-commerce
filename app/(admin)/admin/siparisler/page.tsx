@@ -5,7 +5,6 @@ import OrderTable from "./_components/OrderTable";
 const feedOrderPage = async (
   skip: number,
   limit: number,
-  orderNumber?: string,
   startDate?: string,
   endDate?: string,
   search?: string,
@@ -19,7 +18,6 @@ const feedOrderPage = async (
 
   // Where koşullarını ayrı oluşturalım
   const whereConditions: Prisma.OrderWhereInput = {
-    ...(orderNumber && { orderNumber: { contains: orderNumber } }),
     ...(status && { orderStatus: status }),
     ...(search && {
       OR: [
@@ -108,7 +106,6 @@ const OrderPage = async (props: {
   const page = parseInt(searchParams.page as string, 10) || 1;
   const limit = parseInt(searchParams.limit as string, 10) || 10;
   const skip = (page - 1) * limit;
-  const orderNumber = (searchParams.orderNumber as string) || "";
   const startDate = (searchParams.startDate as string) || "";
   const endDate = (searchParams.endDate as string) || "";
   const search = (searchParams.search as string) || "";
@@ -116,7 +113,6 @@ const OrderPage = async (props: {
   const { orders, totalOrders, totalPages } = await feedOrderPage(
     skip,
     limit,
-    orderNumber,
     startDate,
     endDate,
     search,

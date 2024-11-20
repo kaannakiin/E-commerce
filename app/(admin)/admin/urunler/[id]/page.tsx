@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import EditProduct from "../../_components/EditProduct";
+import { Prisma } from "@prisma/client";
 
 const page = async (props) => {
   const params = await props.params;
@@ -30,12 +31,14 @@ const page = async (props) => {
     if (product === null) {
       return notFound();
     }
+
     const categories = await prisma.category.findMany({
       select: {
         id: true,
         name: true,
       },
     });
+
     return { product, categories };
   };
   const { product, categories } = await feed();

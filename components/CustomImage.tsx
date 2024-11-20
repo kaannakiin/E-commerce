@@ -2,8 +2,30 @@
 import Image from "next/image";
 import { useState } from "react";
 
-const CustomImage = ({ src, quality }) => {
-  const loader = ({
+type CustomImageProps = {
+  src: string;
+  quality?: number;
+  priority?: boolean;
+  alt?: string;
+  sizes?: string;
+  className?: string;
+  objectFit?: "cover" | "contain";
+  onLoad?(): void;
+};
+
+const CustomImage = ({
+  src,
+  quality = 75,
+  priority = false,
+  alt = "Image",
+  sizes = "100vw",
+  className = "",
+  objectFit = "cover",
+  onLoad,
+}: CustomImageProps) => {
+  const [loading, setLoading] = useState(true);
+
+  const baseLoader = ({
     width,
     quality,
     src,
@@ -17,36 +39,49 @@ const CustomImage = ({ src, quality }) => {
     );
     return `/api/user/asset/get-image?${props}`;
   };
-  const [loading, setLoading] = useState(true);
+
+  const thumbnailLoader = ({ src }: { src: string }) => {
+    return `/api/user/asset/get-image?url=${src}&thumbnail=true`;
+  };
+
+  const handleImageLoad = () => {
+    setLoading(false);
+    onLoad?.();
+  };
+
+  const imageClassName = `
+    absolute 
+    inset-0 
+    h-full 
+    w-full 
+    ${objectFit === "cover" ? "object-cover" : "object-contain"}
+    ${className}
+  `.trim();
 
   return (
-    <div className="h-full w-full">
+    <div className="relative h-full w-full">
+      {/* Düşük kaliteli thumbnail */}
       <Image
+        fill
+        src={src}
+        alt={alt}
+        priority={priority}
         sizes="10px"
-        fill
-        priority
-        alt="Thumbnail"
-        src={src}
-        className={`${
-          quality === 21 ? "object-cover" : "object-contain"
-        } h-full w-full`}
-        loader={({ src }) =>
-          `/api/user/asset/get-image?url=${src}&thumbnail=true`
-        }
+        className={` ${imageClassName} ${!loading ? "opacity-0" : "opacity-100"} transition-opacity duration-200 ease-in-out`}
+        loader={thumbnailLoader}
       />
+
+      {/* Yüksek kaliteli asıl görsel */}
       <Image
         fill
-        sizes="100vw"
-        alt="Thumbnail"
-        quality={quality}
-        className={`${
-          quality === 21 ? "object-cover" : "object-contain"
-        } h-full w-full transition-opacity duration-150 ease-in-out ${
-          loading ? "opacity-0" : "opacity-100"
-        }`}
         src={src}
-        loader={loader}
-        onLoad={() => setLoading(false)}
+        alt={alt}
+        sizes={sizes}
+        quality={quality}
+        priority={priority}
+        className={` ${imageClassName} ${loading ? "opacity-0" : "opacity-100"} transition-opacity duration-200 ease-in-out`}
+        loader={baseLoader}
+        onLoad={handleImageLoad}
       />
     </div>
   );

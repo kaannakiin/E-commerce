@@ -130,6 +130,7 @@ const EditBaseVariantProps = z.object({
     .min(0, { message: "Ürün indirimi 0'dan küçük olamaz" })
     .default(0),
   active: z.boolean({ message: "Bu alan boş olamaz" }),
+  isSpotlightPublished: z.boolean({ message: "Bu alan boş olamaz" }),
   stock: z
     .number({ message: "Bu alan boş olamaz" })
     .min(0, { message: "Ürün stok miktarı 0'dan küçük olamaz" }),

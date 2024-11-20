@@ -55,7 +55,7 @@ export function AuthenticationImage() {
       if (res.success) {
         await Login(
           { email: data.email, password: data.password },
-          callbackUrl
+          callbackUrl,
         );
       }
       if (res.error) {
@@ -94,16 +94,16 @@ export function AuthenticationImage() {
                 withAsterisk
               />
               {LoginErrors.email && (
-                <p className=" text-sm text-green-500 mt-1">
+                <p className="mt-1 text-sm text-green-500">
                   {LoginErrors.email.message}
                 </p>
               )}
               {LoginErrors.root && (
-                <p className="text-red-500 text-sm mt-1">
+                <p className="mt-1 text-sm text-red-500">
                   {LoginErrors.root.message}
                 </p>
               )}
-              <div className="cursor-pointer underline text-sm mt-1 text-end ">
+              <div className="mt-1 cursor-pointer text-end text-sm underline">
                 <Text component={Link} href={"/sifremi-unuttum"}>
                   Şifremi unuttum
                 </Text>
@@ -174,7 +174,7 @@ export function AuthenticationImage() {
                 withAsterisk
               />
               {RegisterErrors.root && (
-                <p className="text-red-500 mt-1 text-sm">
+                <p className="mt-1 text-sm text-red-500">
                   {RegisterErrors.root.message}
                 </p>
               )}

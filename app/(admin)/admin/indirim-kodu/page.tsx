@@ -1,15 +1,118 @@
+import { prisma } from "@/lib/prisma";
 import { Params, SearchParams } from "@/types/types";
+import { Title } from "@mantine/core";
+import { Prisma } from "@prisma/client";
+import { cache } from "react";
+import DiscountHeader from "./_components/DiscountHeader";
 import DiscountTable from "./_components/DiscountTable";
-import Link from "next/link";
-import { Button, Group, Title } from "@mantine/core";
-import { FiPlus, FiClock, FiCheckCircle } from "react-icons/fi";
+
+export type DiscountType = "expired" | "unexpired" | "all";
+
+const feedPage = cache(async (search: string, type: DiscountType) => {
+  try {
+    console.log("Search term:", search);
+
+    const searchCondition: Prisma.DiscountCodeWhereInput = search
+      ? {
+          OR: [
+            {
+              code: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive, // String yerine Prisma.QueryMode kullanıyoruz
+              },
+            },
+            {
+              discountAmount: {
+                equals: !isNaN(Number(search)) ? Number(search) : undefined,
+              },
+            },
+          ],
+        }
+      : {};
+
+    // Süresi/limiti dolmuş kuponlar (expired)
+    const expiredWhere: Prisma.DiscountCodeWhereInput = {
+      AND: [
+        searchCondition,
+        {
+          OR: [
+            { active: false },
+            {
+              expiresAt: {
+                not: null,
+                lt: new Date(),
+              },
+            },
+            {
+              AND: [
+                { limit: { not: null } },
+                { uses: { gte: prisma.discountCode.fields.limit } },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    // Aktif kuponlar (unexpired)
+    const activeWhere: Prisma.DiscountCodeWhereInput = {
+      AND: [
+        searchCondition,
+        {
+          active: true,
+          AND: [
+            {
+              OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+            },
+            {
+              OR: [
+                { limit: null },
+                {
+                  AND: [
+                    { limit: { not: null } },
+                    { uses: { lt: prisma.discountCode.fields.limit } },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    // Tüm kuponlar için where
+    const allWhere: Prisma.DiscountCodeWhereInput = searchCondition;
+
+    // Type'a göre where sorgusunu seç
+    const whereCondition =
+      {
+        expired: expiredWhere,
+        unexpired: activeWhere,
+        all: allWhere,
+      }[type] || activeWhere;
+
+    const coupons = await prisma.discountCode.findMany({
+      where: whereCondition,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return coupons;
+  } catch (error) {
+    console.error("Error fetching coupons:", error);
+    return [];
+  }
+});
 
 const DiscountTablePage = async (props: {
   params: Params;
   searchParams: SearchParams;
 }) => {
-  const sp = await props.searchParams;
-  const type = (sp.type as string) === "expired" ? "expired" : "unexpired";
+  const searchParams = await props.searchParams;
+  const type = (searchParams.type as DiscountType) || "all";
+  const search = (searchParams.search as string) || "";
+  const coupons = await feedPage(search, type);
 
   return (
     <div className="flex w-full flex-col space-y-6 p-6">
@@ -18,54 +121,9 @@ const DiscountTablePage = async (props: {
           İndirim Kuponları Yönetimi
         </Title>
       </div>
-
-      <Group className="flex flex-wrap gap-3">
-        <Button
-          component={Link}
-          href="/admin/indirim-kodu/yeni"
-          leftSection={<FiPlus size={18} />}
-          variant="filled"
-          className="bg-gradient-to-r from-blue-600 to-blue-700 transition-all duration-200 hover:from-blue-700 hover:to-blue-800"
-          size="md"
-        >
-          Yeni Kupon Oluştur
-        </Button>
-
-        <Button
-          component={Link}
-          href="/admin/indirim-kodu?type=unexpired"
-          leftSection={<FiCheckCircle size={18} />}
-          variant={type === "unexpired" ? "filled" : "light"}
-          color="green"
-          className={`transition-all duration-200 ${
-            type === "unexpired"
-              ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-              : "hover:bg-green-50"
-          }`}
-          size="md"
-        >
-          Aktif Kuponlar
-        </Button>
-
-        <Button
-          component={Link}
-          href="/admin/indirim-kodu?type=expired"
-          leftSection={<FiClock size={18} />}
-          variant={type === "expired" ? "filled" : "light"}
-          color="red"
-          className={`transition-all duration-200 ${
-            type === "expired"
-              ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
-              : "hover:bg-red-50"
-          }`}
-          size="md"
-        >
-          Süresi Dolmuş Kuponlar
-        </Button>
-      </Group>
-
+      <DiscountHeader />
       <div className="mt-6">
-        <DiscountTable type={type} />
+        <DiscountTable type={type} coupons={coupons} />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { DeleteCategories } from "@/actions/admin/categories/delete-categories";
 import SpecialPagination from "@/components/Pagination";
+import SearchInput from "@/components/SearchBar";
 import {
   ActionIcon,
   Badge,
@@ -11,14 +12,11 @@ import {
   Stack,
   Table,
   Text,
-  TextInput,
   Tooltip,
 } from "@mantine/core";
-import { useDebouncedCallback } from "@mantine/hooks";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { IoSearchOutline } from "react-icons/io5";
 const CategoryTable = ({ data, totalPages }) => {
   const [openModal, setOpenModal] = useState(false);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
@@ -26,7 +24,6 @@ const CategoryTable = ({ data, totalPages }) => {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const pathname = usePathname();
   const onClickModal = (categorySlug) => {
     setOpenModal(true);
     setSelectedCategory(categorySlug);
@@ -48,27 +45,17 @@ const CategoryTable = ({ data, totalPages }) => {
       console.error(error);
     }
   };
-  const inputOnChange = useDebouncedCallback((e) => {
-    const params = new URLSearchParams(searchParams);
-    if (e) {
-      params.set("search", e);
-    } else {
-      params.delete("search");
-    }
-    router.replace(`${pathname}?${params.toString()}`);
-  }, 800);
 
   return (
     <ScrollArea className="px-2">
-      <div className="flex flex-row w-full items-center mt-2 mb-4 gap-4 ">
-        <TextInput
-          className="w-1/3 "
+      <div className="mb-4 mt-2 flex w-full flex-row items-center gap-4">
+        <SearchInput
+          className="w-1/3"
           placeholder="Kategori Adı"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            inputOnChange(e.currentTarget.value);
-          }}
-          defaultValue={searchParams.get("search")}
-          rightSection={<IoSearchOutline size={20} className="text-gray-400" />}
+          size="md"
+          debounceMs={500}
+          searchKey="q"
+          withPagination={false}
         />
         <Button onClick={() => router.push("/admin/kategoriler/kategori-ekle")}>
           Kategori Ekle
@@ -162,7 +149,7 @@ const CategoryTable = ({ data, totalPages }) => {
             Kategoriyi silmek istediğinize emin misiniz?
           </Text>
           {errorMessage && (
-            <Text className=" text-center " size="sm" c="red">
+            <Text className="text-center" size="sm" c="red">
               {errorMessage}
             </Text>
           )}

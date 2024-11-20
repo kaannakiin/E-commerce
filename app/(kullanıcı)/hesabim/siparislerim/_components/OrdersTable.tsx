@@ -223,7 +223,11 @@ const ProductImagesScroll = ({ orderItems }) => {
                   className="h-full min-w-[140px] shrink-0 overflow-hidden border transition-shadow hover:shadow-md"
                 >
                   <div className="relative h-[100px] w-[140px]">
-                    <CustomImage src={item.variant.Image[0].url} quality={20} />
+                    <CustomImage
+                      src={item.variant.Image[0].url}
+                      quality={20}
+                      objectFit="contain"
+                    />
                   </div>
 
                   <div className="flex h-[80px] flex-col justify-between p-2">

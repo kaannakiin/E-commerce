@@ -5,7 +5,7 @@ import { EditCategorySchema } from "@/zodschemas/authschema";
 
 export async function EditCategoryBySlug(
   formData: FormData,
-  slug: string
+  slug: string,
 ): Promise<{ success: boolean; message?: string }> {
   try {
     const data = {
@@ -57,7 +57,6 @@ export async function EditCategoryBySlug(
           },
         });
       }
-
       return { success: true, message: "Güncellendi" };
     });
     return result;

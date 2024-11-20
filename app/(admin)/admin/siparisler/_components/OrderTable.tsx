@@ -105,7 +105,6 @@ const OrdersTable = ({ orders, totalPages, totalOrder, currentPage }) => {
       </ScrollArea>
       <p className="text-sm text-gray-800">
         {totalOrder} siparişten {orders.length} tanesi gösteriliyor.{" "}
-        {totalPages} {totalOrder}
       </p>
       <SpecialPagination totalPages={totalPages} currentPage={currentPage} />
     </Box>
