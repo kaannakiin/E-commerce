@@ -18,9 +18,9 @@ const Footer = () => {
   ];
 
   return (
-    <div className="flex flex-row w-full px-5 ">
-      <div className="flex flex-col w-full">
-        <div className="w-full relative h-12">
+    <div className="flex w-full flex-row px-5">
+      <div className="flex w-full flex-col">
+        <div className="relative h-12 w-full">
           <Image
             src={"/WELLNESSCLUBLOGO.svg"}
             sizes="100vw"
@@ -31,9 +31,9 @@ const Footer = () => {
         </div>
 
         {/* LEFT SECTION */}
-        <div className="hidden md:flex flex-row items-start justify-between w-full">
+        <div className="hidden w-full flex-row items-start justify-between md:flex">
           {/* Üyelik */}
-          <div className="text-gray-500 text-sm flex flex-col gap-2">
+          <div className="flex flex-col gap-2 text-sm text-gray-500">
             <h1 className="text-start text-xl font-bold text-black">Üyelik</h1>
             <Link
               href="/"
@@ -48,7 +48,7 @@ const Footer = () => {
               Üye ol{" "}
             </Link>
           </div>
-          <div className="text-gray-500 text-sm flex flex-col gap-2">
+          <div className="flex flex-col gap-2 text-sm text-gray-500">
             <h1 className="text-start text-xl font-bold text-black">
               Kurumsal
             </h1>
@@ -64,7 +64,7 @@ const Footer = () => {
           </div>
 
           {/* İletişim */}
-          <div className="text-gray-500 text-sm flex flex-col gap-2">
+          <div className="flex flex-col gap-2 text-sm text-gray-500">
             <h1 className="text-start text-xl font-bold text-black">
               İletişim
             </h1>
@@ -77,7 +77,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="md:hidden w-full">
+        <div className="w-full md:hidden">
           <Accordion variant="filled">
             <AccordionItem value="membership">
               <AccordionControl>
@@ -87,13 +87,13 @@ const Footer = () => {
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/"
-                    className="transition-colors duration-300 hover:text-gray-800 text-gray-500"
+                    className="text-gray-500 transition-colors duration-300 hover:text-gray-800"
                   >
                     Giriş yap{" "}
                   </Link>
                   <Link
                     href="/"
-                    className="transition-colors duration-300 hover:text-gray-800 text-gray-500"
+                    className="text-gray-500 transition-colors duration-300 hover:text-gray-800"
                   >
                     Üye ol{" "}
                   </Link>
@@ -110,7 +110,7 @@ const Footer = () => {
                     <Link
                       key={index}
                       href={"/"}
-                      className="transition-colors duration-300 hover:text-gray-800 text-gray-500"
+                      className="text-gray-500 transition-colors duration-300 hover:text-gray-800"
                     >
                       {contract}
                     </Link>
@@ -139,8 +139,8 @@ const Footer = () => {
           </Accordion>
         </div>
 
-        <div className="flex flex-row  justify-between  gap-2 lg:gap-0 w-full px-4">
-          <div className="flex flex-row gap-2 ">
+        <div className="flex w-full flex-row justify-between gap-2 px-4 lg:gap-0">
+          <div className="flex flex-row gap-2">
             <Link href={"/"} className="flex flex-row items-center">
               <FaInstagram size={24} />
             </Link>
@@ -148,13 +148,13 @@ const Footer = () => {
               <FaTiktok size={24} className="text-black" />
             </Link>{" "}
           </div>
-          <div className="w-[200px] lg:w-[400px] relative h-10  ">
+          <div className="relative h-10 w-[200px] lg:w-[400px]">
             <Image
               src={"/logo_band_colored.svg"}
               alt="PaymentLogoFooter"
               fill
               sizes="100%"
-              className="object-contain h-full w-full"
+              className="h-full w-full object-contain"
             />
           </div>
         </div>

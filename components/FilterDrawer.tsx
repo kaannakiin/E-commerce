@@ -10,7 +10,7 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaCheck } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
@@ -84,13 +84,13 @@ const FilterDrawer = ({ count }) => {
   };
   return (
     <div className="w-full">
-      <div className="flex items-center gap-4 flex-row  py-2">
+      <div className="flex flex-row items-center gap-4 py-2">
         <UnstyledButton
           onClick={() => setOpen((prev) => !prev)}
           className="flex items-center gap-2"
         >
           <VscSettings className="font-bold" />
-          <span className="text-gray-700 hover:text-gray-900 transition-colors duration-200">
+          <span className="text-gray-700 transition-colors duration-200 hover:text-gray-900">
             Filtrele veya Sırala
           </span>
         </UnstyledButton>
@@ -98,9 +98,9 @@ const FilterDrawer = ({ count }) => {
         {hasFilters && (
           <UnstyledButton
             onClick={handleClearAll}
-            className="flex items-center gap-1 text-primary-600 hover:text-primary-700 transition-colors duration-200"
+            className="flex items-center gap-1 text-primary-600 transition-colors duration-200 hover:text-primary-700"
           >
-            <VscClearAll className="w-4 h-4" />
+            <VscClearAll className="h-4 w-4" />
             <span className="text-xs font-medium">Filtreleri Temizle</span>
           </UnstyledButton>
         )}
@@ -115,7 +115,7 @@ const FilterDrawer = ({ count }) => {
         <Drawer.Overlay />
         <Drawer.Content>
           <Drawer.Header>
-            <Drawer.Title className="text-lg font-semibold text-gray-800  ">
+            <Drawer.Title className="text-lg font-semibold text-gray-800">
               Filtrele veya Sırala {count && `(${count})`} Ürün
             </Drawer.Title>
             <Drawer.CloseButton />
@@ -126,13 +126,13 @@ const FilterDrawer = ({ count }) => {
             <div>
               <UnstyledButton
                 onClick={() => setPriceCollapsed((prev) => !prev)}
-                className="w-full flex justify-between items-center py-2 group"
+                className="group flex w-full items-center justify-between py-2"
               >
                 <span className="font-semibold uppercase group-hover:text-gray-900">
                   Fiyat Aralığı
                 </span>
                 <IoMdAdd
-                  className={`w-4 h-4 transition-transform duration-300 ${
+                  className={`h-4 w-4 transition-transform duration-300 ${
                     priceCollapsed ? "rotate-45" : "rotate-0"
                   }`}
                 />
@@ -197,13 +197,13 @@ const FilterDrawer = ({ count }) => {
             <div>
               <UnstyledButton
                 onClick={() => setSortCollapsed((prev) => !prev)}
-                className="w-full flex justify-between items-center py-2 group"
+                className="group flex w-full items-center justify-between py-2"
               >
-                <span className="font-semibold uppercase  group-hover:text-gray-900">
+                <span className="font-semibold uppercase group-hover:text-gray-900">
                   Sıralama
                 </span>
                 <IoMdAdd
-                  className={`w-4 h-4 transition-transform duration-300 ${
+                  className={`h-4 w-4 transition-transform duration-300 ${
                     sortCollapsed ? "rotate-45" : "rotate-0"
                   }`}
                 />
@@ -215,15 +215,15 @@ const FilterDrawer = ({ count }) => {
                     <UnstyledButton
                       key={option.value}
                       onClick={() => setSelectedSort(option.value)}
-                      className={`w-full px-4 py-3 relative flex items-center group transition-all duration-200 ${
+                      className={`group relative flex w-full items-center px-4 py-3 transition-all duration-200 ${
                         selectedSort === option.value
-                          ? "bg-primary-50/50 text-primary-900 font-medium"
+                          ? "bg-primary-50/50 font-medium text-primary-900"
                           : "text-secondary-600 hover:bg-primary-50/30"
                       }`}
                     >
                       {/* Sol kenar çizgisi */}
                       <span
-                        className={`absolute left-0 top-0 w-[3px] h-full bg-primary-600 transition-all duration-200 ${
+                        className={`absolute left-0 top-0 h-full w-[3px] bg-primary-600 transition-all duration-200 ${
                           selectedSort === option.value
                             ? "scale-y-100"
                             : "scale-y-0"
@@ -253,7 +253,7 @@ const FilterDrawer = ({ count }) => {
               </Button>
               <Button
                 onClick={handleApply}
-                className="bg-primary-600 hover:bg-primary-700 text-white"
+                className="bg-primary-600 text-white hover:bg-primary-700"
               >
                 Uygula
               </Button>

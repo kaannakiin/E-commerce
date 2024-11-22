@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { IdForEverythingType } from "@/zodschemas/authschema";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export async function AddFavorite(
   id: IdForEverythingType,

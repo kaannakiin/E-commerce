@@ -1,5 +1,5 @@
 "use client";
-"use client";
+import { formattedPrice } from "@/lib/format";
 import React from "react";
 import {
   Area,
@@ -20,7 +20,6 @@ const OrderChart = ({ orders }) => {
           1,
         )
       : 0;
-
   const totalSales = orders.reduce((sum, order) => sum + order.totalSales, 0);
   const averageSales =
     totalSales / orders.filter((order) => order.totalSales > 0).length;
@@ -31,11 +30,11 @@ const OrderChart = ({ orders }) => {
   };
 
   return (
-    <div className="rounded-lg bg-white p-2 shadow transition-shadow hover:shadow-lg lg:p-6">
+    <div className="flex h-[calc(100vh-400px)] flex-col rounded-lg bg-white p-2 shadow transition-shadow hover:shadow-lg lg:p-6">
       <h3 className="mb-2 text-lg font-semibold text-gray-700">
         Günlük Satış Grafiği
       </h3>
-      <div className="relative mb-4 h-72 rounded-lg">
+      <div className="relative w-full flex-1 rounded-lg">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={orders}>
             <defs>
@@ -83,17 +82,19 @@ const OrderChart = ({ orders }) => {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <p className="text-2xl font-bold text-gray-800">
-        ₺{averageSales.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-      </p>
-      <p
-        className={`text-sm ${
-          Number(percentageChange) >= 0 ? "text-green-600" : "text-red-600"
-        }`}
-      >
-        {Number(percentageChange) > 0 ? "+" : ""}
-        {percentageChange}% önceki güne göre
-      </p>
+      <div className="mt-1">
+        <p className="text-2xl font-bold text-gray-800">
+          {formattedPrice(averageSales)}
+        </p>
+        <p
+          className={`text-sm ${
+            Number(percentageChange) >= 0 ? "text-green-600" : "text-red-600"
+          }`}
+        >
+          {Number(percentageChange) > 0 ? "+" : ""}
+          {percentageChange}% önceki güne göre
+        </p>
+      </div>
     </div>
   );
 };

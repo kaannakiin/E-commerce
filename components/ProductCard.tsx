@@ -28,15 +28,7 @@ const ProductCard = ({
     product.discount,
     product.product.taxRate,
   );
-  console.log("Product Debug:", {
-    type: product.type,
-    typeType: typeof product.type,
-    enumValues: VariantType,
-    checkColor: VariantType.COLOR,
-    isColorMatch: product.type === VariantType.COLOR,
-    value: product.value,
-    rawProduct: product,
-  });
+
   const matches = useMediaQuery("(min-width: 56.25em)");
   const [isFave, setIsFave] = useState(isFavorited);
   const pathname = usePathname();
@@ -128,34 +120,10 @@ const ProductCard = ({
         href={`/${product.product.categories[0].slug}/${product.slug}`}
         className="flex flex-1 flex-col p-5 transition-all duration-300"
       >
-        <div className="mb-2 flex items-start justify-between gap-4">
-          <h3 className="text-lg font-medium text-gray-900 group-hover:text-gray-700">
+        <div className="mb-2 flex items-center justify-between gap-4">
+          <h3 className="text-md font-medium text-gray-900 group-hover:text-gray-700">
             {product.product.name}
           </h3>
-          {product.type === VariantType.COLOR && (
-            <div className="relative flex items-center">
-              <ColorSwatch size={30} color={product.value} withShadow={false} />
-            </div>
-          )}
-
-          {product.type === VariantType.SIZE && (
-            <div className="flex items-center">
-              <Text size="sm" c="dimmed">
-                Beden: <span className="font-medium">{product.value}</span>
-              </Text>
-            </div>
-          )}
-
-          {product.type === VariantType.WEIGHT && (
-            <div className="flex items-center">
-              <Text size="sm" c="dimmed">
-                Ağırlık:{" "}
-                <span className="font-medium">
-                  {product.value} {product.unit}
-                </span>
-              </Text>
-            </div>
-          )}
         </div>
 
         <p className="mb-4 line-clamp-2 text-sm text-gray-500 group-hover:text-gray-600">
@@ -173,11 +141,6 @@ const ProductCard = ({
               </span>
             )}
           </div>
-          {product.discount > 0 && (
-            <span className="rounded-lg bg-red-100/80 px-2 py-1 text-sm font-medium text-red-600">
-              -%{calculateTaxedPrice.discount}
-            </span>
-          )}
         </div>
       </Link>
     </div>

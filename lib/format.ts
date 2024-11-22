@@ -13,5 +13,10 @@ export const getTurkeyTime = () => {
   return new Date(now.toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }));
 };
 export const formattedPrice = (price: number) => {
+  if (!price)
+    return Number(0).toLocaleString("tr-TR", {
+      currency: "TRY",
+      style: "currency",
+    });
   return price.toLocaleString("tr-TR", { currency: "TRY", style: "currency" });
 };

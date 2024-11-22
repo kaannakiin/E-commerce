@@ -48,10 +48,8 @@ const feedFeaturedProduct = cache(async () => {
     if (!products.length) {
       return { error: "Gösterilecek ürün bulunamadı." };
     }
-
     return { products };
   } catch (error) {
-    console.error("Ürünler getirilirken hata oluştu:", error);
     return {
       error:
         "Ürünler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin.",
@@ -65,9 +63,10 @@ const FeedFeaturedProducts = async () => {
     <section className="w-full px-5 py-8">
       <h2 className="mb-6 text-center text-2xl font-bold">En Çok Satanlar</h2>
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {result.products.map((product) => (
-          <FeaturedProduct key={product.id} variant={product} />
-        ))}
+        {result.products &&
+          result.products.map((product) => (
+            <FeaturedProduct key={product.id} variant={product} />
+          ))}
       </div>
     </section>
   );

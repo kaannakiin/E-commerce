@@ -1,8 +1,7 @@
 import { formattedPrice } from "@/lib/format";
-import { Card, Group, UnstyledButton } from "@mantine/core";
+import { Card, UnstyledButton } from "@mantine/core";
 import { formatDate } from "date-fns";
 import Link from "next/link";
-import { FiArrowUpRight } from "react-icons/fi";
 import OrderStatusDisplay from "./OrderStatus";
 
 const OrderHeader = ({

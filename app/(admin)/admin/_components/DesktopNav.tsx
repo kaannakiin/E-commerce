@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
     label: "İndirim Kodları",
     href: "/admin/indirim-kodu",
   },
+  { label: "Ayarlar", href: "/admin/ayarlar" },
 ];
 
 export function DesktopNav({ pathname }: { pathname: string }) {
