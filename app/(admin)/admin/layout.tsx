@@ -19,7 +19,6 @@ export default async function AdminLayout({
       <AdminNav />
       <main
         style={{
-          padding: "1.5rem",
           minHeight: "calc(100vh - 60px)",
           backgroundColor: "#f8f9fa",
           marginTop: "60px",

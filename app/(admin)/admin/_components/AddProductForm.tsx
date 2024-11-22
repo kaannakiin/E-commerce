@@ -1,5 +1,6 @@
 "use client";
 import { AddProduct } from "@/actions/admin/products/add-product/AddProduct";
+import FeedbackDialog from "@/components/FeedbackDialog";
 import { formattedPrice } from "@/lib/format";
 import {
   AddColorVariant,
@@ -38,7 +39,6 @@ import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FaRegTrashCan } from "react-icons/fa6";
 import ImageDropzone from "./ImageDropzone";
-import FeedbackDialog from "@/components/FeedbackDialog";
 
 const AddProductForm = ({ feedCat }) => {
   const [variant, setVariant] = useState<string>();
@@ -227,6 +227,7 @@ const AddProductForm = ({ feedCat }) => {
               max={100}
               label="Kdv oranı"
               size="sm"
+              defaultValue={18}
               variant="filled"
               error={productErrors.taxPrice?.message}
             />

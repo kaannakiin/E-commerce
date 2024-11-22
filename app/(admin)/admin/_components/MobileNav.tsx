@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { BiCategory } from "react-icons/bi";
 import { GoPackage } from "react-icons/go";
+import { IoSettingsOutline } from "react-icons/io5";
 import { MdOutlineLocalOffer } from "react-icons/md";
 const navItems = [
   {
@@ -24,6 +25,11 @@ const navItems = [
     label: "İndirim Kodları",
     href: "/admin/indirim-kodu",
     icon: <MdOutlineLocalOffer size={20} />,
+  },
+  {
+    label: "Ayarlar",
+    href: "/admin/ayarlar",
+    icon: <IoSettingsOutline size={20} />,
   },
 ];
 

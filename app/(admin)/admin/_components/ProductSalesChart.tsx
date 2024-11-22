@@ -133,7 +133,7 @@ const ProductSalesChart: React.FC<ProductSalesChartProps> = ({ data }) => {
       <h3 className="mb-2 text-lg font-semibold text-gray-700">
         Ürün Satış Analizi
       </h3>
-      <div className="relative mb-4 h-72 w-full rounded-lg">
+      <div className="relative mb-4 h-96 w-full rounded-lg">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={formattedData}>
             <XAxis

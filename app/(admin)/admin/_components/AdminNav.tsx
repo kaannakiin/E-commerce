@@ -20,6 +20,7 @@ export default function AdminNav() {
         px="md"
         align="center"
         justify="space-between"
+        className="mb-3 w-full"
         style={{
           position: "fixed",
           top: 0,

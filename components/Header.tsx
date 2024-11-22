@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Divider } from "@mantine/core";
 import Image from "next/image";
@@ -9,7 +10,6 @@ import MenuCategory from "./MenuCategory";
 import MenuUser from "./MenuUser";
 import SearchSpotlight from "./SearchSpotlight";
 import ShoppingIcon from "./ShoppingIcon";
-import { auth } from "@/auth";
 
 const feedHeader = cache(async () => {
   try {
@@ -20,6 +20,16 @@ const feedHeader = cache(async () => {
       select: {
         name: true,
         slug: true,
+        products: {
+          select: {
+            name: true,
+            Variant: {
+              select: {
+                slug: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -98,6 +108,12 @@ const Header = async () => {
       <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between px-2 lg:justify-between lg:px-10">
         {/* LEFT SECTION - Only visible on lg and up */}
         <div className="hidden w-1/3 flex-row items-center gap-4 lg:flex">
+          <Link
+            className="group relative cursor-pointer text-black transition-all ease-in-out hover:text-blue-400"
+            href={"/urunler"}
+          >
+            Tüm Ürünler
+          </Link>
           <MenuCategory categories={data} />
         </div>
 
@@ -105,31 +121,30 @@ const Header = async () => {
         <div className="flex h-full items-center lg:absolute lg:left-1/2 lg:-translate-x-1/2">
           <Link className="relative h-full w-52 sm:w-72" href="/">
             <Image
-              src="/WELLNESSCLUBLOGO.svg"
-              alt="Alt"
-              fill
+              src={"/WELLNESSCLUBLOGO.svg"}
               sizes="100vw"
-              className="h-full w-full object-contain"
+              alt="Logo Footer"
+              fill
+              className="object-contain"
             />
           </Link>
         </div>
 
         {/* RIGHT SECTION */}
-        <div className="flex flex-row items-center gap-2 lg:gap-5">
-          <SearchSpotlight featuredProducts={featuredProducts} />
-          <Link href={favoritesUrl}>
-            {" "}
-            <IoMdHeartEmpty
-              size={28}
-              className="hidden cursor-pointer lg:block"
-            />
-          </Link>
-
-          <MenuUser isUser={isUser} />
-          <ShoppingIcon />
-          {/* Burger menu only visible on mobile */}
+        <div className="flex flex-row items-center justify-end gap-1">
+          <div className="flex items-center gap-1">
+            <SearchSpotlight featuredProducts={featuredProducts} />
+            <Link href={favoritesUrl}>
+              <IoMdHeartEmpty
+                size={28}
+                className="hidden cursor-pointer lg:block"
+              />
+            </Link>
+            <MenuUser isUser={isUser} />
+            <ShoppingIcon />
+          </div>
           <div className="lg:hidden">
-            <BurgerMenu />
+            <BurgerMenu isUser={isUser} categories={data} />
           </div>
         </div>
       </div>

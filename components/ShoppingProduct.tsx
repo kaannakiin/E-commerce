@@ -61,22 +61,22 @@ const ShoppingProduct = ({ item }: { item: CartVariant }) => {
         </div>
         <p className="mb-4 text-base font-normal leading-7 text-gray-500">
           {item.description}
-          <span className="mt-2 block">
-            {item.type === VariantType.COLOR && (
-              <ColorSwatch color={item.value} size={20} />
-            )}
-            {item.type === VariantType.SIZE && (
-              <span className="rounded-md border px-3 py-1 text-sm">
-                {item.value}
-              </span>
-            )}
-            {item.type === VariantType.WEIGHT && (
-              <span className="rounded-md border px-3 py-1 text-sm">
-                {item.value} {item.unit}
-              </span>
-            )}
-          </span>
         </p>
+        <div className="mt-2">
+          {item.type === VariantType.COLOR && (
+            <ColorSwatch color={item.value} size={20} />
+          )}
+          {item.type === VariantType.SIZE && (
+            <span className="rounded-md border px-3 py-1 text-sm">
+              {item.value}
+            </span>
+          )}
+          {item.type === VariantType.WEIGHT && (
+            <span className="rounded-md border px-3 py-1 text-sm">
+              {item.value} {item.unit}
+            </span>
+          )}
+        </div>
         <div className="flex items-center justify-between">
           {!isPaymentPage && (
             <div className="flex items-center gap-4">

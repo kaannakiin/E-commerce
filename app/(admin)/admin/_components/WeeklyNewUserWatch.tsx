@@ -45,7 +45,7 @@ const WeeklyNewUserWatch: React.FC<WeeklyNewUserWatchProps> = ({ users }) => {
         </h3>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-240px)]" type="hover">
+      <ScrollArea className="h-[calc(100vh-400px)]" type="hover">
         <div className="space-y-3">
           {users.map((user) => (
             <div

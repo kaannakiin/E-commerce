@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const width = parseInt(req.nextUrl.searchParams.get("width") || "0", 10);
     const quality = parseInt(
       req.nextUrl.searchParams.get("quality") || "80",
-      10
+      10,
     );
     const thumbnail = req.nextUrl.searchParams.get("thumbnail") === "true";
 
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         {
           error: "Image URL is required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
         {
           error: "Invalid URL",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         {
           error: "Image not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         {
           error: "Image processing failed",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   } catch (error) {
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
       {
         error: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   sassOptions: {
     prependData: `@import "./_mantine.scss";`,
   },
+  
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "placehold.co" },

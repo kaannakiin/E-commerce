@@ -12,12 +12,12 @@ import {
 
 const UserChart = ({ userData }) => {
   return (
-    <div className="rounded-lg bg-white p-2 shadow transition-shadow hover:shadow-lg lg:p-6">
+    <div className="flex h-[calc(100vh-400px)] flex-col rounded-lg bg-white p-2 shadow transition-shadow hover:shadow-lg lg:p-6">
       <h3 className="mb-2 text-lg font-semibold text-gray-700">
         Haftalık Üye Grafiği
       </h3>
-      <div className="relative mb-4 h-72 rounded-lg">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="relative w-full flex-1 rounded-lg">
+        <ResponsiveContainer className={"mx-auto my-auto flex h-full w-full"}>
           <BarChart data={userData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
