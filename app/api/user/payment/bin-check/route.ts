@@ -1,27 +1,6 @@
 import { iyzico } from "@/lib/iyzicoClient";
+import { generateNon3DSignature } from "@/lib/IyzicoHelper";
 import { NextRequest, NextResponse } from "next/server";
-
-interface BinSuccessResponse {
-  status: "success";
-  locale: string;
-  systemTime: number;
-  conversationId: string;
-  binNumber: string;
-  cardType: "CREDIT_CARD" | "DEBIT_CARD" | "PREPAID_CARD";
-  cardAssociation: "TROY" | "VISA" | "MASTER_CARD" | "AMERICAN_EXPRESS";
-  cardFamily:
-    | "Bonus"
-    | "Axess"
-    | "World"
-    | "Maximum"
-    | "Paraf"
-    | "CardFinans"
-    | "Advantage"
-    | string;
-  bankName: string;
-  bankCode: number;
-  commercial: 0 | 1;
-}
 
 interface BinErrorResponse {
   status: "failure";
@@ -53,7 +32,6 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await iyzico.checkBin(binNumber, conversationId);
-
     if (response.conversationId !== conversationId) {
       const mismatchError: BinErrorResponse = {
         status: "failure",

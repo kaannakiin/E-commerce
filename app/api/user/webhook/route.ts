@@ -1,8 +1,13 @@
 // app/api/webhook/route.ts (App Router)
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
+import {
+  generateEmailTemplate,
+  generateOrderConfirmationContent,
+} from "@/lib/htmlTemplate";
 import { isIyzicoIP } from "@/lib/iyzicoIpCheck";
+import { createTransporter } from "@/lib/mailTransporter";
 import { prisma } from "@/lib/prisma";
+import { OrderStatus, paymentStatus } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 interface Webhook {
   paymentConversationId: string;
   merchantId: number;
@@ -38,21 +43,17 @@ interface Webhook {
   iyziEventTime: number;
   iyziPaymentId: number;
 }
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body: Webhook = await request.json();
-
-    const headersList = await headers();
-
-    const clientIP = headersList.get("x-forwarded-for");
-
+    const body: Webhook = await req.json();
+    const clientIP =
+      req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for");
     if (!isIyzicoIP(clientIP)) {
       return NextResponse.json(
         { error: "Unauthorized request" },
         { status: 403 },
       );
     }
-    // 3D Secure işlem akışını yönet
     switch (body.status) {
       case "CALLBACK_THREEDS":
         // 3D Secure doğrulaması tamamlandı, sonucu bekle
@@ -62,17 +63,63 @@ export async function POST(request: Request) {
         );
 
       case "SUCCESS":
-        // Ödeme başarılı
-        // Veritabanı güncelleme vs. işlemlerini yap
         try {
-          await prisma.order.update({
+          const order = await prisma.order.update({
             where: {
               paymentId: body.paymentId.toString(),
             },
             data: {
-              orderStatus: "PROCESSING",
+              paymentStatus: paymentStatus.SUCCESS,
+              orderStatus: OrderStatus.AWAITING_APPROVAL,
+            },
+            include: {
+              user: true,
+              address: true,
+              orderItems: {
+                include: {
+                  variant: {
+                    include: {
+                      product: true,
+                      Image: true,
+                    },
+                  },
+                },
+              },
             },
           });
+
+          const customTransporter = createTransporter({
+            auth: {
+              user: process.env.NO_REPLY_EMAIL!,
+              pass: process.env.NO_REPLY_EMAIL_PASSWORD!,
+            },
+          });
+
+          const emailContent = generateEmailTemplate({
+            content: generateOrderConfirmationContent(
+              order.paidPrice,
+              order.orderNumber,
+              order.orderItems.map((item) => ({
+                name: item.variant.product.name,
+                price: item.price,
+                quantity: item.quantity,
+                image: item.variant.Image?.[0]?.url
+                  ? `http://localhost:3000/api/user/asset/get-image?width=200&quality=80&url=${item.variant.Image[0].url}`
+                  : "/default-product-image.jpg",
+              })),
+            ),
+          });
+
+          try {
+            await customTransporter.sendMail({
+              from: process.env.NO_REPLY_EMAIL!,
+              to: order.user?.email ?? order.address.email,
+              subject: "Siparişiniz Oluşturuldu",
+              html: emailContent,
+            });
+          } catch (error) {
+            console.error("Error sending email:", error);
+          }
         } catch (error) {
           return NextResponse.json(
             {
@@ -82,19 +129,31 @@ export async function POST(request: Request) {
             { status: 200 },
           );
         }
-        //send email here
         return NextResponse.json(
           { message: "Payment successful" },
           { status: 200 },
         );
 
       case "FAILURE":
-        // Ödeme başarısız
-        // Hata işleme kodlarınız
-        return NextResponse.json(
-          { message: "Payment failed" },
-          { status: 200 }, // Bu durumda bile 200 dönmek daha uygun
-        );
+        try {
+          await prisma.order.update({
+            where: {
+              paymentId: body.paymentId.toString(),
+            },
+            data: {
+              paymentStatus: paymentStatus.FAILED,
+            },
+          });
+          return NextResponse.json(
+            { message: "Payment failed" },
+            { status: 200 },
+          );
+        } catch (error) {
+          return NextResponse.json(
+            { message: "Payment failed" },
+            { status: 200 },
+          );
+        }
 
       default:
         return NextResponse.json(

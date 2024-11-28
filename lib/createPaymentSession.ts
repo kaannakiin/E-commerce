@@ -36,19 +36,3 @@ export async function createPaymentSession(data, bill, discountCode) {
     throw new Error("Payment session creation failed");
   }
 }
-function generateOrderNumber(): string {
-  const now = new Date();
-  const year = now.getFullYear().toString().slice(-2); // Son 2 hane
-  const month = (now.getMonth() + 1).toString().padStart(2, "0");
-  const day = now.getDate().toString().padStart(2, "0");
-  const hour = now.getHours().toString().padStart(2, "0");
-
-  // Random 4 haneli sayı
-  const random = Math.floor(Math.random() * 10000)
-    .toString()
-    .padStart(4, "0");
-
-  // Format: YYMMDDHHmmssRRRR
-  // Örnek: 2311141522301234
-  return `${year}${month}${day}${hour}${random}`;
-}

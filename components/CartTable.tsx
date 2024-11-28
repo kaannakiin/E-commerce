@@ -22,7 +22,6 @@ const CartPage = () => {
   const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const totalOriginalPrice = useStore((state) => state.totalOriginalPrice);
   const totalFinalPrice = useStore((state) => state.totalFinalPrice);
-  const totalDiscountAmount = useStore((state) => state.totalDiscountAmount);
 
   const hasDiscount = totalOriginalPrice !== totalFinalPrice;
 
@@ -85,7 +84,7 @@ const CartPage = () => {
                           İndirim Tutarı
                         </span>
                         <span className="text-base font-medium text-emerald-600">
-                          -{formatPrice(totalDiscountAmount)}
+                          -{formatPrice(totalOriginalPrice - totalFinalPrice)}
                         </span>
                       </div>
 

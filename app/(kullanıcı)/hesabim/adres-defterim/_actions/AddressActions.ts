@@ -35,6 +35,7 @@ export async function SaveAddressUser(
         surname: data.surname,
         phone: data.phone,
         addressDetail: data.addressBook,
+        email: data.email,
         addressTitle: data.addressTitle,
         user: {
           connect: {

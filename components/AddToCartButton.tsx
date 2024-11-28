@@ -3,6 +3,7 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import { useStore } from "@/store/store";
 import { UnstyledButton } from "@mantine/core";
 import { is } from "date-fns/locale";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 interface AddToCartButtonProps {
@@ -15,6 +16,8 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
   repeatBuy = false,
 }) => {
   const addItem = useStore((state) => state.addItem);
+  const pathname = usePathname();
+  const isSiparisPage = pathname.includes("/siparis");
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     message: string;
@@ -78,7 +81,7 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
       <UnstyledButton className="group w-full" onClick={handleAddToCart}>
         <span className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-lg border-2 border-primary-500 text-primary-500 transition-shadow duration-300 hover:shadow-lg">
           <span className="relative z-10 text-lg font-medium tracking-wide transition-colors duration-300 group-hover:text-white">
-            Sepete Ekle
+            {isSiparisPage ? "Tekrar Sipariş Ver" : "Sepete Ekle"}
           </span>
           <div className="absolute inset-0 translate-y-full transform bg-primary-500 transition-transform duration-300 ease-out group-hover:translate-y-0" />
         </span>

@@ -2,53 +2,125 @@
 import ShoppingProduct from "@/components/ShoppingProduct";
 import { formatPrice } from "@/lib/formatter";
 import { useStore } from "@/store/store";
+import { useMediaQuery } from "@mantine/hooks";
+import { Accordion, Button, TextInput, UnstyledButton } from "@mantine/core";
+import { MdShoppingCart } from "react-icons/md";
+import DiscountCodeInput from "./DiscountCodeInput";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { DiscountCheck } from "@/actions/user/discount-check";
 
 const CartSection = () => {
   const items = useStore((state) => state.items);
   const totalOriginalPrice = useStore((store) => store.totalOriginalPrice);
   const totalFinalPrice = useStore((store) => store.totalFinalPrice);
-  const totalDiscountAmount = useStore((store) => store.totalDiscountAmount);
-
+  const matches = useMediaQuery("(min-width: 56.25em)");
   const hasDiscount = totalOriginalPrice !== totalFinalPrice;
+  const searchParams = useSearchParams();
+  const [discountPrice, setDiscountPrice] = useState(0);
+  useEffect(() => {
+    const discountCode = searchParams.get("discountCode");
+    async function applyDiscountCode() {
+      await DiscountCheck(
+        discountCode,
+        items.map((item) => item.variantId),
+      ).then((res) => {
+        if (res.success) {
+          if (res.discountType === "FIXED") {
+            setDiscountPrice(res.discountAmount);
+          } else {
+            setDiscountPrice(totalFinalPrice * (res.discountAmount / 100));
+          }
+        }
+      });
+    }
+    applyDiscountCode();
+  });
+  const CartContent = () => (
+    <>
+      <div className="sm:h-[calc(100vh-200px)] sm:overflow-auto lg:px-4 lg:py-8">
+        {items.map((item) => (
+          <div
+            key={item.variantId}
+            className="rounded-lg bg-white/5 backdrop-blur-sm"
+          >
+            <ShoppingProduct item={item} />
+          </div>
+        ))}
+      </div>
+      <div className="w-full bg-gray-800/80 p-5 backdrop-blur-sm md:absolute md:bottom-0 md:left-0">
+        <div className="space-y-3 text-white">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-300">Ara Toplam</span>
+            <span>{formatPrice(totalOriginalPrice)}</span>
+          </div>{" "}
+          <DiscountCodeInput />
+          {hasDiscount && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-green-400">İndirim</span>
+              <span className="text-green-400">
+                -{formatPrice(totalOriginalPrice - totalFinalPrice)}
+              </span>
+            </div>
+          )}
+          {discountPrice > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-green-400">İndirim Kuponu Tutarı</span>
+              <span className="text-green-400">
+                -{formatPrice(discountPrice)}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between border-t border-gray-600 pt-3">
+            <span className="text-lg">Toplam</span>
+            <span className="text-lg font-medium">
+              {formatPrice(totalFinalPrice - discountPrice)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  if (!matches) {
+    return (
+      <Accordion
+        defaultValue=""
+        classNames={{
+          chevron: "text-white font-bold",
+        }}
+      >
+        <Accordion.Item value="cart">
+          <Accordion.Control
+            icon={
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+                <MdShoppingCart size={22} className="text-white" />
+              </div>
+            }
+            bg={"primary.9"}
+            className="w-full items-center rounded-lg"
+          >
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-medium text-white">Sepetim</span>
+                <span className="rounded-full bg-white/10 px-3 py-1 text-sm text-white">
+                  {items.length} ürün
+                </span>
+              </div>
+            </div>
+          </Accordion.Control>
+          <Accordion.Panel>
+            <CartContent />
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
+    );
+  }
 
   return (
     <div className="sm:sticky sm:top-0 sm:h-screen sm:min-w-[420px] lg:min-w-[470px]">
       <div className="relative h-full">
-        <div className="px-4 py-8 sm:h-[calc(100vh-80px)] sm:overflow-auto">
-          {items.map((item) => (
-            <div
-              key={item.variantId}
-              className="rounded-lg bg-white/5 backdrop-blur-sm"
-            >
-              <ShoppingProduct item={item} />
-            </div>
-          ))}
-        </div>
-
-        <div className="w-full bg-gray-800/80 p-5 backdrop-blur-sm md:absolute md:bottom-0 md:left-0">
-          <div className="space-y-3 text-white">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-300">Ara Toplam</span>
-              <span>{formatPrice(totalOriginalPrice)}</span>
-            </div>
-
-            {hasDiscount && (
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-green-400">İndirim</span>
-                <span className="text-green-400">
-                  -{formatPrice(totalDiscountAmount)}
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between border-t border-gray-600 pt-3">
-              <span className="text-lg">Toplam</span>
-              <span className="text-lg font-medium">
-                {formatPrice(totalFinalPrice)}
-              </span>
-            </div>
-          </div>
-        </div>
+        <CartContent />
       </div>
     </div>
   );

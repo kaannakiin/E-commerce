@@ -1,5 +1,6 @@
-import fs from "fs/promises";
+import { rateLimiter } from "@/lib/rateLimitRedis";
 import { existsSync } from "fs";
+import fs from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import sharp from "sharp";
@@ -10,7 +11,15 @@ const MAX_WIDTH = 2000;
 
 export async function GET(req: NextRequest) {
   try {
-    // URL parametrelerini al
+    const ip =
+      req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for");
+    const canProceed = await rateLimiter(ip);
+    if (!canProceed.success) {
+      return NextResponse.json(
+        { message: "Rate limit exceeded" },
+        { status: 429 },
+      );
+    }
     const url = req.nextUrl.searchParams.get("url");
     const width = parseInt(req.nextUrl.searchParams.get("width") || "0", 10);
     const quality = parseInt(

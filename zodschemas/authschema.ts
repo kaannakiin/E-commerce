@@ -507,9 +507,7 @@ export const checkoutFormSchema = z.object({
 
     expireMonth: z
       .string()
-      .length(2, "Ay 2 haneli olmalıdır")
-      .regex(/^(0[1-9]|1[0-2])$/, "Geçerli bir ay giriniz (01-12)"),
-
+      .regex(/^([1-9]|1[0-2])$/, "Geçerli bir ay giriniz (1-12)"),
     expireYear: z
       .string()
       .length(4, "Yıl 4 haneli olmalıdır")
@@ -726,7 +724,8 @@ export type EditDiscountCodeSchemaType = z.infer<typeof EditDiscountCodeSchema>;
 export const discountCode = z.object({
   code: z
     .string({ message: "Lütfen bir kod girin" })
-    .min(1, { message: "Lütfen bir kod girin" }),
+    .min(1, { message: "Lütfen bir kod girin" })
+    .nullable(),
 });
 export type DiscountCodeType = z.infer<typeof discountCode>;
 // searchSchema.ts
@@ -841,9 +840,77 @@ export type AddUserServerType = z.infer<typeof addUserServer>;
 export const idForEverything = z
   .string({ message: "Bu alan zorunlu" })
   .cuid({ message: "Geçerli bir ID giriniz" });
+
+export const idForEverythingUuid = z
+  .string()
+  .uuid({ message: "Geçerli bir ID giriniz" });
 export type IdForEverythingType = z.infer<typeof idForEverything>;
 export const serverEditAddressSchema = addUserServer.extend({
   id: idForEverything,
 });
 
 export type ServerEditAddressType = z.infer<typeof serverEditAddressSchema>;
+export const CreditCardSchema = z.object({
+  cardHolderName: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(5, { message: "Kart üzerindeki isim en az 5 karakter olmalıdır" })
+    .max(100, {
+      message: "Kart üzerindeki isim en fazla 100 karakter olabilir",
+    })
+    .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, {
+      message: "Kart üzerindeki isim sadece harflerden oluşmalıdır",
+    }),
+
+  cardNumber: z
+    .string({ message: "Bu alan boş olamaz" })
+
+    .min(1, { message: "Kart numarası zorunludur." })
+    .regex(/^\d{4} \d{4} \d{4} \d{4}$/, {
+      message: "Lütfen geçerli bir kart giriniz.",
+    }),
+
+  expireMonth: z
+    .string({ message: "Bu alan boş olamaz" })
+
+    .regex(/^([1-9]|1[0-2])$/, { message: "Geçerli bir ay giriniz (1-12)" }),
+  expireYear: z
+    .string({ message: "Bu alan boş olamaz" })
+    .length(4, { message: "Yıl 4 haneli olmalıdır" })
+    .regex(/^[0-9]+$/, { message: "Yıl sadece rakamlardan oluşmalıdır" }),
+
+  cvc: z
+    .string({ message: "Bu alan boş olamaz" })
+    .length(3, { message: "CVC kodu 3 haneli olmalıdır" })
+    .regex(/^[0-9]+$/, { message: "CVC kodu sadece rakamlardan oluşmalıdır" }),
+  threeDsecure: z.boolean().default(false),
+
+  privacyAccepted: z
+    .boolean()
+    .default(false)
+    .refine((val) => val === true, {
+      message: "Gizlilik sözleşmesi ve satış politikasını kabul etmelisiniz",
+    }),
+});
+export type CreditCardFormValues = z.infer<typeof CreditCardSchema>;
+
+export const variantIdQtyItemSchema = z.object({
+  variantId: z
+    .string({ message: "Variant ID zorunludur" })
+    .uuid({ message: "Geçerli bir variant ID giriniz" }), // UUID formatında olduğu için CUID yerine UUID kullandım
+  quantity: z
+    .number({ message: "Miktar zorunludur" })
+    .int({ message: "Miktar tam sayı olmalıdır" })
+    .min(1, { message: "En az 1 adet ürün seçmelisiniz" })
+    .max(99, { message: "En fazla 99 adet ürün seçebilirsiniz" }),
+});
+export const variantIdQtySchema = z
+  .array(variantIdQtyItemSchema)
+  .nonempty({ message: "En az 1 ürün seçmelisiniz" })
+  .max(10, { message: "En fazla 10 farklı ürün seçebilirsiniz" });
+
+export const refundFormSchema = z.object({
+  info: z
+    .string({ message: "Bu alan gereklidir" })
+    .min(1, { message: "İade nedeni en az 1 karakter olmalıdır" }),
+});
+export type RefundFormValues = z.infer<typeof refundFormSchema>;

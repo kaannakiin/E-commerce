@@ -32,6 +32,7 @@ const OrderPage = async (props: { params: Params }) => {
                 select: {
                   name: true,
                   shortDescription: true,
+                  description: true,
                   taxRate: true,
                   id: true,
                 },

@@ -18,7 +18,6 @@ export async function DiscountCheck(
         message: "Kupon kodu boş olamaz.",
       };
     }
-
     const discount = await prisma.discountCode.findUnique({
       where: {
         code: code,
@@ -29,9 +28,9 @@ export async function DiscountCheck(
         active: true,
         allProducts: true,
         code: true,
+        uses: true,
         expiresAt: true,
         limit: true,
-        uses: true,
         variants: {
           select: {
             id: true,
@@ -78,7 +77,6 @@ export async function DiscountCheck(
       };
     }
 
-    // Variant kontrolü
     const discountVariantIds = discount.variants.map((variant) => variant.id);
     const allVariantsValid = VariantIds.every((variantId) =>
       discountVariantIds.includes(variantId),

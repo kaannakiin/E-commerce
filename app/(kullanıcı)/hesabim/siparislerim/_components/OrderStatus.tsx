@@ -1,9 +1,7 @@
-import React from "react";
-import { FiClock, FiCheck, FiXCircle } from "react-icons/fi";
+import { Badge, Group, Text } from "@mantine/core";
 import { BiPackage } from "react-icons/bi";
 import { FaTruck } from "react-icons/fa";
-import { Badge, Group, Text } from "@mantine/core";
-import CustomImage from "@/components/CustomImage";
+import { FiCheck, FiClock, FiXCircle } from "react-icons/fi";
 
 const OrderStatusDisplay = ({ status, deliveredAt }) => {
   const getStatusConfig = (status) => {
@@ -11,7 +9,7 @@ const OrderStatusDisplay = ({ status, deliveredAt }) => {
       PENDING: {
         icon: <FiClock size={14} />,
         color: "yellow",
-        text: "Beklemede",
+        text: "Ödeme Bekliyor",
       },
       PROCESSING: {
         icon: <BiPackage size={14} />,
@@ -32,6 +30,11 @@ const OrderStatusDisplay = ({ status, deliveredAt }) => {
         icon: <FiXCircle size={14} />,
         color: "red",
         text: "İptal Edildi",
+      },
+      AWAITING_APPROVAL: {
+        icon: <FiClock size={14} />,
+        color: "yellow",
+        text: "Onay Bekliyor",
       },
     };
 

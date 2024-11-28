@@ -26,7 +26,16 @@ export async function confirmOrder(id: string): Promise<{
         message: "Sipariş numarası boş olamaz",
       };
     }
-    if (order.orderStatus === "PENDING") {
+    if (order.paymentStatus !== "SUCCESS") {
+      return {
+        success: false,
+        message: "Ödeme başarısız, sipariş onaylanamaz",
+      };
+    }
+    if (
+      order.orderStatus === "AWAITING_APPROVAL" &&
+      order.paymentStatus === "SUCCESS"
+    ) {
       await prisma.order.update({
         where: {
           id: id,

@@ -6,9 +6,8 @@ import { calculatePrice } from "@/lib/calculatePrice";
 import { formatPrice } from "@/lib/formatter";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { ActionIcon, ColorSwatch, Text } from "@mantine/core";
+import { ActionIcon } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { VariantType } from "@prisma/client";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -34,7 +33,7 @@ const ProductCard = ({
   const pathname = usePathname();
   const isInFavoritesPage = pathname === "/hesabim/favoriler";
   const onClickHeart = async (slug: string) => {
-    await AddFavorite(product.id, slug).then(async (res) => {
+    await AddFavorite(product.id).then(async (res) => {
       if (res.success) {
         setIsFave(!isFave);
       }

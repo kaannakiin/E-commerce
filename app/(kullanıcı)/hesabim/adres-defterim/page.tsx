@@ -30,7 +30,7 @@ const DashboardPage = async () => {
       },
     },
   });
-  if (user.Adress.length === 0) {
+  if (user.Adress == null || user.Adress.length === 0) {
     return (
       <div>
         <AddressBook email={session.user.email} />

@@ -19,8 +19,6 @@ export const useStore = create<CartSlice>()(
           totalItems: state.totalItems,
           totalOriginalPrice: state.totalOriginalPrice,
           totalFinalPrice: state.totalFinalPrice,
-          totalDiscountAmount: state.totalDiscountAmount,
-          totalTaxAmount: state.totalTaxAmount,
         }),
       },
     ),

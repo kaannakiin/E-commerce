@@ -112,6 +112,95 @@ interface BinResponse {
   bankCode: number;
   commercial: number;
 }
+interface RefundErrorResponse {
+  status: "failure";
+  locale: string;
+  systemTime: number;
+  conversationId: string;
+  errorCode: string;
+  errorMessage: string;
+  paymentId: string;
+}
+interface RefundSuccessResponse {
+  status: "success";
+  locale: string;
+  systemTime: number;
+  conversationId: string;
+  paymentId: string;
+  price: number;
+  currency: string;
+  authCode: string;
+  hostReference: string;
+  cancelHostReference: string;
+}
+interface IyzicoSuccessResponse {
+  status: "success";
+  locale: string;
+  systemTime: number;
+  conversationId: string;
+  price: number;
+  paidPrice: number;
+  installment: number;
+  paymentId: string;
+  fraudStatus: number;
+  merchantCommissionRate: number;
+  merchantCommissionRateAmount: number;
+  iyziCommissionRateAmount: number;
+  iyziCommissionFee: number;
+  cardType: string;
+  cardAssociation: string;
+  cardFamily: string;
+  binNumber: string;
+  lastFourDigits: string;
+  basketId: string;
+  currency: string;
+  itemTransactions: {
+    itemId: string;
+    paymentTransactionId: string;
+    transactionStatus: 2 | 1 | 0 | -1;
+    price: number;
+    paidPrice: number;
+    merchantCommissionRate: number;
+    merchantCommissionRateAmount: number;
+    iyziCommissionRateAmount: number;
+    iyziCommissionFee: number;
+    blockageRate: number;
+    blockageRateAmountMerchant: number;
+    blockageRateAmountSubMerchant: number;
+    blockageResolvedDate: string;
+    subMerchantPrice: number;
+    subMerchantPayoutRate: number;
+    subMerchantPayoutAmount: number;
+    merchantPayoutAmount: number;
+    convertedPayout: {
+      paidPrice: number;
+      iyziCommissionRateAmount: number;
+      iyziCommissionFee: number;
+      blockageRateAmountMerchant: number;
+      blockageRateAmountSubMerchant: number;
+      subMerchantPayoutAmount: number;
+      merchantPayoutAmount: number;
+      iyziConversionRate: number;
+      iyziConversionRateAmount: number;
+      currency: string;
+    };
+  }[];
+  authCode: string;
+  phase: string;
+  hostReference: string;
+  signature: string;
+}
+
+// Hata yanıtı için tip tanımlaması
+interface IyzicoErrorResponse {
+  status: "failure";
+  errorCode: string;
+  errorMessage: string;
+  errorGroup: string;
+  locale: string;
+  systemTime: number;
+  conversationId: string;
+}
 import CryptoJS from "crypto-js";
 
 export class IyzicoClient {
@@ -208,12 +297,24 @@ export class IyzicoClient {
     return this.request("/payment/3dsecure/auth", "POST", paymentRequest);
   }
 
-  async createPayment(paymentRequest): Promise<unknown> {
+  async createPayment(
+    paymentRequest,
+  ): Promise<IyzicoSuccessResponse | IyzicoErrorResponse> {
     return this.request("/payment/auth", "POST", paymentRequest);
   }
 
   async checkPaymentStatus(paymentId: string): Promise<unknown> {
     return this.request("/payment/detail", "POST", { paymentId });
+  }
+  async v2Check3DResult(
+    paymentRequest,
+  ): Promise<IyzicoSuccessResponse | IyzicoErrorResponse> {
+    return this.request("/payment/v2/3dsecure/auth", "POST", paymentRequest);
+  }
+  async cancelPayment(
+    paymentRequest,
+  ): Promise<RefundErrorResponse | RefundSuccessResponse> {
+    return this.request("/payment/cancel", "POST", paymentRequest);
   }
 }
 

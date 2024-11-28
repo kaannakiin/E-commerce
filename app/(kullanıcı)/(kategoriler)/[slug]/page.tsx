@@ -9,7 +9,6 @@ import { VariantType } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-// Types
 export interface CategoryVariant {
   id: string;
   type: VariantType;

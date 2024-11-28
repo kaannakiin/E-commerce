@@ -1,4 +1,6 @@
+import { auth } from "@/auth";
 import AddToCartButton from "@/components/AddToCartButton";
+import FavHeart from "@/components/FavHeart";
 import ProductDetails from "@/components/InfoAccordion";
 import ProductGallery from "@/components/ProductGallery";
 import { calculatePrice } from "@/lib/calculatePrice";
@@ -8,10 +10,23 @@ import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
 import { ColorSwatch } from "@mantine/core";
 import { VariantType } from "@prisma/client";
+
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { FaClockRotateLeft } from "react-icons/fa6";
+const getFavorites = cache(async (userId: string | undefined) => {
+  if (!userId) return [];
+
+  return prisma.favoriteVariants.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+    },
+    select: { variantId: true },
+  });
+});
+
 const feed = cache(async (slug, productSlug) => {
   const cat = await prisma.category.findUnique({
     where: {
@@ -126,10 +141,12 @@ export async function generateMetadata({
 }
 
 const page = async (props: { params: Params }) => {
+  const session = await auth();
+  const favoriteIds = await getFavorites(session?.user?.id);
   const params = await props.params;
   const { slug, productSlug } = params;
   const variant = await feed(slug, productSlug);
-
+  const isFavorited = favoriteIds.some((fav) => fav.variantId === variant.id);
   const ingredients = [
     "Vitamin C",
     "Hyaluronic Acid",
@@ -145,7 +162,8 @@ const page = async (props: { params: Params }) => {
         </div>
         <div className="flex w-full flex-col space-y-6 p-6 lg:flex-1">
           {/* Ürün Başlığı */}
-          <div className="space-y-2">
+          <div className="relative space-y-2">
+            <FavHeart isFavorited={isFavorited} productId={variant.id} />
             <h1 className="text-3xl font-medium uppercase tracking-tight text-gray-900">
               {variant.product.name}
             </h1>

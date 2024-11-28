@@ -28,11 +28,11 @@ const ShoppingProduct = ({ item }: { item: CartVariant }) => {
           radius="xl"
           classNames={{ indicator: "font-bold", root: "relative h-48 w-full" }}
         >
-          <CustomImage src={item.imageUrl} quality={21} />
+          <CustomImage src={item.imageUrl} quality={21} objectFit="contain" />
         </Indicator>
       ) : (
         <div className="relative h-48 w-full">
-          <CustomImage src={item.imageUrl} quality={21} />
+          <CustomImage src={item.imageUrl} quality={21} objectFit="contain" />
         </div>
       )}
     </>

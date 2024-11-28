@@ -49,6 +49,7 @@ export type OrderItems = Prisma.OrderItemsGetPayload<{
         product: {
           select: {
             name: true;
+            description: true;
             shortDescription: true;
             taxRate: true;
             id: true;
@@ -131,6 +132,9 @@ const feedPage = cache(async (email: string) => {
             },
           },
         },
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
     return orders;
