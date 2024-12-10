@@ -2,9 +2,17 @@
 import { prisma } from "@/lib/prisma";
 import path from "path";
 import fs from "fs/promises";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 
 export async function DeleteImgToProduct(id: string) {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     if (!id) {
       return { message: "Image ID is required", status: 400 };
     }

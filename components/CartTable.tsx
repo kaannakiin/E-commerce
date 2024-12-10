@@ -1,5 +1,4 @@
 "use client";
-import { formatPrice } from "@/lib/formatter";
 import { useStore } from "@/store/store";
 import {
   Button,
@@ -14,6 +13,7 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { HiOutlineShoppingBag } from "react-icons/hi";
 import ShoppingProduct from "./ShoppingProduct";
+import { formattedPrice } from "@/lib/format";
 
 const CartPage = () => {
   const { data: session, status } = useSession();
@@ -74,7 +74,7 @@ const CartPage = () => {
                   <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                     <span className="text-sm text-gray-600">Ara Toplam</span>
                     <span className="text-base font-medium">
-                      {formatPrice(totalOriginalPrice)}
+                      {formattedPrice(totalOriginalPrice)}
                     </span>
                   </div>
                   {hasDiscount && (
@@ -84,14 +84,15 @@ const CartPage = () => {
                           İndirim Tutarı
                         </span>
                         <span className="text-base font-medium text-emerald-600">
-                          -{formatPrice(totalOriginalPrice - totalFinalPrice)}
+                          -
+                          {formattedPrice(totalOriginalPrice - totalFinalPrice)}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                         <span className="text-base font-semibold">Toplam</span>
                         <span className="text-xl font-bold text-primary-600">
-                          {formatPrice(totalFinalPrice)}
+                          {formattedPrice(totalFinalPrice)}
                         </span>
                       </div>
                     </>
@@ -101,7 +102,7 @@ const CartPage = () => {
                     <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                       <span className="text-base font-semibold">Toplam</span>
                       <span className="text-xl font-bold text-primary-600">
-                        {formatPrice(totalOriginalPrice)}
+                        {formattedPrice(totalOriginalPrice)}
                       </span>
                     </div>
                   )}

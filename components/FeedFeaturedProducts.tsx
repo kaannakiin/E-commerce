@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { cache } from "react";
-import FeaturedProduct from "./FeaturedProducts";
+import ProductCard from "./ProductCard";
 
 // Cache'lenmiş veri çekme fonksiyonu
 const feedFeaturedProduct = cache(async () => {
@@ -9,11 +9,11 @@ const feedFeaturedProduct = cache(async () => {
       where: {
         isPublished: true,
         stock: {
-          gt: 0, // Sadece stokta olan ürünleri getirir
+          gt: 0,
         },
       },
       select: {
-        id: true, // key prop için unique id eklendi
+        id: true,
         Image: {
           select: {
             url: true,
@@ -26,13 +26,17 @@ const feedFeaturedProduct = cache(async () => {
         unit: true,
         value: true,
         discount: true,
+        createdAt: true,
+
         product: {
           select: {
             name: true,
             description: true,
+            shortDescription: true,
             taxRate: true,
             categories: {
               select: {
+                name: true,
                 slug: true,
               },
             },
@@ -65,7 +69,11 @@ const FeedFeaturedProducts = async () => {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {result.products &&
           result.products.map((product) => (
-            <FeaturedProduct key={product.id} variant={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              isFavorited={false}
+            />
           ))}
       </div>
     </section>

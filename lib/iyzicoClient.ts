@@ -190,7 +190,27 @@ interface IyzicoSuccessResponse {
   hostReference: string;
   signature: string;
 }
-
+interface RefundRequest {
+  ip: string;
+  price: string;
+  paymentId: string;
+  locale: "tr" | "en";
+  conversationId?: string;
+}
+interface RefundResponse {
+  price: string;
+  currency: string;
+  paymentId: number;
+  paymentTransactionId: string;
+  hostReference: string;
+  status: "success" | "failure";
+  errorCode?: string;
+  errorMessage?: string;
+  errorGroup?: string;
+  locale: string;
+  systemTime: number;
+  conversationId?: string;
+}
 // Hata yanıtı için tip tanımlaması
 interface IyzicoErrorResponse {
   status: "failure";
@@ -315,6 +335,9 @@ export class IyzicoClient {
     paymentRequest,
   ): Promise<RefundErrorResponse | RefundSuccessResponse> {
     return this.request("/payment/cancel", "POST", paymentRequest);
+  }
+  async refundPayment(paymentRequest: RefundRequest): Promise<RefundResponse> {
+    return this.request("/v2/payment/refund", "POST", paymentRequest);
   }
 }
 

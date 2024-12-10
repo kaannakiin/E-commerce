@@ -1,9 +1,24 @@
 // app/(admin)/layout.tsx
 import { auth } from "@/auth";
-import { Box } from "@mantine/core";
+import { prisma } from "@/lib/prisma";
+import { Alert, Box, Button } from "@mantine/core";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import AdminNav from "./_components/AdminNav";
-
+import { FaInfoCircle, FaArrowRight } from "react-icons/fa";
+import Link from "next/link";
+import Info from "./_components/Info";
+const feedLayout = cache(async () => {
+  try {
+    const info = await prisma.salerInfo.findFirst();
+    if (!info) {
+      return null;
+    }
+    return info;
+  } catch (error) {
+    return error;
+  }
+});
 export default async function AdminLayout({
   children,
 }: Readonly<{
@@ -13,10 +28,12 @@ export default async function AdminLayout({
   if (!session?.user) {
     redirect("/auth/signin");
   }
+  const info = await feedLayout();
 
   return (
     <Box>
       <AdminNav />
+
       <main
         style={{
           minHeight: "calc(100vh - 60px)",
@@ -24,6 +41,7 @@ export default async function AdminLayout({
           marginTop: "60px",
         }}
       >
+        {info === null ? <Info /> : null}
         {children}
       </main>
     </Box>

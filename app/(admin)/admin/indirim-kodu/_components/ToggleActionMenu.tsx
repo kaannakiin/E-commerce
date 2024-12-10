@@ -12,7 +12,7 @@ interface ToggleActionMenuProps {
   status: DiscountStatus;
 }
 
-interface NotificationType {
+export interface NotificationType {
   show: boolean;
   message: string;
   type: "success" | "error";

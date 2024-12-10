@@ -1,10 +1,18 @@
 "use server";
 
 import { DeleteImage } from "@/lib/deleteImageFile";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 export async function DeleteProduct(variantId: string) {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     if (!variantId) {
       return { message: "Variant ID gereklidir", status: 400 };
     }

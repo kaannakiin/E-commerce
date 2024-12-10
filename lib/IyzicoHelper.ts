@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import CryptoJS from "crypto-js";
+import { parseISO, isToday, differenceInDays, fromUnixTime } from "date-fns";
 
 export function generateNon3DSignature({
   paymentId,
@@ -124,4 +125,116 @@ export const groupTransactionsByItemId = (
       {},
     ),
   );
+};
+const IYZICO_ALLOWED_IPS = {
+  notification: {
+    current: ["85.111.48.36", "85.111.9.165"], // Mevcut Production ve Disaster IP'leri
+    new: ["213.226.118.16", "193.142.35.16", "213.226.118.95"], // Yeni Production ve Disaster IP'leri
+  },
+};
+
+export const isIyzicoIP = (clientIP: string | null): boolean => {
+  if (!clientIP) return false;
+
+  const ip = clientIP.split(",")[0].trim();
+
+  return [
+    ...IYZICO_ALLOWED_IPS.notification.current,
+    ...IYZICO_ALLOWED_IPS.notification.new,
+  ].includes(ip);
+};
+import { NextResponse } from "next/server";
+
+export function handlingError(errorCode: string) {
+  switch (errorCode) {
+    case "11":
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "Kart numarası hatalı, lütfen kontrol ediniz.",
+        },
+        { status: 400 },
+      );
+    case "12":
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "Kart numarası hatalı, lütfen kontrol ediniz.",
+        },
+        { status: 400 },
+      );
+    case "13":
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "Son kullanma ayı hatalı, lütfen kontrol ediniz.",
+        },
+        { status: 400 },
+      );
+    case "14":
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "Son kullanma yılı hatalı, lütfen kontrol ediniz.",
+        },
+        { status: 400 },
+      );
+    case "15":
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "Cvc geçersiz, lütfen kontrol ediniz.",
+        },
+        { status: 400 },
+      );
+    case "17":
+      return NextResponse.json(
+        {
+          status: 400,
+          message:
+            "Kartınız son kullanma tarihi geçersizdir, lütfen kontrol ediniz.",
+        },
+        { status: 400 },
+      );
+    default:
+      return NextResponse.json(
+        {
+          status: 400,
+          message: "Kart bilgilerinizi lütfen kontrol ediniz.",
+        },
+        { status: 400 },
+      );
+  }
+}
+
+type DateInput = Date | string;
+
+export const isSameDay = (date: DateInput): boolean => {
+  try {
+    // Gelen değer string ise parse et, Date instance ise direkt kullan
+    const parsedDate = typeof date === "string" ? parseISO(date) : date;
+    const localDate = new Date(parsedDate.getTime() + 3 * 60 * 60 * 1000); // UTC+3
+    return isToday(localDate);
+  } catch (error) {
+    console.error("Tarih kontrolünde hata:", error);
+    return false;
+  }
+};
+
+export const isWithinDays = (date: DateInput, days: number = 14): boolean => {
+  try {
+    const parsedDate = typeof date === "string" ? parseISO(date) : date;
+    const localDate = new Date(parsedDate.getTime() + 3 * 60 * 60 * 1000); // UTC+3
+    const today = new Date();
+    const dayDifference = differenceInDays(today, localDate);
+
+    return dayDifference >= 0 && dayDifference <= days;
+  } catch (error) {
+    console.error("Tarih kontrolünde hata:", error);
+    return false;
+  }
+};
+export const convertUnixToISOString = (unixTimestamp: number): string => {
+  const date = fromUnixTime(unixTimestamp / 1000);
+  return date.toISOString();
 };

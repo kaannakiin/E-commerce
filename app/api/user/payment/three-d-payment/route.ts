@@ -1,12 +1,12 @@
 import { DiscountCheck } from "@/actions/user/discount-check";
 import { auth } from "@/auth";
 import { iyzico } from "@/lib/iyzicoClient";
-import { handlingError } from "@/lib/iyzicoErrorHandling";
+import { handlingError } from "@/lib/IyzicoHelper";
 import { generateNon3DSignature } from "@/lib/IyzicoHelper";
 import { prisma } from "@/lib/prisma";
 import { rateLimiter } from "@/lib/rateLimitRedis";
 import {
-  checkoutFormSchema,
+  nonAuthSchema,
   CreditCardSchema,
   discountCode,
   idForEverything,
@@ -239,7 +239,7 @@ export async function POST(req: NextRequest) {
     } else {
       const data = await req.json();
       const { firstName, lastName, email, phone, address, cardInfo } =
-        checkoutFormSchema.parse(data.data);
+        nonAuthSchema.parse(data.data);
       const userProducts = variantIdQtySchema.parse(data.variantIdQty);
       const code = discountCode.parse({ code: data.params || null });
       const discountCodeCheck = await DiscountCheck(

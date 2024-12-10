@@ -181,6 +181,7 @@ const feedCat = cache(
             discount: true,
             stock: true,
             createdAt: true,
+            unit: true,
             product: {
               select: {
                 name: true,

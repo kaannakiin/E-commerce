@@ -222,7 +222,6 @@ const DashboardPage = async () => {
     newOrders,
     weeklyUsers,
   } = await orderFeed();
-  console.log(completeOrders);
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       {/* Header */}

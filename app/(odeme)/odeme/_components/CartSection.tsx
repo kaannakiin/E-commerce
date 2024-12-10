@@ -1,6 +1,5 @@
 "use client";
 import ShoppingProduct from "@/components/ShoppingProduct";
-import { formatPrice } from "@/lib/formatter";
 import { useStore } from "@/store/store";
 import { useMediaQuery } from "@mantine/hooks";
 import { Accordion, Button, TextInput, UnstyledButton } from "@mantine/core";
@@ -9,6 +8,7 @@ import DiscountCodeInput from "./DiscountCodeInput";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { DiscountCheck } from "@/actions/user/discount-check";
+import { formattedPrice } from "@/lib/format";
 
 const CartSection = () => {
   const items = useStore((state) => state.items);
@@ -52,14 +52,14 @@ const CartSection = () => {
         <div className="space-y-3 text-white">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-300">Ara Toplam</span>
-            <span>{formatPrice(totalOriginalPrice)}</span>
+            <span>{formattedPrice(totalOriginalPrice)}</span>
           </div>{" "}
           <DiscountCodeInput />
           {hasDiscount && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-green-400">İndirim</span>
               <span className="text-green-400">
-                -{formatPrice(totalOriginalPrice - totalFinalPrice)}
+                -{formattedPrice(totalOriginalPrice - totalFinalPrice)}
               </span>
             </div>
           )}
@@ -67,14 +67,14 @@ const CartSection = () => {
             <div className="flex items-center justify-between text-sm">
               <span className="text-green-400">İndirim Kuponu Tutarı</span>
               <span className="text-green-400">
-                -{formatPrice(discountPrice)}
+                -{formattedPrice(discountPrice)}
               </span>
             </div>
           )}
           <div className="flex items-center justify-between border-t border-gray-600 pt-3">
             <span className="text-lg">Toplam</span>
             <span className="text-lg font-medium">
-              {formatPrice(totalFinalPrice - discountPrice)}
+              {formattedPrice(totalFinalPrice - discountPrice)}
             </span>
           </div>
         </div>

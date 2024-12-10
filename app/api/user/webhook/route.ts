@@ -3,7 +3,7 @@ import {
   generateEmailTemplate,
   generateOrderConfirmationContent,
 } from "@/lib/htmlTemplate";
-import { isIyzicoIP } from "@/lib/iyzicoIpCheck";
+import { isIyzicoIP } from "@/lib/IyzicoHelper";
 import { createTransporter } from "@/lib/mailTransporter";
 import { prisma } from "@/lib/prisma";
 import { OrderStatus, paymentStatus } from "@prisma/client";
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
             data: {
               paymentStatus: paymentStatus.SUCCESS,
               orderStatus: OrderStatus.AWAITING_APPROVAL,
+              paymentDate: new Date(),
             },
             include: {
               user: true,
@@ -103,9 +104,9 @@ export async function POST(req: NextRequest) {
                 name: item.variant.product.name,
                 price: item.price,
                 quantity: item.quantity,
-                image: item.variant.Image?.[0]?.url
-                  ? `http://localhost:3000/api/user/asset/get-image?width=200&quality=80&url=${item.variant.Image[0].url}`
-                  : "/default-product-image.jpg",
+                image:
+                  item.variant.Image?.[0]?.url &&
+                  `https://3b50-31-223-89-41.ngrok-free.app/api/user/asset/get-image?width=200&quality=80&url=${item.variant.Image[0].url}`,
               })),
             ),
           });

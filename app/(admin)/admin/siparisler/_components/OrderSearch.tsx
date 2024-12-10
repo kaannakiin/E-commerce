@@ -31,6 +31,7 @@ const OrderSearchHeader = () => {
   const onSelectChange = (value: string) => {
     const newParams = new URLSearchParams(params.toString());
     if (value && value !== "all") {
+      newParams.set("page", "1");
       newParams.set("status", value);
     } else {
       newParams.delete("status");
@@ -76,7 +77,8 @@ const OrderSearchHeader = () => {
         <Select
           data={[
             { value: "all", label: "Tümü" },
-            { value: OrderStatus.PENDING, label: "Onay bekliyor" },
+            { value: OrderStatus.PENDING, label: "Ödeme Bekleniyor" },
+            { value: OrderStatus.AWAITING_APPROVAL, label: "Onay Bekliyor" },
             { value: OrderStatus.PROCESSING, label: "Onaylandı" },
             { value: OrderStatus.SHIPPED, label: "Kargoya verildi" },
             { value: OrderStatus.DELIVERED, label: "Tamamlandı" },

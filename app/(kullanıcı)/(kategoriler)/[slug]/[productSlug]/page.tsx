@@ -4,7 +4,7 @@ import FavHeart from "@/components/FavHeart";
 import ProductDetails from "@/components/InfoAccordion";
 import ProductGallery from "@/components/ProductGallery";
 import { calculatePrice } from "@/lib/calculatePrice";
-import { formatPrice } from "@/lib/formatter";
+import { formattedPrice } from "@/lib/format";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
@@ -83,8 +83,8 @@ export async function generateMetadata({
     process.env.NEXT_PUBLIC_SITE_URL || "https://yoursiteurl.com";
   const productUrl = `${SITE_URL}/${deneme.slug}/${deneme.productSlug}`;
   const price = variant.discount
-    ? formatPrice(Number(variant.price) * (1 - variant.discount / 100))
-    : formatPrice(Number(variant.price));
+    ? formattedPrice(Number(variant.price) * (1 - variant.discount / 100))
+    : formattedPrice(Number(variant.price));
 
   return {
     title: `${variant.product.name.toUpperCase()} `,
@@ -172,7 +172,7 @@ const page = async (props: { params: Params }) => {
                 {variant.discount ? (
                   <>
                     <span className="text-2xl font-semibold text-primary-500">
-                      {formatPrice(
+                      {formattedPrice(
                         calculatePrice(
                           variant.price,
                           variant.discount,
@@ -181,7 +181,7 @@ const page = async (props: { params: Params }) => {
                       )}
                     </span>
                     <span className="text-xl text-gray-500 line-through">
-                      {formatPrice(
+                      {formattedPrice(
                         calculatePrice(
                           variant.price,
                           variant.discount,
@@ -203,7 +203,7 @@ const page = async (props: { params: Params }) => {
                   </>
                 ) : (
                   <span className="text-2xl font-semibold text-primary-500">
-                    {formatPrice(
+                    {formattedPrice(
                       calculatePrice(
                         variant.price,
                         variant.discount,

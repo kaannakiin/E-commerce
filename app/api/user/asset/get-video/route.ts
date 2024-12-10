@@ -8,88 +8,124 @@ const ASSET_DIR = path.join(process.cwd(), "assets");
 export async function GET(req: NextRequest) {
   try {
     const url = req.nextUrl.searchParams.get("url");
+    const quality = req.nextUrl.searchParams.get("quality") || "high";
 
-    // URL kontrolü
-    if (!url) {
-      return NextResponse.json(
-        {
-          error: "Video URL is required",
-        },
-        { status: 400 }
-      );
-    }
-    if (url.includes("..") || url.includes("/")) {
-      return NextResponse.json(
-        {
-          error: "Invalid URL",
-        },
-        { status: 400 }
-      );
+    if (!url || !isValidVideoUrl(url)) {
+      console.log("Invalid URL:", url); // Debug için log
+      return NextResponse.json({ error: "Invalid video URL" }, { status: 400 });
     }
 
-    const fileName = `${url}.mp4`;
+    const fileName = url;
     const filePath = path.join(ASSET_DIR, fileName);
 
     if (!existsSync(filePath)) {
-      return NextResponse.json(
-        {
-          error: "Video not found",
-        },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Video not found" }, { status: 404 });
     }
 
-    try {
-      const stat = await fs.stat(filePath);
-      const fileSize = stat.size;
-      const videoBuffer = await fs.readFile(filePath);
+    const stat = await fs.stat(filePath);
+    const range = req.headers.get("range");
 
-      const range = req.headers.get("range");
-      if (range) {
-        const parts = range.replace(/bytes=/, "").split("-");
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-        const chunkSize = end - start + 1;
-        const videoChunk = videoBuffer.slice(start, end + 1);
-
-        // Partial content response
-        return new NextResponse(videoChunk, {
-          status: 206,
-          headers: {
-            "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-            "Accept-Ranges": "bytes",
-            "Content-Length": chunkSize.toString(),
-            "Content-Type": "video/mp4",
-            "Cache-Control": "public, max-age=31536000", // 1 yıl cache
-          },
-        });
-      }
-
-      // Range header yoksa tüm videoyu gönder
-      return new NextResponse(videoBuffer, {
-        headers: {
-          "Content-Length": fileSize.toString(),
-          "Content-Type": "video/mp4",
-          "Accept-Ranges": "bytes",
-          "Cache-Control": "public, max-age=31536000", // 1 yıl cache
-        },
-      });
-    } catch (error) {
-      console.error("Video processing error:", error);
-      return NextResponse.json(
-        {
-          error: "Video processing failed",
-        },
-        { status: 500 }
-      );
+    const clientIp = req.headers.get("x-forwarded-for") || "unknown";
+    if (!(await isAllowedToStream(clientIp))) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
+
+    if (range) {
+      return handleRangeRequest(filePath, range, stat.size);
+    }
+
+    return streamVideo(filePath, stat.size, quality);
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
-      {
-        error: "Internal server error",
-      },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
+}
+
+function isValidVideoUrl(url: string): boolean {
+  // URL'de tehlikeli karakterler olup olmadığını kontrol et
+  if (url.includes("..") || url.includes("/")) {
+    return false;
+  }
+
+  // Yeni pattern: dosya adı-tarih-randomstring.mp4 formatını kabul et
+  const validUrlPattern =
+    /^[a-zA-Z0-9-_]+(-\d{1,2}-\d{1,2}-\d{4}-[a-z0-9]+)\.mp4$/;
+
+  return validUrlPattern.test(url);
+}
+
+// Video streaming helper fonksiyonu
+async function streamVideo(
+  filePath: string,
+  fileSize: number,
+  quality: string,
+) {
+  const videoBuffer = await fs.readFile(filePath);
+
+  const headers = {
+    "Content-Length": fileSize.toString(),
+    "Content-Type": "video/mp4",
+    "Accept-Ranges": "bytes",
+    "Cache-Control": "public, max-age=31536000",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+  };
+
+  return new NextResponse(videoBuffer, { headers });
+}
+// Rate limiting için helper fonksiyon
+const requestCounts = new Map<string, { count: number; timestamp: number }>();
+
+async function isAllowedToStream(clientIp: string): Promise<boolean> {
+  const now = Date.now();
+  const limit = 100; // Her 15 dakikada maksimum istek sayısı
+  const window = 15 * 60 * 1000; // 15 dakika
+
+  const current = requestCounts.get(clientIp) || { count: 0, timestamp: now };
+
+  // Zaman penceresi dışındaysa sayacı sıfırla
+  if (now - current.timestamp > window) {
+    current.count = 0;
+    current.timestamp = now;
+  }
+
+  // İstek sayısı limiti aşıyorsa reddet
+  if (current.count >= limit) {
+    return false;
+  }
+
+  // İstek sayısını güncelle
+  current.count++;
+  requestCounts.set(clientIp, current);
+
+  return true;
+}
+
+// Range request handler
+async function handleRangeRequest(
+  filePath: string,
+  range: string,
+  fileSize: number,
+) {
+  const parts = range.replace(/bytes=/, "").split("-");
+  const start = parseInt(parts[0], 10);
+  const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+  const chunkSize = end - start + 1;
+
+  const videoBuffer = await fs.readFile(filePath);
+  const videoChunk = videoBuffer.slice(start, end + 1);
+
+  return new NextResponse(videoChunk, {
+    status: 206,
+    headers: {
+      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": chunkSize.toString(),
+      "Content-Type": "video/mp4",
+      "Cache-Control": "public, max-age=31536000",
+    },
+  });
 }

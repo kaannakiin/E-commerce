@@ -352,17 +352,38 @@ export const EditCategorySchema = z.object({
 });
 export type EditCategorySchemaType = z.infer<typeof EditCategorySchema>;
 
-export const AddHeroSchema = z.object({
+export const AddSliderSchema = z.object({
   title: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, "Başlık zorunludur"),
-  text: z.string({ message: "Bu alan boş olamaz" }).min(1, "Metin zorunludur"),
+    .string()
+    .max(50, "Başlık en fazla 50 karakter olabilir")
+    .optional()
+    .nullable(),
+
+  text: z
+    .string({ message: "Bu alan zorunludur" })
+    .max(200, "Metin en fazla 200 karakter olabilir")
+    .optional()
+    .nullable(),
+  isDescription: z.boolean({ message: "Bu alan zorunludur" }).default(false),
+  alt: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Bu alan zorunludur" })
+    .max(50, "Alt metin en fazla 50 karakter olabilir"),
   buttonTitle: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, "Buton başlığı zorunludur"),
+    .string()
+    .max(20, "Buton başlığı en fazla 20 karakter olabilir")
+    .optional()
+    .nullable(),
+
   buttonLink: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, "Link zorunludur"),
+    .string()
+    .max(100, "Link en fazla 100 karakter olabilir")
+    .optional()
+    .nullable()
+    .refine((val) => !val || val.startsWith("/"), {
+      message: "Link '/' ile başlamalıdır",
+    }),
+  isPublished: z.boolean({ message: "Bu alan zorunludur" }).default(true),
   imageFile: z
     .array(z.instanceof(File))
     .length(1, "Bir adet fotoğraf eklemelisiniz")
@@ -404,7 +425,7 @@ export const AddHeroSchema = z.object({
       });
     }),
 });
-export type AddHeroSchemaType = z.infer<typeof AddHeroSchema>;
+export type AddSliderSchemaType = z.infer<typeof AddSliderSchema>;
 export const EditHeroSchema = z.object({
   title: z
     .string({ message: "Bu alan boş olamaz" })
@@ -449,7 +470,7 @@ export type EditHeroSchemaType = z.infer<typeof EditHeroSchema>;
 const turkishPhoneRegex =
   /([(]?)([5])([0-9]{2})([)]?)([\s]?)([0-9]{3})([\s]?)([0-9]{2})([\s]?)([0-9]{2})$/g;
 
-export const checkoutFormSchema = z.object({
+export const nonAuthSchema = z.object({
   firstName: z
     .string()
     .min(2, "Ad en az 2 karakter olmalıdır")
@@ -533,7 +554,7 @@ export const checkoutFormSchema = z.object({
   }),
 });
 
-export type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
+export type CheckoutFormValues = z.infer<typeof nonAuthSchema>;
 
 const DiscountTypeEnum = z.enum([DiscountType.FIXED, DiscountType.PERCENTAGE]);
 export const AddDiscountCodeSchema = z
@@ -842,9 +863,10 @@ export const idForEverything = z
   .cuid({ message: "Geçerli bir ID giriniz" });
 
 export const idForEverythingUuid = z
-  .string()
+  .string({ message: "Bu alan zorunlu" })
   .uuid({ message: "Geçerli bir ID giriniz" });
 export type IdForEverythingType = z.infer<typeof idForEverything>;
+export type IdForEverythingTypeUuid = z.infer<typeof idForEverythingUuid>;
 export const serverEditAddressSchema = addUserServer.extend({
   id: idForEverything,
 });
@@ -903,14 +925,174 @@ export const variantIdQtyItemSchema = z.object({
     .min(1, { message: "En az 1 adet ürün seçmelisiniz" })
     .max(99, { message: "En fazla 99 adet ürün seçebilirsiniz" }),
 });
+export type VariantIdQtyItemType = z.infer<typeof variantIdQtyItemSchema>;
 export const variantIdQtySchema = z
   .array(variantIdQtyItemSchema)
   .nonempty({ message: "En az 1 ürün seçmelisiniz" })
   .max(10, { message: "En fazla 10 farklı ürün seçebilirsiniz" });
-
 export const refundFormSchema = z.object({
   info: z
     .string({ message: "Bu alan gereklidir" })
     .min(1, { message: "İade nedeni en az 1 karakter olmalıdır" }),
+  description: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "En az 1 karakter olmalıdır" })
+    .max(100, { message: "En fazla 100 karakter olabilir" }),
 });
 export type RefundFormValues = z.infer<typeof refundFormSchema>;
+export const refundRequestSchema = z.object({
+  orderId: idForEverything,
+  info: refundFormSchema.shape.info,
+  description: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "En az 1 karakter olmalıdır" })
+    .max(100, { message: "En fazla 100 karakter olabilir" }),
+});
+
+export type RefundRequestValues = z.infer<typeof refundRequestSchema>;
+
+export const refundAdminSchema = z.object({
+  orderId: idForEverything,
+  quantity: z
+    .number({ message: "Bu alan zorunludur" })
+    .int({ message: "Bu alan zorunludur" })
+    .min(1, { message: "En az 1 adet ürün girmelisiniz" }),
+  adminNote: z
+    .string()
+    .max(200, { message: "Not en fazla 200 karakter olabilir" })
+    .optional(),
+});
+
+export type RefundAdminValues = z.infer<typeof refundAdminSchema>;
+export const SalerInfoSchema = z.object({
+  storeName: z
+    .string({ message: "Bu alan zorunludur." })
+    .min(1, { message: "Bu alan zorunludur." })
+    .max(50, { message: "Bu alan en fazla 50 karakter olabilir" }),
+  storeDescription: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Bu alan zorunludur." })
+    .max(500, "Açıklama en fazla 500 karakter olabilir"),
+  address: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Bu alan zorunludur." })
+    .max(300, "Adres en fazla 300 karakter olabilir"),
+  logo: z
+    .array(z.instanceof(File), { message: "Bu alan zorunludur" })
+    .length(1, "Bir adet fotoğraf eklemelisiniz")
+    .superRefine((files, ctx) => {
+      if (!files || files.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Bir fotoğraf eklemelisiniz",
+        });
+      }
+      if (files.length > 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Sadece bir fotoğraf yükleyebilirsiniz",
+        });
+      }
+      files.forEach((file) => {
+        if (file.size >= MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+          });
+        }
+
+        const SUPPORTED_FORMATS = [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+          "video/mp4",
+        ];
+
+        if (!SUPPORTED_FORMATS.includes(file.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+          });
+        }
+      });
+    }),
+  contactEmail: z
+    .string({ message: "Bu alan zorunludur." })
+    .email({ message: "Geçerli bir e-posta adresi giriniz" }),
+  contactPhone: z
+    .string({ message: "Bu alan zorunludur." })
+    .refine(
+      (val) =>
+        !val ||
+        /^\(5([0345])([0-9]|(5[567])|([345])[0-9])\) ([0-9]{3}) ([0-9]{2}) ([0-9]{2})$/.test(
+          val,
+        ),
+      {
+        message: "Geçerli bir cep telefon numarası giriniz",
+      },
+    ),
+  whatsapp: z
+    .string()
+    .refine(
+      (val) =>
+        !val ||
+        /^\(5([0345])([0-9]|(5[567])|([345])[0-9])\) ([0-9]{3}) ([0-9]{2}) ([0-9]{2})$/.test(
+          val,
+        ),
+      {
+        message: "Geçerli bir cep telefon numarası giriniz",
+      },
+    )
+    .optional()
+    .nullable(),
+  seoTitle: z
+    .string({ message: "Bu alan zorunludur." })
+    .max(60, "SEO başlığı en fazla 60 karakter olabilir"),
+  seoDescription: z
+    .string({ message: "Bu alan zorunludur." })
+    .max(160, "SEO açıklaması en fazla 160 karakter olabilir"),
+  instagram: z
+    .string()
+    .regex(
+      /^(?:@)?[a-zA-Z0-9._]{1,30}$/,
+      "Geçerli bir Instagram kullanıcı adı giriniz",
+    )
+    .transform((value) => (value.startsWith("@") ? value : `@${value}`))
+    .optional()
+    .nullable(),
+
+  facebook: z
+    .string()
+    .regex(
+      /^(?:@)?[a-zA-Z0-9.]{1,50}$/,
+      "Geçerli bir Facebook kullanıcı adı giriniz",
+    )
+    .transform((value) => (value.startsWith("@") ? value : `@${value}`))
+    .optional()
+    .nullable(),
+
+  pinterest: z
+    .string()
+    .min(3, "Pinterest kullanıcı adı en az 3 karakter olmalıdır")
+    .max(30, "Pinterest kullanıcı adı en fazla 30 karakter olabilir")
+    .regex(
+      /^(?:@)?[a-zA-Z0-9][a-zA-Z0-9-_.]*$/,
+      "Geçerli bir Pinterest kullanıcı adı giriniz",
+    )
+    .transform((value) => (value.startsWith("@") ? value : `@${value}`))
+    .optional()
+    .nullable(),
+
+  twitter: z
+    .string()
+    .max(15, "Twitter kullanıcı adı en fazla 15 karakter olabilir")
+    .regex(
+      /^(?:@)?[a-zA-Z0-9_]{1,15}$/,
+      "Geçerli bir Twitter (X) kullanıcı adı giriniz",
+    )
+    .transform((value) => (value.startsWith("@") ? value : `@${value}`))
+    .optional()
+    .nullable(),
+});
+export type SalerInfoFormValues = z.infer<typeof SalerInfoSchema>;

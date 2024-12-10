@@ -9,16 +9,16 @@ export type Order = Prisma.OrderGetPayload<{
     id: true;
     createdAt: true;
     orderNumber: true;
-    paymentId: true;
     paidPriceIyzico: true;
+    paymentId: true;
     paidPrice: true;
     orderStatus: true;
     address: {
       select: {
         name: true;
+        surname: true;
         email: true;
         phone: true;
-        surname: true;
         city: true;
         district: true;
         addressDetail: true;
@@ -29,6 +29,9 @@ export type Order = Prisma.OrderGetPayload<{
     orderItems: {
       select: {
         id: true;
+        refunded: true;
+        refundDate: true;
+        refundOrderItemsRequest: true;
         quantity: true;
         price: true;
         totalPrice: true;
@@ -83,6 +86,9 @@ const feedPage = async (slug: string) => {
       orderItems: {
         select: {
           id: true,
+          refunded: true,
+          refundDate: true,
+          refundOrderItemsRequest: true,
           quantity: true,
           price: true,
           totalPrice: true,

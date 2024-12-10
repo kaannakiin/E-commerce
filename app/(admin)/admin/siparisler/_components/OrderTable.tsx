@@ -1,51 +1,31 @@
 "use client";
-import React from "react";
-import {
-  Table,
-  Badge,
-  Button,
-  Group,
-  ScrollArea,
-  Text,
-  Box,
-} from "@mantine/core";
-import { FaEye as IconEye } from "react-icons/fa";
-import { format } from "date-fns";
-import { tr } from "date-fns/locale";
-import OrderSearchHeader from "./OrderSearch";
-import Link from "next/link";
 import SpecialPagination from "@/components/Pagination";
+import { formattedDate, formattedPrice } from "@/lib/format";
+import { getOrderStatusConfig } from "@/lib/helper";
+import {
+  Badge,
+  Box,
+  Button,
+  ScrollArea,
+  Table,
+  Text,
+  Tooltip,
+} from "@mantine/core";
+import Link from "next/link";
+import { CgDanger } from "react-icons/cg";
+import { FaEye as IconEye } from "react-icons/fa";
+import { OrderForOrderTable } from "../page";
+import OrderSearchHeader from "./OrderSearch";
 
-const OrderStatusBadge = ({ status }) => {
-  const statusConfig = {
-    PENDING: { color: "yellow", label: "Onay Bekliyor" },
-    PROCESSING: { color: "blue", label: "Hazırlanıyor" },
-    SHIPPED: { color: "grape", label: "Kargoda" },
-    DELIVERED: { color: "green", label: "Teslim Edildi" },
-    CANCELLED: { color: "red", label: "İptal Edildi" },
-  };
-
-  const config = statusConfig[status] || statusConfig.PENDING;
-
-  return (
-    <Badge color={config.color} variant="light">
-      {config.label}
-    </Badge>
-  );
-};
-
-const OrdersTable = ({ orders, totalPages, totalOrder, currentPage }) => {
-  const formatDate = (date) => {
-    return format(new Date(date), "dd MMMM yyyy", { locale: tr });
-  };
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("tr-TR", {
-      style: "currency",
-      currency: "TRY",
-    }).format(price);
-  };
-
+const OrdersTable = ({
+  orders,
+  totalPages,
+  currentPage,
+}: {
+  orders: OrderForOrderTable[];
+  totalPages: number;
+  currentPage: number;
+}) => {
   return (
     <Box>
       <OrderSearchHeader />
@@ -59,7 +39,7 @@ const OrdersTable = ({ orders, totalPages, totalOrder, currentPage }) => {
               <Table.Th>Sipariş Durumu</Table.Th>
               <Table.Th>Toplam</Table.Th>
               <Table.Th>Sipariş Tarihi</Table.Th>
-              <Table.Th>İşlem</Table.Th>
+              <Table.Th className="w-32 text-center">İşlem</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -71,41 +51,59 @@ const OrdersTable = ({ orders, totalPages, totalOrder, currentPage }) => {
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <p>{order.address.name} </p> <p>{order.address.email}</p>
+                  <div className="flex flex-col gap-1">
+                    <Text size="sm" fw={500}>
+                      {order.address.name}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      {order.address.email}
+                    </Text>
+                  </div>
                 </Table.Td>
                 <Table.Td>{order._count.orderItems}</Table.Td>
                 <Table.Td>
-                  <OrderStatusBadge status={order.orderStatus} />
+                  <Badge color={getOrderStatusConfig(order.orderStatus).color}>
+                    {getOrderStatusConfig(order.orderStatus).text}
+                  </Badge>
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" fw={500}>
-                    {formatPrice(order.paidPrice)}
+                    {formattedPrice(order.paidPrice)}
                   </Text>
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" c="dimmed">
-                    {formatDate(order.createdAt)}
+                    {formattedDate(order.createdAt.toISOString())}
                   </Text>
                 </Table.Td>
                 <Table.Td>
-                  <Button
-                    variant="light"
-                    size="xs"
-                    component={Link}
-                    href={"/admin/siparisler/" + order.orderNumber}
-                    leftSection={<IconEye size={14} />}
-                  >
-                    Detay
-                  </Button>
+                  <div className="flex items-center justify-center gap-2">
+                    <Button
+                      variant="light"
+                      size="xs"
+                      component={Link}
+                      href={"/admin/siparisler/" + order.orderNumber}
+                      leftSection={<IconEye size={14} />}
+                    >
+                      Detay
+                    </Button>
+                    {order.orderItems.some(
+                      (item) => !!item.refundOrderItemsRequest,
+                    ) && (
+                      <Tooltip label="İade talebi mevcut">
+                        <div className="flex items-center">
+                          <CgDanger size={24} className="text-red-500" />
+                        </div>
+                      </Tooltip>
+                    )}
+                  </div>
                 </Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
         </Table>
       </ScrollArea>
-      <p className="text-sm text-gray-800">
-        {totalOrder} siparişten {orders.length} tanesi gösteriliyor.{" "}
-      </p>
+
       <SpecialPagination totalPages={totalPages} currentPage={currentPage} />
     </Box>
   );

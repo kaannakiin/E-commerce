@@ -18,7 +18,7 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
       shadow="xl"
       width={180}
       position="bottom"
-      trigger="click-hover"
+      trigger="click"
       transitionProps={{ transition: "fade-up", duration: 300 }}
     >
       <Menu.Target>

@@ -14,8 +14,8 @@ import {
 import { useDebouncedCallback } from "@mantine/hooks";
 import "@mantine/spotlight/styles.css";
 import { SearchProductForSpotlight } from "@/actions/user/search-product-for-spotlight";
-import { formatPrice } from "@/lib/formatter";
 import { calculatePrice } from "@/lib/calculatePrice";
+import { formattedPrice } from "@/lib/format";
 
 const SearchSpotlight = ({ featuredProducts }) => {
   const [query, setQuery] = React.useState("");
@@ -140,12 +140,12 @@ const SearchSpotlight = ({ featuredProducts }) => {
           </Group>
           <Stack gap="xs" align="flex-end" className="ml-4 flex-shrink-0">
             <Text size="sm" fw={700}>
-              {formatPrice(priceCalculation.finalPrice)}
+              {formattedPrice(priceCalculation.finalPrice)}
             </Text>
             {item.discount > 0 && (
               <>
                 <Text size="sm" td="line-through" c="dimmed">
-                  {formatPrice(priceCalculation.originalPrice)}
+                  {formattedPrice(priceCalculation.originalPrice)}
                 </Text>
                 <Badge color="red" variant="light">
                   %{priceCalculation.discount} İndirim

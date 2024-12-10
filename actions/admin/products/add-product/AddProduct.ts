@@ -1,6 +1,7 @@
 "use server";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
-import { RecordImgToAsset } from "@/lib/recordImage";
+import { processImages } from "@/lib/recordImage";
 import { slugify } from "@/utils/slugify";
 import {
   AddProductSchema,
@@ -11,6 +12,13 @@ import { ZodError } from "zod";
 
 export async function AddProduct(data: AddProductSchemaType) {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     const {
       name,
       description,
@@ -59,7 +67,7 @@ export async function AddProduct(data: AddProductSchemaType) {
           Variant: {
             create: await Promise.all(
               variants.map(async (variant) => {
-                const processedImages = await RecordImgToAsset(
+                const processedImages = await processImages(
                   variant.imageFile,
                 ).catch((error) => {
                   throw new Error(`Failed to process images: ${error.message}`);

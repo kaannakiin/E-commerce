@@ -1,4 +1,5 @@
 "use server";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { RecordImgToAsset } from "@/lib/recordImage";
 import { EditCategorySchema } from "@/zodschemas/authschema";
@@ -8,6 +9,13 @@ export async function EditCategoryBySlug(
   slug: string,
 ): Promise<{ success: boolean; message?: string }> {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     const data = {
       name: formData.get("name"),
       description: formData.get("description"),

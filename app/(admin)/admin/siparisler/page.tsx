@@ -2,6 +2,45 @@ import { prisma } from "@/lib/prisma";
 import { Params, SearchParams } from "@/types/types";
 import { OrderStatus, Prisma } from "@prisma/client";
 import OrderTable from "./_components/OrderTable";
+export type OrderForOrderTable = Prisma.OrderGetPayload<{
+  select: {
+    orderNumber: true;
+    paymentId: true;
+    orderStatus: true;
+    orderItems: {
+      select: {
+        refundOrderItemsRequest: true;
+      };
+    };
+    address: {
+      select: {
+        name: true;
+        email: true;
+        user: {
+          select: {
+            name: true;
+            surname: true;
+            email: true;
+          };
+        };
+      };
+    };
+    _count: {
+      select: {
+        orderItems: true;
+      };
+    };
+    paidPrice: true;
+    createdAt: true;
+    user: {
+      select: {
+        name: true;
+        surname: true;
+        email: true;
+      };
+    };
+  };
+}>;
 const feedOrderPage = async (
   skip: number,
   limit: number,
@@ -59,6 +98,11 @@ const feedOrderPage = async (
         orderNumber: true,
         paymentId: true,
         orderStatus: true,
+        orderItems: {
+          select: {
+            refundOrderItemsRequest: true,
+          },
+        },
         address: {
           select: {
             name: true,
@@ -90,7 +134,6 @@ const feedOrderPage = async (
     });
     return {
       orders,
-      totalOrders,
       totalPages: Math.ceil(totalOrders / limit),
     };
   } catch (error) {
@@ -110,7 +153,7 @@ const OrderPage = async (props: {
   const endDate = (searchParams.endDate as string) || "";
   const search = (searchParams.search as string) || "";
   const status = (searchParams.status as OrderStatus) || undefined;
-  const { orders, totalOrders, totalPages } = await feedOrderPage(
+  const { orders, totalPages } = await feedOrderPage(
     skip,
     limit,
     startDate,
@@ -119,12 +162,7 @@ const OrderPage = async (props: {
     status,
   );
   return (
-    <OrderTable
-      orders={orders}
-      totalOrder={totalOrders}
-      totalPages={totalPages}
-      currentPage={page}
-    />
+    <OrderTable orders={orders} totalPages={totalPages} currentPage={page} />
   );
 };
 

@@ -1,16 +1,17 @@
 import AddToCartButton from "@/components/AddToCartButton";
 import CustomImage from "@/components/CustomImage";
-import { formatPrice } from "@/lib/formatter";
+import { formattedPrice } from "@/lib/format";
 import { getOrderStatusConfig } from "@/lib/helper";
 import { prisma } from "@/lib/prisma";
 import { Params, SearchParams } from "@/types/types";
 import { Card, ScrollArea } from "@mantine/core";
-import { addDays, addHours, differenceInHours, format } from "date-fns";
+import { OrderStatus } from "@prisma/client";
+import { addDays, format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import CancelOrderButton from "./_components/CancelOrderButton";
-import { OrderStatus, paymentStatus } from "@prisma/client";
-import { formattedPrice } from "@/lib/format";
+import ReturnOrderButton from "./_components/ReturnOrderButton";
+import { auth, signIn } from "@/auth";
 
 const page = async (props: { params: Params; searchParams: SearchParams }) => {
   const searchParams = await props.searchParams;
@@ -24,6 +25,7 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
       orderNumber: true,
       orderStatus: true,
       paymentStatus: true,
+      id: true,
       paymentId: true,
       ip: true,
       paidPrice: true,
@@ -43,6 +45,7 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
           name: true,
           phone: true,
           surname: true,
+          email: true,
         },
       },
       discountCode: {
@@ -77,10 +80,15 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
   if (!order || status !== "basarili") {
     return notFound();
   }
-  const orderDate = addHours(new Date(order.createdAt), 3);
-  const now = new Date();
-  const isSameDay =
-    format(orderDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+  if (order.user !== null) {
+    const session = await auth();
+    if (!session) {
+      await signIn(undefined, {
+        redirectTo: `/hesabim/siparislerim/${order.orderNumber}`,
+      });
+    }
+    redirect(`/hesabim/siparislerim/${order.orderNumber}`);
+  }
   const statusConfig = getOrderStatusConfig(order.orderStatus);
   return (
     <div className="flex flex-col px-2 py-5 lg:px-10">
@@ -93,20 +101,31 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
             Sipariş Numarası:{" "}
             <span className="font-mono">{order.orderNumber}</span>
           </h6>
-          <h6 className="text-base italic text-gray-600 lg:text-lg">
-            Bizi tercih ettiğiniz için teşekkür ederiz.
-          </h6>
+          {order.orderStatus !== OrderStatus.CANCELLED && (
+            <h6 className="text-base italic text-gray-600 lg:text-lg">
+              Bizi tercih ettiğiniz için teşekkür ederiz.
+            </h6>
+          )}
+          {order.orderStatus === OrderStatus.CANCELLED && (
+            <h6 className="text-base italic text-red-500 lg:text-lg">
+              Siparişiniz iptal edilmiştir.
+            </h6>
+          )}
         </div>
         <div className="flex items-end">
-          {isSameDay &&
-            order.orderStatus !== OrderStatus.CANCELLED &&
-            order.paymentStatus !== paymentStatus.REFUNDED && (
-              <CancelOrderButton
-                paymentId={order.paymentId}
-                ip={order.ip}
-                isSameDay={isSameDay}
-              />
-            )}
+          <CancelOrderButton
+            paymentId={order.paymentId}
+            ip={order.ip}
+            createdAt={order.createdAt}
+            orderStatus={order.orderStatus}
+            paymentStatus={order.paymentStatus}
+          />
+
+          {/* <ReturnOrderButton
+            createdAt={order.createdAt}
+            orderStatus={order.orderStatus}
+            orderId={order.id}
+          /> */}
         </div>
       </div>
       <div className="flex w-full flex-col gap-3 lg:h-[400px] lg:flex-row lg:gap-5">
@@ -131,18 +150,20 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Tahmini Teslim:</span>
-                <span className="font-medium">
-                  {format(
-                    addDays(new Date(order.createdAt), 3),
-                    "MMMM d yyyy",
-                    {
-                      locale: tr,
-                    },
-                  )}
-                </span>
-              </div>
+              {order.orderStatus !== OrderStatus.CANCELLED && (
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Tahmini Teslim:</span>
+                  <span className="font-medium">
+                    {format(
+                      addDays(new Date(order.createdAt), 3),
+                      "MMMM d yyyy",
+                      {
+                        locale: tr,
+                      },
+                    )}
+                  </span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Sipariş Durumu:</span>
@@ -162,7 +183,7 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">Toplam Tutar:</span>
                     <span className="text-lg font-medium text-gray-800">
-                      {formatPrice(
+                      {formattedPrice(
                         order.orderItems.reduce(
                           (a, b) => a + b.price * b.quantity,
                           0,
@@ -176,19 +197,19 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
                     <span className="text-lg font-medium text-red-500">
                       -
                       {order.discountCode.discountType === "PERCENTAGE"
-                        ? `${
-                           formattedPrice( (order.orderItems.reduce((a, b) => a + b.price, 0) *
+                        ? `${formattedPrice(
+                            (order.orderItems.reduce((a, b) => a + b.price, 0) *
                               order.discountCode.discountAmount) /
-                            100)
-                          }`
-                        : formatPrice(order.discountCode.discountAmount)}
+                              100,
+                          )}`
+                        : formattedPrice(order.discountCode.discountAmount)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between border-t pt-3">
                     <span className="text-gray-600">Ödenen Tutar:</span>
                     <span className="text-xl font-bold text-green-600">
-                      {formatPrice(order.paidPrice)}
+                      {formattedPrice(order.paidPrice)}
                     </span>
                   </div>
                 </div>
@@ -196,7 +217,7 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
                 <div className="flex items-center justify-between border-t pt-3">
                   <span className="text-gray-600">Ödenen Tutar:</span>
                   <span className="text-xl font-bold text-green-600">
-                    {formatPrice(order.paidPrice)}
+                    {formattedPrice(order.paidPrice)}
                   </span>
                 </div>
               )}
@@ -239,19 +260,26 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
 
             <div className="space-y-4 rounded-lg p-4">
               <div className="grid grid-cols-1 gap-3">
+                {order.address.addressTitle && (
+                  <div className="flex flex-col">
+                    <span className="mb-1 text-sm text-gray-600">
+                      Adres Başlığı
+                    </span>
+                    <span className="font-medium text-gray-800">
+                      {order.address.addressTitle}
+                    </span>
+                  </div>
+                )}
                 <div className="flex flex-col">
-                  <span className="mb-1 text-sm text-gray-600">
-                    Adres Başlığı
-                  </span>
+                  <span className="mb-1 text-sm text-gray-600">Email </span>
                   <span className="font-medium text-gray-800">
-                    {order.address.addressTitle}
+                    {order.address.email}
                   </span>
                 </div>
-
                 <div className="flex flex-col">
                   <span className="mb-1 text-sm text-gray-600">Adres</span>
                   <span className="font-medium text-gray-800">
-                    {order.address.city} / {order.address.district} /{" "}
+                    {order.address.city} / {order.address.district}
                     {order.address.addressDetail}
                   </span>
                 </div>
@@ -315,7 +343,7 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
                           {item.quantity}x
                         </span>
                         <span className="text-sm text-gray-500 lg:text-base">
-                          {formatPrice(item.price)}
+                          {formattedPrice(item.price)}
                         </span>
                       </div>
                     </div>

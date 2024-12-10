@@ -1,5 +1,6 @@
 "use server";
 import { deleteAssetFileWithExtension } from "@/lib/deleteAssetFileWithExtension";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { RecordVideoToAsset } from "@/lib/recordVideo";
 import { EditHeroSchema } from "@/zodschemas/authschema";
@@ -7,9 +8,16 @@ import { ZodError } from "zod";
 
 export async function EditHeroHeader(
   formdata: FormData,
-  id: string
+  id: string,
 ): Promise<{ success: boolean; message: string }> {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     if (!id) {
       return { success: false, message: "ID parametresi gereklidir" };
     }

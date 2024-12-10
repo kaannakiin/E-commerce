@@ -68,7 +68,7 @@ export function MobileNav({
             }}
             styles={{
               root: {
-                "&[data-active]": {
+                "&[dataActive]": {
                   backgroundColor: "#5474b4",
                 },
               },

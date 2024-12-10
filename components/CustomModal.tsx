@@ -30,7 +30,6 @@ export function CustomModal({
       opened={isOpen}
       onClose={onClose}
       classNames={{
-        content: cx("rounded-xl shadow-lg border border-gray-100", className),
         header: cx(
           "px-6 py-4 bg-white rounded-t-xl border-b border-gray-100",
           titleClassName,

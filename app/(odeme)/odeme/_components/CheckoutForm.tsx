@@ -2,7 +2,7 @@
 import { fetchWrapper } from "@/lib/fetchWrapper";
 import { useStore } from "@/store/store";
 import {
-  checkoutFormSchema,
+  nonAuthSchema,
   type CheckoutFormValues,
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -47,7 +47,7 @@ const CheckoutForm = () => {
     control,
     setError,
   } = useForm<CheckoutFormValues>({
-    resolver: zodResolver(checkoutFormSchema),
+    resolver: zodResolver(nonAuthSchema),
     defaultValues: {
       agreements: {
         termsAccepted: true,
@@ -129,79 +129,39 @@ const CheckoutForm = () => {
     data: CheckoutFormValues,
   ) => {
     try {
-      const binCheckResponse = await fetchWrapper.post(
-        "/user/payment/bin-check",
-        {
-          binNumber: data.cardInfo.cardNumber.replace(/\s/g, "").slice(0, 6),
-        },
-      );
-      if (binCheckResponse.error) {
-        setError("cardInfo.cardNumber", {
-          message: "Lütfen kart numaranızı kontrol edin.",
-        });
-        return;
-      }
       const variantIdQty = items.map((item) => ({
         variantId: item.variantId,
         quantity: item.quantity,
       }));
       const params = searchParams.get("discountCode") || "";
-      const require3DSecure =
-        binCheckResponse.status === 201 || data.cardInfo.threeDsecure === true;
-      if (require3DSecure) {
-        try {
-          await fetchWrapper
-            .post("/user/payment/three-d-payment", {
-              data,
-              variantIdQty,
-              params,
-            })
-            .then((res) => {
-              if (res.status === 400) {
-                setError("root", {
-                  message: res.data.toString(),
-                });
-              }
-              if (res.status === 200) {
-                // Sadece 200 durumunda modalı aç
-                open();
-                setThreeDHTML(res.htmlContent);
-              } else {
-                setError("root", {
-                  message:
-                    "Ödeme işlemi başarısız oldu. Lütfen tekrar deneyiniz.",
-                });
-              }
-            });
-        } catch (error) {
-          setError("root", {
-            message:
-              "3D ödeme işlemi başlatılırken bir hata oluştu. Lütfen tekrar deneyiniz.",
+      try {
+        await fetchWrapper
+          .post("/user/payment/Tami/non-auth-user", {
+            data,
+            variantIdQty,
+            params,
+          })
+          .then((res) => {
+            if (res.status === 400) {
+              setError("root", {
+                message: res.data.toString(),
+              });
+            }
+            if (res.status === 200) {
+              open();
+              setThreeDHTML(res.htmlContent);
+            } else {
+              setError("root", {
+                message:
+                  "Ödeme işlemi başarısız oldu. Lütfen tekrar deneyiniz.",
+              });
+            }
           });
-        }
-      } else {
-        try {
-          const nonThreeDResponse = await fetchWrapper.post(
-            "/user/payment/non-three-d-payment",
-            { data, variantIdQty, params },
-          );
-
-          if (!nonThreeDResponse || nonThreeDResponse.error) {
-            throw new Error("Ödeme yanıtı alınamadı");
-          }
-          if (nonThreeDResponse.status === 200) {
-            clearCart();
-            //@ts-expect-error redirectUrl
-            router.push(nonThreeDResponse.data.redirectUrl);
-          }
-        } catch (error) {
-          console.error("Normal ödeme hatası:", error);
-          setError("root", {
-            message:
-              error.message ||
-              "Ödeme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyiniz.",
-          });
-        }
+      } catch (error) {
+        setError("root", {
+          message:
+            "3D ödeme işlemi başlatılırken bir hata oluştu. Lütfen tekrar deneyiniz.",
+        });
       }
     } catch (error) {
       console.error("Genel ödeme hatası:", error);

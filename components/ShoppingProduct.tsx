@@ -1,6 +1,5 @@
 import React from "react";
 import CustomImage from "./CustomImage";
-import { formatPrice } from "@/lib/formatter";
 import { CartVariant } from "@/store/useCartStore";
 import { VariantType } from "@prisma/client";
 import { ColorSwatch, ActionIcon, Group, Indicator } from "@mantine/core";
@@ -8,6 +7,7 @@ import { FaRegTrashCan } from "react-icons/fa6";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import { useStore } from "@/store/store";
 import { usePathname } from "next/navigation";
+import { formattedPrice } from "@/lib/format";
 
 const ShoppingProduct = ({ item }: { item: CartVariant }) => {
   const increaseQuantity = useStore((state) => state.increaseQuantity);
@@ -100,13 +100,13 @@ const ShoppingProduct = ({ item }: { item: CartVariant }) => {
           <div className={`text-right ${isPaymentPage ? "ml-auto" : ""}`}>
             {hasDiscount && (
               <div className="mb-1 text-2xl text-gray-500 line-through">
-                {formatPrice(
+                {formattedPrice(
                   item.priceCalculation.originalPrice * item.quantity,
                 )}
               </div>
             )}
             <h6 className="font-manrope text-2xl font-bold leading-9 text-primary-600">
-              {formatPrice(item.priceCalculation.finalPrice * item.quantity)}
+              {formattedPrice(item.priceCalculation.finalPrice * item.quantity)}
             </h6>
           </div>
         </div>

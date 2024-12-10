@@ -1,5 +1,6 @@
 "use server";
 
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { RecordImgToAsset } from "@/lib/recordImage";
 import {
@@ -14,6 +15,13 @@ export async function EditProduct(
   productId: string,
 ) {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     EditProductSchema.parse(data);
     const result = await prisma.$transaction(async (tx) => {
       const product = await tx.product.findUnique({

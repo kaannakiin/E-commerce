@@ -12,6 +12,7 @@ const OrderHeader = ({
   quantitySum,
   href,
   orderDetail,
+  deliveredAt,
 }: {
   createdAt: Date;
   orderStatus: string;
@@ -20,6 +21,7 @@ const OrderHeader = ({
   quantitySum?: number;
   href?: string;
   orderDetail?: boolean;
+  deliveredAt: Date;
 }) => {
   return (
     <Card
@@ -44,7 +46,7 @@ const OrderHeader = ({
             </UnstyledButton>
           )}
         </div>
-        <OrderStatusDisplay status={orderStatus} deliveredAt={createdAt} />
+        <OrderStatusDisplay status={orderStatus} deliveredAt={deliveredAt} />
       </div>
 
       {/* Info Grid - Responsive Layout */}

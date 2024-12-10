@@ -1,5 +1,5 @@
+import { formattedPrice } from "@/lib/format";
 import { Paper, Stack, Group, Text, Divider } from "@mantine/core";
-import { formatPrice } from "@/lib/formatter";
 
 const PaymentSummary = ({ items, className }) => {
   // Hesaplamalar
@@ -23,7 +23,7 @@ const PaymentSummary = ({ items, className }) => {
           <Text size="sm" c="dimmed">
             Ara Toplam
           </Text>
-          <Text size="sm">{formatPrice(subtotal)}</Text>
+          <Text size="sm">{formattedPrice(subtotal)}</Text>
         </Group>
 
         <Group justify="space-between" my={4}>
@@ -42,7 +42,7 @@ const PaymentSummary = ({ items, className }) => {
               Toplam İndirim
             </Text>
             <Text size="sm" c="green">
-              {formatPrice(
+              {formattedPrice(
                 items.reduce(
                   (acc, item) =>
                     acc + (item.price * item.quantity * item.discount) / 100,
@@ -58,7 +58,7 @@ const PaymentSummary = ({ items, className }) => {
         <Group justify="space-between">
           <Text fw={700}>Toplam</Text>
           <Text size="xl" fw={700}>
-            {formatPrice(total)}
+            {formattedPrice(total)}
           </Text>
         </Group>
 

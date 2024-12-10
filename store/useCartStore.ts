@@ -49,6 +49,7 @@ interface Variant {
     id: string;
     name: string;
     description: string;
+    taxRate: number;
   };
   discount: number;
   price: number;
@@ -120,7 +121,11 @@ export const createCartSlice: StateCreator<
         (item) => item.variantId === variant.id,
       );
 
-      const priceCalculation = calculatePrice(variant.price, variant.discount);
+      const priceCalculation = calculatePrice(
+        variant.price,
+        variant.discount,
+        variant.product.taxRate,
+      );
 
       if (existingItem) {
         existingItem.quantity += 1;

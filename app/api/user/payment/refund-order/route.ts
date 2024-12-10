@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const data = await req.json();
+
     if (!data.paymentId || !data.ip) {
       return NextResponse.json(
         {
@@ -58,7 +59,6 @@ export async function POST(req: NextRequest) {
       OrderStatus.AWAITING_APPROVAL,
       OrderStatus.PROCESSING,
     ];
-    console.log(data);
     if (
       !cancelableStatuses.includes(order.orderStatus) ||
       order.paymentStatus === paymentStatus.REFUNDED
@@ -68,12 +68,20 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    const { info } = refundFormSchema.parse({ info: data.data.info });
-
-    const orderDate = addHours(new Date(order.createdAt), 3);
+    const CANCELLATION_REASONS = [
+      { value: "wrong_product", label: "Yanlış ürün seçimi" },
+      { value: "better_price", label: "Daha uygun fiyat buldum" },
+      { value: "delivery_time", label: "Teslimat süresi uzun" },
+      { value: "changed_mind", label: "Fikrim değişti" },
+      { value: "financial", label: "Finansal nedenler" },
+      { value: "other", label: "Diğer" },
+    ];
+    const { info } = refundFormSchema.parse({ info: data.reason });
+    const reason = CANCELLATION_REASONS.find((reason) => reason.value === info);
+    const orderDate = new Date(order.createdAt);
     const now = new Date();
     const isSameDay =
-      format(orderDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+      orderDate.toISOString().split("T")[0] === now.toISOString().split("T")[0];
     if (!isSameDay) {
       return NextResponse.json(
         {
@@ -91,7 +99,7 @@ export async function POST(req: NextRequest) {
       conversationId: createId(),
       locale: "tr",
     });
-    console.log(request);
+
     if (request.status === "failure") {
       return NextResponse.json(
         {
@@ -114,7 +122,7 @@ export async function POST(req: NextRequest) {
               paymentStatus: paymentStatus.REFUNDED,
               orderStatus: OrderStatus.CANCELLED,
               cancelledAt: new Date(),
-              cancelReason: info,
+              cancelReason: reason?.label,
             },
             include: {
               orderItems: true,

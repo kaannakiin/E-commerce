@@ -37,9 +37,12 @@ export type OrderWithItems = Prisma.OrderGetPayload<{
 }>;
 export type OrderItems = Prisma.OrderItemsGetPayload<{
   select: {
+    id: true;
     price: true;
     quantity: true;
     totalPrice: true;
+    createdAt: true;
+    refundOrderItemsRequest: true;
     variant: {
       select: {
         id: true;
@@ -49,8 +52,8 @@ export type OrderItems = Prisma.OrderItemsGetPayload<{
         product: {
           select: {
             name: true;
-            description: true;
             shortDescription: true;
+            description: true;
             taxRate: true;
             id: true;
           };
@@ -70,51 +73,22 @@ export type OrderItems = Prisma.OrderItemsGetPayload<{
 }>;
 const feedPage = cache(async (email: string) => {
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      include: {
-        Order: {
-          include: {
-            orderItems: {
-              select: {
-                price: true,
-                quantity: true,
-                variant: {
-                  select: {
-                    stock: true,
-                    type: true,
-                    unit: true,
-                    value: true,
-                    Image: {
-                      take: 1,
-                      select: {
-                        url: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
     const orders = await prisma.order.findMany({
       select: {
         id: true,
         createdAt: true,
         orderNumber: true,
         orderStatus: true,
+        paymentStatus: true,
         paidPrice: true,
         currency: true,
         orderItems: {
           select: {
             price: true,
+            createdAt: true,
+            id: true,
             quantity: true,
             totalPrice: true,
-
             variant: {
               select: {
                 product: {

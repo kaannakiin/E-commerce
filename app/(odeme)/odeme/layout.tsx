@@ -1,24 +1,38 @@
-import { Fragment } from "react";
+import { cache, Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { Divider } from "@mantine/core";
+import CustomImage from "@/components/CustomImage";
+import { prisma } from "@/lib/prisma";
+const feedPage = cache(async () => {
+  const salerInfo = await prisma.salerInfo.findFirst({
+    select: {
+      logo: {
+        select: {
+          url: true,
+        },
+      },
+    },
+  });
+  return salerInfo.logo?.url;
+});
 export default async function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const salerInfo = await feedPage();
   return (
     <Fragment>
       <header className="mx-auto flex h-20 w-full max-w-[1400px] flex-row justify-between px-4 sm:px-6 lg:px-10">
         <div className="flex h-full items-center">
           <Link className="relative h-full w-52 sm:w-72" href="/">
-            <Image
-              src="/WELLNESSCLUBLOGO.svg"
-              alt="Alt"
-              fill
+            <CustomImage
+              src={salerInfo}
+              alt="logo Footer"
               sizes="100vw"
-              className="h-full w-full object-contain"
+              objectFit="contain"
             />
           </Link>
         </div>

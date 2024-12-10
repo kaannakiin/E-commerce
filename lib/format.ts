@@ -1,13 +1,10 @@
+import { format, parseISO } from "date-fns";
+import { tr } from "date-fns/locale";
 export const formattedDate = (date: string) => {
-  return new Intl.DateTimeFormat("tr-TR", {
-    year: "numeric",
-    month: "long",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(date));
+  return format(parseISO(date), "dd MMMM yyyy HH:mm", {
+    locale: tr, // Türkçe lokalizasyon
+  });
 };
-
 export const getTurkeyTime = () => {
   const now = new Date();
   return new Date(now.toLocaleString("tr-TR", { timeZone: "Europe/Istanbul" }));

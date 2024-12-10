@@ -10,8 +10,6 @@ export type DiscountType = "expired" | "unexpired" | "all";
 
 const feedPage = cache(async (search: string, type: DiscountType) => {
   try {
-    console.log("Search term:", search);
-
     const searchCondition: Prisma.DiscountCodeWhereInput = search
       ? {
           OR: [

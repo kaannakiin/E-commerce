@@ -1,8 +1,8 @@
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
-import React from "react";
+import { notFound } from "next/navigation";
 import OrderHeader from "../_components/OrderHeader";
-import CustomImage from "@/components/CustomImage";
 import OrderItemsCard from "../_components/OrderItemsCard";
 
 const OrderPage = async (props: { params: Params }) => {
@@ -12,16 +12,29 @@ const OrderPage = async (props: { params: Params }) => {
       orderNumber: params.slug,
     },
     select: {
+      user: {
+        select: {
+          id: true,
+        },
+      },
       createdAt: true,
       currency: true,
       orderNumber: true,
       orderStatus: true,
+      paymentId: true,
       paidPrice: true,
+      paymentStatus: true,
+      ip: true,
+      deliveredDate: true,
+      id: true,
       orderItems: {
         select: {
+          id: true,
           price: true,
           quantity: true,
           totalPrice: true,
+          createdAt: true,
+          refundOrderItemsRequest: true,
           variant: {
             select: {
               id: true,
@@ -67,6 +80,10 @@ const OrderPage = async (props: { params: Params }) => {
     (acc, item) => acc + item.quantity,
     0,
   );
+  const session = await auth();
+  if (order.user?.id !== session.user.id) {
+    return notFound();
+  }
   return (
     <div className="flex w-full flex-col gap-2">
       <OrderHeader
@@ -74,9 +91,15 @@ const OrderPage = async (props: { params: Params }) => {
         orderNumber={order.orderNumber}
         orderStatus={order.orderStatus}
         paidPrice={order.paidPrice}
+        deliveredAt={order.deliveredDate}
         quantitySum={quantitySum}
       />
-      <OrderItemsCard order={order.orderItems} />
+      <OrderItemsCard
+        order={order.orderItems}
+        paymentStatus={order.paymentStatus}
+        orderStatus={order.orderStatus}
+        deliveredDate={order.deliveredDate}
+      />
     </div>
   );
 };
