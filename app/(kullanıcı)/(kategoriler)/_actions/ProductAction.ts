@@ -19,7 +19,7 @@ export async function AddFavorite(
     }
 
     const variant = await prisma.variant.findUnique({
-      where: { id },
+      where: { id, softDelete: false },
     });
     if (!variant) {
       return {

@@ -13,7 +13,7 @@ import { VariantType } from "@prisma/client";
 
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cache } from "react";
+import { cache, Fragment } from "react";
 import { FaClockRotateLeft } from "react-icons/fa6";
 const getFavorites = cache(async (userId: string | undefined) => {
   if (!userId) return [];
@@ -41,6 +41,7 @@ const feed = cache(async (slug, productSlug) => {
     where: {
       slug: productSlug,
       isPublished: true,
+      softDelete: false,
     },
     select: {
       id: true,
@@ -48,8 +49,10 @@ const feed = cache(async (slug, productSlug) => {
         select: {
           id: true,
           name: true,
+          GoogleCategory: true,
           description: true,
           taxRate: true,
+          active: true,
         },
       },
       discount: true,
@@ -66,12 +69,11 @@ const feed = cache(async (slug, productSlug) => {
       },
     },
   });
-  if (!variant) {
+  if (!variant || variant.product.active === false) {
     return notFound();
   }
   return variant;
 });
-//TO DO BUNLAR AYARLANACAK
 export async function generateMetadata({
   params,
 }: {
@@ -86,10 +88,16 @@ export async function generateMetadata({
     ? formattedPrice(Number(variant.price) * (1 - variant.discount / 100))
     : formattedPrice(Number(variant.price));
 
+  // Google Category bilgilerini hazırlama
+  const categoryInfo = {
+    name: variant.product.GoogleCategory?.name || "",
+    fullPath: variant.product.GoogleCategory?.fullPath || "",
+    breadcrumbs: variant.product.GoogleCategory?.breadcrumbs || [],
+  };
+
   return {
     title: `${variant.product.name.toUpperCase()} `,
     description: variant.product.description,
-
     openGraph: {
       title: variant.product.name,
       description: variant.product.description,
@@ -102,8 +110,8 @@ export async function generateMetadata({
         alt: img.alt || variant.product.name,
       })),
       locale: "tr_TR",
+      type: "website",
     },
-
     twitter: {
       card: "summary_large_image",
       title: variant.product.name,
@@ -116,26 +124,26 @@ export async function generateMetadata({
             "&width=100" || "",
       ),
     },
-
     alternates: {
       canonical: productUrl,
     },
-
     robots: {
-      index: variant.stock > 0, // Stokta yoksa indekslemeyi engelleyebiliriz
+      index: variant.stock > 0,
       follow: true,
       "max-image-preview": "large",
       "max-snippet": -1,
       "max-video-preview": -1,
     },
-
     other: {
-      price: price,
-      currency: "TRY",
-      availability: variant.stock > 0 ? "in stock" : "out of stock",
-      variant_type: variant.type,
-      variant_value: variant.value,
-      variant_unit: variant.unit,
+      "product:price": price,
+      "product:currency": "TRY",
+      "product:availability": variant.stock > 0 ? "in stock" : "out of stock",
+      "product:variant_type": variant.type,
+      "product:variant_value": variant.value,
+      "product:variant_unit": variant.unit,
+      "product:category": categoryInfo.fullPath,
+      "product:category_name": categoryInfo.name,
+      "product:category_breadcrumbs": categoryInfo.breadcrumbs.join(" > "),
     },
   };
 }
@@ -170,7 +178,7 @@ const page = async (props: { params: Params }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {variant.discount ? (
-                  <>
+                  <Fragment>
                     <span className="text-2xl font-semibold text-primary-500">
                       {formattedPrice(
                         calculatePrice(
@@ -200,7 +208,7 @@ const page = async (props: { params: Params }) => {
                       }{" "}
                       İndirim
                     </span>
-                  </>
+                  </Fragment>
                 ) : (
                   <span className="text-2xl font-semibold text-primary-500">
                     {formattedPrice(

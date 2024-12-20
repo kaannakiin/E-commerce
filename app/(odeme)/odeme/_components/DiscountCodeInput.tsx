@@ -1,49 +1,48 @@
-import React, { useState } from "react";
-import { TextInput, Button } from "@mantine/core";
-import { MdLocalOffer } from "react-icons/md";
-import { IoCheckmarkCircleOutline } from "react-icons/io5";
-import { DiscountCheck } from "@/actions/user/discount-check";
-import { useStore } from "@/store/store";
 import { discountCode, DiscountCodeType } from "@/zodschemas/authschema";
-import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button, TextInput } from "@mantine/core";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { IoCheckmarkCircleOutline } from "react-icons/io5";
+import { MdLocalOffer } from "react-icons/md";
 
-const DiscountCodeInput = () => {
-  const items = useStore((state) => state.items);
+const DiscountCodeInput = ({
+  success,
+  message,
+}: {
+  success: boolean;
+  message?: string;
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const [code, setCode] = useState(searchParams.get("discountCode") || "");
+
+  useEffect(() => {
+    setCode(searchParams.get("discountCode") || "");
+  }, [searchParams]);
   const {
     register,
     setError,
     handleSubmit,
     setValue,
-    formState: { isSubmitting, isSubmitSuccessful },
+    formState: { isSubmitting, errors },
   } = useForm<DiscountCodeType>({
     resolver: zodResolver(discountCode),
-    defaultValues: {
-      code: "",
-    },
   });
   const handleApplyCode: SubmitHandler<DiscountCodeType> = async (data) => {
     try {
-      await DiscountCheck(
-        data.code,
-        items.map((item) => item.variantId),
-      ).then((res) => {
-        if (res.success) {
-          const params = new URLSearchParams(searchParams.toString());
-          params.set("discountCode", data.code);
-          router.replace(`${pathname}?${params.toString()}`);
-        } else {
-          setError("code", {
-            message: res.message,
-          });
+      const params = new URLSearchParams(searchParams);
+      for (const [key, value] of searchParams.entries()) {
+        if (key !== "discountCode") {
+          params.set(key, value);
         }
-      });
+      }
+      params.set("discountCode", data.code);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     } catch (error) {
-      setError("code", {
+      setError("root", {
         message: "Beklenmedik bir hata oluştu",
       });
     }
@@ -58,12 +57,15 @@ const DiscountCodeInput = () => {
       <form className="flex gap-2" onSubmit={handleSubmit(handleApplyCode)}>
         <TextInput
           {...register("code")}
+          value={code}
           onChange={(value) => {
-            setValue("code", value.currentTarget.value.toUpperCase());
+            const newValue = value.currentTarget.value.toUpperCase();
+            setCode(newValue);
+            setValue("code", newValue);
           }}
-          value={searchParams.get("discountCode")}
           placeholder="İndirim kodunuzu giriniz"
           className="flex-1 uppercase"
+          error={errors.code?.message}
           styles={{
             input: {
               backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -77,23 +79,26 @@ const DiscountCodeInput = () => {
               },
             },
           }}
-        />{" "}
+        />
         <Button
-          //   onClick={handleApplyCode}
           type="submit"
           variant="filled"
+          color={success ? "green" : "blue"}
           loading={isSubmitting}
           className="whitespace-nowrap"
-          disabled={searchParams.get("discountCode") !== null}
-          leftSection={
-            searchParams.get("discountCode") !== null ? (
-              <IoCheckmarkCircleOutline size={16} />
-            ) : null
+          disabled={
+            success ||
+            isSubmitting ||
+            !code.trim() ||
+            searchParams.get("discountCode") === code ||
+            Object.keys(errors).length > 0
           }
+          leftSection={success ? <IoCheckmarkCircleOutline size={16} /> : null}
         >
-          {searchParams.get("discountCode") !== null ? "Uygulandı" : "Uygula"}
+          {success ? "Uygulandı" : "Uygula"}
         </Button>
       </form>
+      {message && <div className="text-sm">{message}</div>}
     </div>
   );
 };

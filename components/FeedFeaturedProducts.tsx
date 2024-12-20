@@ -7,6 +7,7 @@ const feedFeaturedProduct = cache(async () => {
   try {
     const products = await prisma.variant.findMany({
       where: {
+        softDelete: false,
         isPublished: true,
         stock: {
           gt: 0,

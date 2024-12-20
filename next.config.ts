@@ -10,9 +10,10 @@ const nextConfig: NextConfig = {
   sassOptions: {
     prependData: `@import "./_mantine.scss";`,
   },
-  
+
   images: {
     remotePatterns: [
+      { protocol: "https", hostname: "8495-31-223-89-243.ngrok-free.app" },
       { protocol: "https", hostname: "placehold.co" },
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "http", hostname: "localhost", port: "3000" },

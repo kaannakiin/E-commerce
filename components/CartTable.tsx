@@ -1,4 +1,5 @@
 "use client";
+import { formattedPrice } from "@/lib/format";
 import { useStore } from "@/store/store";
 import {
   Button,
@@ -13,7 +14,6 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { HiOutlineShoppingBag } from "react-icons/hi";
 import ShoppingProduct from "./ShoppingProduct";
-import { formattedPrice } from "@/lib/format";
 
 const CartPage = () => {
   const { data: session, status } = useSession();
@@ -78,7 +78,7 @@ const CartPage = () => {
                     </span>
                   </div>
                   {hasDiscount && (
-                    <>
+                    <Fragment>
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1 text-sm text-emerald-600">
                           İndirim Tutarı
@@ -95,7 +95,7 @@ const CartPage = () => {
                           {formattedPrice(totalFinalPrice)}
                         </span>
                       </div>
-                    </>
+                    </Fragment>
                   )}
 
                   {!hasDiscount && (

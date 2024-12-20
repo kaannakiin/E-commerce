@@ -19,9 +19,11 @@ const ImageModal = ({ url }: { url: string }) => {
           blur: 3,
         }}
       >
-        <div className="h-96 w-full">
-          <CustomImage src={url} objectFit="contain" />
-        </div>
+        {url && (
+          <div className="h-96 w-full">
+            <CustomImage src={url} objectFit="contain" />
+          </div>
+        )}
       </Modal>
 
       <UnstyledButton

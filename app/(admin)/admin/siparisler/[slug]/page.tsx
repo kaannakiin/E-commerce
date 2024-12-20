@@ -1,18 +1,26 @@
 import { prisma } from "@/lib/prisma";
 import { Params, SearchParams } from "@/types/types";
-import React from "react";
-import OrderDetailsPage from "../_components/OrderDetail";
-import { notFound } from "next/navigation";
+import { Card, Paper } from "@mantine/core";
 import { Prisma } from "@prisma/client";
+import { notFound } from "next/navigation";
+import OrderDetailsPage from "../_components/OrderDetail";
+
 export type Order = Prisma.OrderGetPayload<{
   select: {
     id: true;
     createdAt: true;
     orderNumber: true;
-    paidPriceIyzico: true;
+    priceIyzico: true;
+    paymentDate: true;
     paymentId: true;
-    paidPrice: true;
-    orderStatus: true;
+    total: true;
+    maskedCardNumber: true;
+    status: true;
+    isCancelled: true;
+    cancelPaymentId: true;
+    cancelProcessDate: true;
+    cancelReason: true;
+    paymentStatus: true;
     address: {
       select: {
         name: true;
@@ -26,15 +34,18 @@ export type Order = Prisma.OrderGetPayload<{
     };
     discountCode: true;
     user: true;
-    orderItems: {
+    OrderItems: {
       select: {
         id: true;
-        refunded: true;
-        refundDate: true;
-        refundOrderItemsRequest: true;
+        refundStatus: true;
+        refundAmount: true;
+        paymentTransactionId: true;
+        refundReason: true;
+        isRefunded: true;
+        refundRequestDate: true;
         quantity: true;
         price: true;
-        totalPrice: true;
+        iyzicoPrice: true;
         variant: {
           select: {
             value: true;
@@ -57,6 +68,38 @@ export type Order = Prisma.OrderGetPayload<{
     };
   };
 }>;
+export type OrderRefundType = Prisma.OrderItemsGetPayload<{
+  select: {
+    id: true;
+    refundStatus: true;
+    refundAmount: true;
+    paymentTransactionId: true;
+    refundReason: true;
+    isRefunded: true;
+    refundRequestDate: true;
+    quantity: true;
+    price: true;
+    iyzicoPrice: true;
+    variant: {
+      select: {
+        value: true;
+        unit: true;
+        type: true;
+        Image: {
+          take: 1;
+          select: {
+            url: true;
+          };
+        };
+        product: {
+          select: {
+            name: true;
+          };
+        };
+      };
+    };
+  };
+}>;
 const feedPage = async (slug: string) => {
   const order = await prisma.order.findUnique({
     where: {
@@ -66,10 +109,17 @@ const feedPage = async (slug: string) => {
       id: true,
       createdAt: true,
       orderNumber: true,
-      paidPriceIyzico: true,
+      priceIyzico: true,
+      paymentDate: true,
       paymentId: true,
-      paidPrice: true,
-      orderStatus: true,
+      total: true,
+      maskedCardNumber: true,
+      status: true,
+      isCancelled: true,
+      cancelPaymentId: true,
+      cancelProcessDate: true,
+      cancelReason: true,
+      paymentStatus: true,
       address: {
         select: {
           name: true,
@@ -83,15 +133,18 @@ const feedPage = async (slug: string) => {
       },
       discountCode: true,
       user: true,
-      orderItems: {
+      OrderItems: {
         select: {
           id: true,
-          refunded: true,
-          refundDate: true,
-          refundOrderItemsRequest: true,
+          refundStatus: true,
+          refundAmount: true,
+          paymentTransactionId: true,
+          refundReason: true,
+          isRefunded: true,
+          refundRequestDate: true,
           quantity: true,
           price: true,
-          totalPrice: true,
+          iyzicoPrice: true,
           variant: {
             select: {
               value: true,
@@ -114,6 +167,7 @@ const feedPage = async (slug: string) => {
       },
     },
   });
+
   if (!order) {
     return null;
   }
@@ -126,6 +180,7 @@ const OrderDetailPage = async (props: {
 }) => {
   const slug = (await props.params).slug;
   const order = await feedPage(slug);
+
   if (!order) {
     return notFound();
   }

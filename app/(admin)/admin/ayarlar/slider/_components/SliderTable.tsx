@@ -8,7 +8,7 @@ import Link from "next/link";
 import { FaPlus } from "react-icons/fa";
 const SliderTable = ({ slider }: { slider: HeroTable }) => {
   return (
-    <div className="px-4 py-10">
+    <div className="px-4">
       <Button
         component={Link}
         href={"/admin/ayarlar/slider/ekle"}

@@ -67,7 +67,6 @@ export async function cleanupFiles(files: string[]) {
       if (file) {
         await fs.access(file);
         await fs.unlink(file);
-        console.log(`Cleaned up file: ${file}`);
       }
     } catch (error) {
       console.warn(`Cleanup warning for ${file}:`, error);

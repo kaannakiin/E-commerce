@@ -20,13 +20,13 @@ const ProductInfo = ({ item }) => {
         );
       case VariantType.SIZE:
         return (
-          <span className="px-2 py-0.5 text-sm bg-gray-50 rounded-md font-medium">
+          <span className="rounded-md bg-gray-50 px-2 py-0.5 text-sm font-medium">
             {item.value}
           </span>
         );
       case VariantType.WEIGHT:
         return (
-          <span className="px-2 py-0.5 text-sm bg-gray-50 rounded-md font-medium">
+          <span className="rounded-md bg-gray-50 px-2 py-0.5 text-sm font-medium">
             {item.value} {item.unit}
           </span>
         );
@@ -42,15 +42,15 @@ const ProductInfo = ({ item }) => {
         {getVariantLabel()}
       </div>
 
-      <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
+      <p className="line-clamp-2 text-sm leading-relaxed text-gray-500">
         {truncateDescription(item.description)}
       </p>
 
-      <div className="flex flex-wrap gap-2 mt-1">
+      <div className="mt-1 flex flex-wrap gap-2">
         {item.tags?.map((tag, index) => (
           <span
             key={index}
-            className="text-xs px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full"
+            className="rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-600"
           >
             {tag}
           </span>

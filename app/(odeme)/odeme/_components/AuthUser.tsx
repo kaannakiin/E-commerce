@@ -22,14 +22,24 @@ import { MdAdd } from "react-icons/md";
 import { Address } from "../page";
 import AddressForm from "@/app/(kullanıcı)/hesabim/adres-defterim/_components/AddressForm";
 import PaymentForm from "./PaymentForm";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const AuthUser = ({ addresses }: { addresses: Address[] }) => {
   const [opened, { open, close }] = useDisclosure(false);
   const [openedEdit, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [defaultAddressId, setDefaultAddressId] = useState<string>("");
+  const activeTab = searchParams.get("tab") || "address";
 
+  // Tab değiştiğinde URL'i güncelle
+  const updateTabInURL = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", value);
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
   useEffect(() => {
     if (addresses.length > 0 && !defaultAddressId) {
       setDefaultAddressId(addresses[0].id);
@@ -43,7 +53,8 @@ const AuthUser = ({ addresses }: { addresses: Address[] }) => {
 
   return (
     <Tabs
-      defaultValue="address"
+      value={activeTab}
+      onChange={updateTabInURL}
       classNames={{
         list: "grid h-14 grid-cols-2 gap-2 p-1 rounded-xl bg-gray-100/50",
         tab: "relative rounded-lg font-medium transition-all data-[active]:bg-primary-900 data-[active]:text-white hover:bg-gray-200/50 data-[active]:hover:bg-primary-800",

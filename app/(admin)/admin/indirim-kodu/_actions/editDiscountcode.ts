@@ -83,7 +83,6 @@ export async function EditDiscountCode(formData: FormData): Promise<{
       message: "İndirim kodu başarıyla güncellendi.",
     };
   } catch (error) {
-    console.log("Error editing discount code:", error);
     return {
       success: false,
       message: "Bir hata oluştu. Lütfen yeniden deneyin.",

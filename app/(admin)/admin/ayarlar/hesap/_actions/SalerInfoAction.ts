@@ -4,8 +4,28 @@ import { prisma } from "@/lib/prisma";
 import { processImages } from "@/lib/recordImage";
 import { SalerInfoFormValues } from "@/zodschemas/authschema";
 
-// Base saler info data without logo
-const getBaseData = (data: SalerInfoFormValues) => ({
+// Interface tanımlama
+interface UpdateData {
+  storeName: string;
+  storeDescription: string;
+  address: string;
+  contactEmail: string;
+  contactPhone: string;
+  whatsapp: string;
+  seoTitle: string;
+  seoDescription: string;
+  instagram: string;
+  facebook: string;
+  pinterest: string;
+  twitter: string;
+  logo?: {
+    create: {
+      url: string;
+    };
+  };
+}
+
+const getBaseData = (data: SalerInfoFormValues): UpdateData => ({
   storeName: data.storeName,
   storeDescription: data.storeDescription,
   address: data.address,
@@ -30,89 +50,68 @@ export async function AddInfo(data: SalerInfoFormValues): Promise<{
         include: { logo: true },
       });
 
-      // Process logo if provided
       let logoData = undefined;
       if (data.logo && data.logo.length > 0) {
-        try {
-          const processedImages = await processImages(data.logo, {
-            isLogo: true,
-          });
-          if (processedImages && processedImages.length > 0) {
-            logoData = {
-              url: processedImages[0].url,
-            };
-          }
-        } catch (error) {
-          console.error("Logo processing error:", error);
-          return {
-            success: false,
-            message: "Logo işlenemedi",
+        const processedImages = await processImages(data.logo, {
+          isLogo: true,
+        });
+        if (processedImages && processedImages.length > 0) {
+          logoData = {
+            url: processedImages[0].url,
           };
         }
       }
 
-      // Handle existing record update
       if (existingInfo) {
-        // Handle logo update if new logo is provided
+        const updateData: UpdateData = {
+          ...getBaseData(data),
+        };
+
         if (logoData) {
-          try {
-            // Delete existing logo file
-            if (existingInfo.logo?.url) {
-              const deleteResult = await DeleteImage(existingInfo.logo.url, {
-                isLogo: true,
-                maxRetries: 5, // 5 kez deneyecek
-                retryDelay: 200, // Her deneme arasında 200ms bekleyecek
-              });
-              if (!deleteResult.success) {
-                return {
-                  success: false,
-                  message: "Mevcut logo silinemedi",
-                };
-              }
-            }
-            if (existingInfo.logo?.id) {
-              await tx.image.delete({
-                where: { id: existingInfo.logo.id },
-              });
-            }
-          } catch (error) {
-            console.error("Logo deletion error:", error);
-            return {
-              success: false,
-              message: "Eski logo silinemedi",
-            };
+          if (existingInfo.logo?.url) {
+            await DeleteImage(existingInfo.logo.url, {
+              isLogo: true,
+              maxRetries: 5,
+              retryDelay: 200,
+            });
           }
+
+          if (existingInfo.logo?.id) {
+            await tx.image.delete({
+              where: { id: existingInfo.logo.id },
+            });
+          }
+
+          updateData.logo = {
+            create: logoData,
+          };
         }
 
-        // Update record
         await tx.salerInfo.update({
           where: { id: existingInfo.id },
-          data: {
-            ...getBaseData(data),
-            ...(logoData && {
-              logo: {
-                create: logoData,
-              },
-            }),
-          },
+          data: updateData,
         });
-      } else {
-        // Create new record
-        await tx.salerInfo.create({
-          data: {
-            ...getBaseData(data),
-            ...(logoData && {
-              logo: {
-                create: logoData,
-              },
-            }),
-          },
-        });
+
+        return {
+          success: true,
+          message: "Bilgiler güncellendi",
+        };
       }
+
+      await tx.salerInfo.create({
+        data: {
+          ...getBaseData(data),
+          ...(logoData && {
+            logo: {
+              create: logoData,
+            },
+          }),
+        },
+      });
 
       return {
         success: true,
-        message: existingInfo ? "Bilgiler güncellendi" : "Bilgiler kaydedildi",
+        message: "Bilgiler kaydedildi",
       };
     });
 

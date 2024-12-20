@@ -9,14 +9,11 @@ import {
   Pagination,
   ScrollArea,
   Table,
-  TextInput,
   Tooltip,
-  UnstyledButton,
 } from "@mantine/core";
-import { useDebouncedCallback } from "@mantine/hooks";
 import { VariantType } from "@prisma/client";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
   BiEdit,
@@ -27,7 +24,6 @@ import {
   BiTime,
   BiTrash,
 } from "react-icons/bi";
-import { FaSearch } from "react-icons/fa";
 
 const PriceDisplay = ({ price, discount }) => {
   if (discount > 0) {

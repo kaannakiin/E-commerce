@@ -3,7 +3,7 @@ import { useStore } from "@/store/store";
 import { Button, Drawer, Indicator, ScrollArea } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { usePathname, useRouter } from "next/navigation";
-import React from "react";
+import React, { Fragment } from "react";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoMdClose } from "react-icons/io";
 import ShoppingProduct from "./ShoppingProduct";
@@ -36,7 +36,7 @@ const CartDrawer = () => {
   };
 
   return (
-    <>
+    <Fragment>
       <Drawer.Root
         opened={open && !isCartPage}
         onClose={() => setOpen(false)}
@@ -135,7 +135,7 @@ const CartDrawer = () => {
           />
         </Indicator>
       )}
-    </>
+    </Fragment>
   );
 };
 

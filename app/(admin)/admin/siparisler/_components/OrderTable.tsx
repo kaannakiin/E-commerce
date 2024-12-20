@@ -1,7 +1,10 @@
 "use client";
 import SpecialPagination from "@/components/Pagination";
-import { formattedDate, formattedPrice } from "@/lib/format";
-import { getOrderStatusConfig } from "@/lib/helper";
+import {
+  formattedDate,
+  formattedPrice,
+  getOrderStatusConfig,
+} from "@/lib/format";
 import {
   Badge,
   Box,
@@ -16,7 +19,6 @@ import { CgDanger } from "react-icons/cg";
 import { FaEye as IconEye } from "react-icons/fa";
 import { OrderForOrderTable } from "../page";
 import OrderSearchHeader from "./OrderSearch";
-
 const OrdersTable = ({
   orders,
   totalPages,
@@ -37,6 +39,7 @@ const OrdersTable = ({
               <Table.Th>Kişi bilgi</Table.Th>
               <Table.Th>Ürün Sayısı</Table.Th>
               <Table.Th>Sipariş Durumu</Table.Th>
+              <Table.Th>Ödeme Durumu</Table.Th>
               <Table.Th>Toplam</Table.Th>
               <Table.Th>Sipariş Tarihi</Table.Th>
               <Table.Th className="w-32 text-center">İşlem</Table.Th>
@@ -60,15 +63,28 @@ const OrdersTable = ({
                     </Text>
                   </div>
                 </Table.Td>
-                <Table.Td>{order._count.orderItems}</Table.Td>
+                <Table.Td>{order._count.OrderItems}</Table.Td>
+                <Table.Td>{getOrderStatusConfig(order.status).text}</Table.Td>
                 <Table.Td>
-                  <Badge color={getOrderStatusConfig(order.orderStatus).color}>
-                    {getOrderStatusConfig(order.orderStatus).text}
+                  <Badge
+                    color={
+                      order.paymentStatus === "SUCCESS"
+                        ? "green"
+                        : order.paymentStatus === "FAILED"
+                          ? "red"
+                          : "yellow"
+                    }
+                  >
+                    {order.paymentStatus === "SUCCESS"
+                      ? "Ödeme Başarılı"
+                      : order.paymentStatus === "FAILED"
+                        ? "Ödeme Başarısız"
+                        : "Ödeme Bekliyor"}
                   </Badge>
                 </Table.Td>
                 <Table.Td>
                   <Text size="sm" fw={500}>
-                    {formattedPrice(order.paidPrice)}
+                    {formattedPrice(order.total)}
                   </Text>
                 </Table.Td>
                 <Table.Td>
@@ -87,10 +103,12 @@ const OrdersTable = ({
                     >
                       Detay
                     </Button>
-                    {order.orderItems.some(
-                      (item) => !!item.refundOrderItemsRequest,
+                    {order.OrderItems.some(
+                      (item) =>
+                        item.refundStatus === "REQUESTED" ||
+                        item.refundStatus === "PROCESSING",
                     ) && (
-                      <Tooltip label="İade talebi mevcut">
+                      <Tooltip label="İade talebi/işlemi mevcut">
                         <div className="flex items-center">
                           <CgDanger size={24} className="text-red-500" />
                         </div>
@@ -103,7 +121,6 @@ const OrdersTable = ({
           </Table.Tbody>
         </Table>
       </ScrollArea>
-
       <SpecialPagination totalPages={totalPages} currentPage={currentPage} />
     </Box>
   );

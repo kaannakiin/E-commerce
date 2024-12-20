@@ -2,7 +2,7 @@
 
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
-import { RecordImgToAsset } from "@/lib/recordImage";
+import { processImages } from "@/lib/recordImage";
 import {
   EditProductSchema,
   EditProductSchemaType,
@@ -43,9 +43,7 @@ export async function EditProduct(
       const images: { url: string[] } = { url: [] };
 
       if (data.variants[0].imageFile?.length > 0) {
-        const processedImages = await RecordImgToAsset(
-          data.variants[0].imageFile,
-        );
+        const processedImages = await processImages(data.variants[0].imageFile);
         images.url = processedImages.map((image) => image.url);
       }
 

@@ -9,6 +9,7 @@ const feedPage = cache(async () => {
       whatsapp: true,
     },
   });
+  if (!infoWhatsapp) return null;
   return infoWhatsapp.whatsapp;
 });
 export default async function UserLayout({

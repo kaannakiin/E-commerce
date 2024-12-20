@@ -63,8 +63,10 @@ export async function createNewDiscountCode(formData: FormData): Promise<{
     if (!data.allProducts && data.variants.length > 0) {
       const variantsExist = await prisma.variant.findMany({
         where: {
-          id: {
-            in: data.variants,
+          AND: {
+            id: {
+              in: data.variants,
+            },
           },
         },
         select: {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 import CustomImage from "./CustomImage";
 import { CartVariant } from "@/store/useCartStore";
 import { VariantType } from "@prisma/client";
@@ -18,7 +18,7 @@ const ShoppingProduct = ({ item }: { item: CartVariant }) => {
   const isPaymentPage = pathname === "/odeme";
 
   const ImageComponent = () => (
-    <>
+    <Fragment>
       {isPaymentPage ? (
         <Indicator
           label={item.quantity}
@@ -35,7 +35,7 @@ const ShoppingProduct = ({ item }: { item: CartVariant }) => {
           <CustomImage src={item.imageUrl} quality={21} objectFit="contain" />
         </div>
       )}
-    </>
+    </Fragment>
   );
 
   return (

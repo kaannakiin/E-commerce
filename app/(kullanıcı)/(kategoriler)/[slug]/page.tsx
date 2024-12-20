@@ -122,6 +122,17 @@ const feedCat = cache(
       if (!categoryExists) {
         return { categoryVariants: [], count: 0 };
       }
+      const categoryPublished = await prisma.category.findFirst({
+        where: {
+          slug,
+        },
+        select: {
+          active: true,
+        },
+      });
+      if (!categoryPublished.active) {
+        return { categoryVariants: [], count: 0 };
+      }
 
       let orderByClause: unknown = {};
       switch (orderBy) {
@@ -139,6 +150,7 @@ const feedCat = cache(
       }
 
       const whereClause = {
+        softDelete: false,
         isPublished: true,
         stock: {
           gt: 0,

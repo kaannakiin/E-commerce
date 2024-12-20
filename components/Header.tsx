@@ -37,6 +37,7 @@ const feedHeader = cache(async () => {
     // Önce variant'ları al
     const variants = await prisma.variant.findMany({
       where: {
+        softDelete: false,
         isPublished: true,
         isSpotlightFeatured: true,
       },
@@ -129,12 +130,14 @@ const Header = async () => {
         {/* CENTER SECTION - Logo */}
         <div className="flex h-full items-center lg:absolute lg:left-1/2 lg:-translate-x-1/2">
           <Link className="relative h-full w-52 sm:w-72" href="/">
-            <CustomImage
-              src={salerInfo}
-              alt="logo Footer"
-              sizes="100vw"
-              objectFit="contain"
-            />
+            {salerInfo && (
+              <CustomImage
+                src={salerInfo}
+                alt="logo Footer"
+                sizes="100vw"
+                objectFit="contain"
+              />
+            )}
           </Link>
         </div>
 

@@ -15,6 +15,7 @@ const feedPage = cache(async () => {
       },
     },
   });
+  if (!salerInfo) return null;
   return salerInfo.logo?.url;
 });
 export default async function AdminLayout({
@@ -27,14 +28,16 @@ export default async function AdminLayout({
     <Fragment>
       <header className="mx-auto flex h-20 w-full max-w-[1400px] flex-row justify-between px-4 sm:px-6 lg:px-10">
         <div className="flex h-full items-center">
-          <Link className="relative h-full w-52 sm:w-72" href="/">
-            <CustomImage
-              src={salerInfo}
-              alt="logo Footer"
-              sizes="100vw"
-              objectFit="contain"
-            />
-          </Link>
+          {salerInfo && (
+            <Link className="relative h-full w-52 sm:w-72" href="/">
+              <CustomImage
+                src={salerInfo}
+                alt="logo Footer"
+                sizes="100vw"
+                objectFit="contain"
+              />
+            </Link>
+          )}
         </div>
         <Link href={"/sepet"} className="flex items-center justify-end">
           <HiOutlineShoppingBag size={30} />

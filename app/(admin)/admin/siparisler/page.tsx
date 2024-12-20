@@ -2,14 +2,17 @@ import { prisma } from "@/lib/prisma";
 import { Params, SearchParams } from "@/types/types";
 import { OrderStatus, Prisma } from "@prisma/client";
 import OrderTable from "./_components/OrderTable";
+
 export type OrderForOrderTable = Prisma.OrderGetPayload<{
   select: {
     orderNumber: true;
     paymentId: true;
-    orderStatus: true;
-    orderItems: {
+    status: true;
+    paymentStatus: true;
+    OrderItems: {
       select: {
-        refundOrderItemsRequest: true;
+        isRefunded: true;
+        refundStatus: true;
       };
     };
     address: {
@@ -27,10 +30,10 @@ export type OrderForOrderTable = Prisma.OrderGetPayload<{
     };
     _count: {
       select: {
-        orderItems: true;
+        OrderItems: true;
       };
     };
-    paidPrice: true;
+    total: true;
     createdAt: true;
     user: {
       select: {
@@ -41,6 +44,7 @@ export type OrderForOrderTable = Prisma.OrderGetPayload<{
     };
   };
 }>;
+
 const feedOrderPage = async (
   skip: number,
   limit: number,
@@ -55,9 +59,8 @@ const feedOrderPage = async (
     return date instanceof Date && !isNaN(date.getTime());
   };
 
-  // Where koşullarını ayrı oluşturalım
   const whereConditions: Prisma.OrderWhereInput = {
-    ...(status && { orderStatus: status }),
+    ...(status && { status: status }),
     ...(search && {
       OR: [
         { address: { name: { contains: search } } },
@@ -67,7 +70,6 @@ const feedOrderPage = async (
     }),
   };
 
-  // Geçerli tarihler varsa ekleyelim
   if (isValidDate(startDate) || isValidDate(endDate)) {
     whereConditions.createdAt = {};
 
@@ -97,10 +99,12 @@ const feedOrderPage = async (
       select: {
         orderNumber: true,
         paymentId: true,
-        orderStatus: true,
-        orderItems: {
+        status: true,
+        paymentStatus: true,
+        OrderItems: {
           select: {
-            refundOrderItemsRequest: true,
+            isRefunded: true,
+            refundStatus: true,
           },
         },
         address: {
@@ -118,10 +122,10 @@ const feedOrderPage = async (
         },
         _count: {
           select: {
-            orderItems: true,
+            OrderItems: true,
           },
         },
-        paidPrice: true,
+        total: true,
         createdAt: true,
         user: {
           select: {
@@ -141,6 +145,7 @@ const feedOrderPage = async (
     throw error;
   }
 };
+
 const OrderPage = async (props: {
   params: Params;
   searchParams: SearchParams;
@@ -153,6 +158,7 @@ const OrderPage = async (props: {
   const endDate = (searchParams.endDate as string) || "";
   const search = (searchParams.search as string) || "";
   const status = (searchParams.status as OrderStatus) || undefined;
+
   const { orders, totalPages } = await feedOrderPage(
     skip,
     limit,
@@ -161,6 +167,7 @@ const OrderPage = async (props: {
     search,
     status,
   );
+
   return (
     <OrderTable orders={orders} totalPages={totalPages} currentPage={page} />
   );

@@ -27,7 +27,7 @@ import {
 import { Dropzone, FileRejection, FileWithPath } from "@mantine/dropzone";
 import { useHover } from "@mantine/hooks";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { FaImage, FaTrash } from "react-icons/fa";
@@ -36,7 +36,7 @@ import { TbAlertCircle, TbDragDrop2, TbX } from "react-icons/tb";
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-const AddCategoryForm = () => {
+const AddCategoryForm = ({ onClose }: { onClose?: () => void }) => {
   const [fileInputValue, setFileInputValue] = useState<File[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [uploadProgress, setUploadProgress] = useState<{
@@ -56,7 +56,7 @@ const AddCategoryForm = () => {
   const [fileErrors, setFileErrors] = useState<string[]>([]);
   const openRef = useRef<() => void>(null);
   const { hovered, ref } = useHover();
-
+  const pathname = usePathname();
   const {
     register,
     handleSubmit,
@@ -64,6 +64,7 @@ const AddCategoryForm = () => {
     watch,
     reset,
     trigger,
+    setError,
     formState: { errors, isSubmitting, isValid },
   } = useForm({
     resolver: zodResolver(AddCategorySchema),
@@ -126,7 +127,7 @@ const AddCategoryForm = () => {
 
     const existingFileNames = new Set(fileInputValue.map((f) => f.name));
     const newFiles = validFiles.filter(
-      (file) => !existingFileNames.has(file.name)
+      (file) => !existingFileNames.has(file.name),
     );
 
     const newUploadingFiles = new Set(uploadingFiles);
@@ -199,13 +200,21 @@ const AddCategoryForm = () => {
           type: "success",
         });
         reset();
-        router.push('/admin/kategoriler');
+        if (pathname === "/admin/urunler/urun-ekle") {
+          onClose();
+        } else {
+          router.push("/admin/kategoriler");
+        }
       } else {
-        setDialogState({
-          isOpen: true,
-          message: res.message,
-          type: "error",
-        });
+        if (pathname === "/admin/urunler/urun-ekle") {
+          setError("root", { message: res.message });
+        } else {
+          setDialogState({
+            isOpen: true,
+            message: res.message,
+            type: "error",
+          });
+        }
       }
     } catch (error) {
       setDialogState({
@@ -225,7 +234,7 @@ const AddCategoryForm = () => {
       p="lg"
       radius="md"
       withBorder
-      className="max-w-2xl mx-auto"
+      className="mx-auto max-w-2xl"
     >
       <Card.Section p="md" withBorder inheritPadding>
         <Text size="xl" fw={700}>
@@ -334,13 +343,13 @@ const AddCategoryForm = () => {
                           src={URL.createObjectURL(file)}
                           alt={`Preview ${index}`}
                           fill
-                          className="object-contain rounded w-full h-full"
+                          className="h-full w-full rounded object-contain"
                         />
                         <ActionIcon
                           color="red"
                           variant="filled"
                           size="sm"
-                          className="absolute top-1 right-1"
+                          className="absolute right-1 top-1"
                           onClick={() => handleFileDelete(index)}
                         >
                           <FaTrash size={12} />

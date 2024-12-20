@@ -5,8 +5,8 @@ import { useMediaQuery } from "@mantine/hooks";
 import { Accordion, Button, TextInput, UnstyledButton } from "@mantine/core";
 import { MdShoppingCart } from "react-icons/md";
 import DiscountCodeInput from "./DiscountCodeInput";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { Fragment, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { DiscountCheck } from "@/actions/user/discount-check";
 import { formattedPrice } from "@/lib/format";
 
@@ -18,26 +18,43 @@ const CartSection = () => {
   const hasDiscount = totalOriginalPrice !== totalFinalPrice;
   const searchParams = useSearchParams();
   const [discountPrice, setDiscountPrice] = useState(0);
+  const [discount, setDiscount] = useState({
+    success: false,
+  });
+  const [discountMessage, setDiscountMessage] = useState<string | null>(null);
+  const { push } = useRouter();
   useEffect(() => {
     const discountCode = searchParams.get("discountCode");
     async function applyDiscountCode() {
+      if (!discountCode) return; // Eğer discountCode yoksa fonksiyonu çalıştırma
+
       await DiscountCheck(
         discountCode,
         items.map((item) => item.variantId),
       ).then((res) => {
         if (res.success) {
+          setDiscount({ success: res.success });
           if (res.discountType === "FIXED") {
             setDiscountPrice(res.discountAmount);
+            setDiscountMessage(res.message);
           } else {
             setDiscountPrice(totalFinalPrice * (res.discountAmount / 100));
+            setDiscountMessage(res.message);
           }
+        } else {
+          setDiscountPrice(0);
+          setDiscount({ success: false });
+          const params = new URLSearchParams(searchParams);
+          params.delete("discountCode");
+          push(`?${params.toString()}`);
+          setDiscountMessage(res.message);
         }
       });
     }
     applyDiscountCode();
-  });
+  }, [searchParams, items, totalFinalPrice, push]);
   const CartContent = () => (
-    <>
+    <Fragment>
       <div className="sm:h-[calc(100vh-200px)] sm:overflow-auto lg:px-4 lg:py-8">
         {items.map((item) => (
           <div
@@ -54,7 +71,10 @@ const CartSection = () => {
             <span className="text-gray-300">Ara Toplam</span>
             <span>{formattedPrice(totalOriginalPrice)}</span>
           </div>{" "}
-          <DiscountCodeInput />
+          <DiscountCodeInput
+            success={discount.success}
+            message={discountMessage}
+          />
           {hasDiscount && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-green-400">İndirim</span>
@@ -79,7 +99,7 @@ const CartSection = () => {
           </div>
         </div>
       </div>
-    </>
+    </Fragment>
   );
 
   if (!matches) {

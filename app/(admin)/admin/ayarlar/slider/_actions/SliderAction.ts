@@ -22,7 +22,6 @@ async function cleanupFiles(urls: string[]) {
       const filePath = path.join(ASSETS_DIR, url);
       await fs.access(filePath); // Dosya var mı kontrol et
       await fs.unlink(filePath); // Dosyayı sil
-      console.log(`Cleaned up file: ${filePath}`);
     } catch (error) {
       console.warn(`Cleanup warning for ${url}:`, error);
     }

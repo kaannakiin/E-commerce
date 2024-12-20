@@ -4,6 +4,7 @@ import { cache } from "react";
 
 const feedForm = cache(async () => {
   return await prisma.variant.findMany({
+    where: { softDelete: false },
     select: {
       id: true,
       product: {

@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
     const quality = req.nextUrl.searchParams.get("quality") || "high";
 
     if (!url || !isValidVideoUrl(url)) {
-      console.log("Invalid URL:", url); // Debug için log
       return NextResponse.json({ error: "Invalid video URL" }, { status: 400 });
     }
 

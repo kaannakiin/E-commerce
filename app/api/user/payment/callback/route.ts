@@ -1,269 +1,82 @@
-import { auth } from "@/auth";
-import { iyzico } from "@/lib/iyzicoClient";
+import { deleteAddress } from "@/app/(kullanıcı)/hesabim/adres-defterim/_actions/AddressActions";
 import {
-  generateNon3DSignature,
-  generateOrderNumber,
-  groupTransactionsByItemId,
-} from "@/lib/IyzicoHelper";
-import { prisma } from "@/lib/prisma";
+  AuthUserCreateOrder,
+  groupedItemTransactions,
+  NonAuthUserCreateOrder,
+} from "@/lib/İyzico/helper/helper";
+import { iyzico } from "@/lib/İyzico/iyzicoClient";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const token = req.nextUrl.searchParams.get("token");
   try {
-    const formData = await req.formData();
-    const status = formData.get("status") as string;
-    const mdStatus = formData.get("mdStatus") as string;
-    const paymentId = formData.get("paymentId") as string;
-    const conversationId = formData.get("conversationId") as string;
-    const conversationData = formData.get("conversationData") as string;
-    const signature = formData.get("signature");
-    const signatureCheck =
-      generateNon3DSignature({
-        conversationData: conversationData,
-        conversationId: conversationId,
-        mdStatus: mdStatus,
-        paymentId: paymentId,
-        status: status,
-        type: "Callback",
-      }) === signature
-        ? true
-        : false;
-    if (!signatureCheck) {
-      await prisma.tempPayment.delete({
-        where: {
-          token,
-        },
-      });
-      return NextResponse.json(
-        {
-          status: 400,
-          message: "Beklenmeyen bir hata oluştu.",
-        },
-        { status: 400 },
-      );
-    }
-    if (!token) {
-      return new NextResponse(
-        `
-    <html>
-      <body>
-        <script>
-          window.parent.postMessage({ 
-            status: 'error',
-            message: 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyiniz.',
-          }, '*');
-        </script>
-      </body>
-    </html>
-    `,
-        {
-          headers: {
-            "Content-Type": "text/html",
-          },
-        },
-      );
-    }
-    if (mdStatus === "0" || mdStatus === "-1") {
-      await prisma.tempPayment.delete({
-        where: {
-          token,
-        },
-      });
-      return new NextResponse(
-        `
-    <html>
-      <body>
-        <script>
-          window.parent.postMessage({ 
-            status: 'error',
-            message: '3D Secure doğrulaması başarısız oldu. Lütfen tekrar deneyiniz.',
-          }, '*');
-        </script>
-      </body>
-    </html>
-    `,
-        {
-          headers: {
-            "Content-Type": "text/html",
-          },
-        },
-      );
-    }
+    const data = await req.formData();
+    const mdStatus = data.get("mdStatus") as string;
+    const paymentId = data.get("paymentId") as string;
+    const addressId = req.nextUrl.searchParams.get("ai");
+    const nonAuthAddressId = req.nextUrl.searchParams.get("nai");
+    const discountCode = (req.nextUrl.searchParams.get("di") as string) || null;
+    const userId = req.nextUrl.searchParams.get("ui");
+    const ip = req.nextUrl.searchParams.get("ip");
+    const body = {
+      paymentId,
+      locale: "tr",
+    };
     if (mdStatus !== "1") {
-      await prisma.tempPayment.delete({
-        where: {
-          token,
-        },
+      const params = new URLSearchParams({
+        tab: "payment",
+        status: mdStatus,
       });
-      return new NextResponse(
-        `
-    <html>
-      <body>
-        <script>
-          window.parent.postMessage({ 
-            status: 'error',
-            message: '3D Secure doğrulaması başarısız oldu. Lütfen tekrar deneyiniz.',
-          }, '*');
-        </script>
-      </body>
-    </html>
-    `,
-        {
-          headers: {
-            "Content-Type": "text/html",
-          },
-        },
+      if (
+        discountCode &&
+        discountCode !== "null" &&
+        discountCode.trim().length > 0
+      ) {
+        params.append("discountCode", discountCode);
+      }
+      if (nonAuthAddressId) {
+        await deleteAddress(nonAuthAddressId);
+      }
+      return Response.redirect(
+        new URL(`/odeme?${params.toString()}`, req.nextUrl.origin),
       );
     }
-
-    if (mdStatus === "1") {
-      const orderNumber = await prisma.$transaction(async (tx) => {
-        const temp = await tx.tempPayment.findUnique({
-          where: {
-            token: token,
-          },
+    const request = await iyzico.check3D(body);
+    if (request.status === "success") {
+      const items = await groupedItemTransactions(request.itemTransactions);
+      const cardType = {
+        cardType: request.cardType,
+        cardAssociation: request.cardAssociation,
+        cardFamily: request.cardFamily,
+        maskedCardNumber: `${request.binNumber}******${request.lastFourDigits}`,
+      };
+      if (addressId) {
+        const orderNumber = await AuthUserCreateOrder({
+          userId,
+          addressId,
+          items,
+          discountCode,
+          paymentId,
+          cardType,
+          ip,
         });
-        if (!temp) {
-          return NextResponse.json(
-            {
-              status: 400,
-              message: "Beklenmeyen bir hata oluştu.",
-            },
-            { status: 400 },
-          );
-        }
-
-        const paymentRequest = await iyzico.v2Check3DResult({
-          locale: "tr",
-          conversationId: token,
-          paymentId: temp.paymentId,
-          paidPrice: temp.paidPrice,
-          basketId: temp.basketId,
-          currency: "TRY",
-        });
-        if (paymentRequest.status === "failure") {
-          return NextResponse.json(
-            {
-              status: 400,
-              message: "Ödeme işlemi başarısız oldu.",
-            },
-            { status: 400 },
-          );
-        }
-        const items = groupTransactionsByItemId(
-          paymentRequest.itemTransactions,
+        return Response.redirect(
+          new URL(`/hesabim/siparislerim/${orderNumber}`, req.nextUrl.origin),
         );
-        if (temp.discountCode) {
-          await tx.discountCode.update({
-            where: {
-              code: temp.discountCode,
-            },
-            data: {
-              uses: {
-                increment: 1,
-              },
-            },
-          });
-        }
-        const order = await tx.order.create({
-          data: {
-            orderNumber: generateOrderNumber(),
-            paymentId: paymentId,
-            paidPrice: parseFloat(
-              items
-                .reduce((acc, item) => acc + item.paidPrice * item.quantity, 0)
-                .toFixed(2),
-            ),
-            address: {
-              connect: {
-                id: temp.addressId,
-              },
-            },
-            orderItems: {
-              createMany: {
-                data: items.map((item) => ({
-                  variantId: item.itemId,
-                  quantity: item.quantity,
-                  price: item.price,
-                  paidPrice: item.paidPrice,
-                  totalPrice: item.paidPrice * item.quantity,
-                  iyzicoPerPrice: item.merchantPayoutAmount,
-                  iyzicoPerTotal: item.merchantPayoutAmount * item.quantity,
-                })),
-              },
-            },
-            user: temp.userId ? { connect: { id: temp.userId } } : undefined,
-            discountCode: temp.discountCode
-              ? {
-                  connect: {
-                    code: temp.discountCode,
-                  },
-                }
-              : undefined,
-            paidPriceIyzico: parseFloat(
-              items
-                .reduce(
-                  (acc, item) =>
-                    acc + item.merchantPayoutAmount * item.quantity,
-                  0,
-                )
-                .toFixed(2),
-            ),
-            ip: temp.ip,
-          },
+      } else {
+        const orderNumber = await NonAuthUserCreateOrder({
+          addressId: nonAuthAddressId,
+          items,
+          discountCode,
+          paymentId,
+          cardType,
+          ip,
         });
-        await tx.tempPayment.delete({
-          where: {
-            token,
-          },
-        });
-        return order.orderNumber;
-      });
-      return new NextResponse(
-        `
-      <html>
-        <body>
-          <script>
-            window.parent.postMessage({ 
-              status: 'success',
-              redirectUrl: '/siparis?status=basarili&orderNumber=${orderNumber}'
-            }, '*');
-          </script>
-        </body>
-      </html>
-      `,
-        {
-          headers: {
-            "Content-Type": "text/html",
-          },
-        },
-      );
+        return Response.redirect(
+          new URL(`/siparis/${orderNumber}`, req.nextUrl.origin),
+        );
+      }
     }
   } catch (error) {
-    await prisma.tempPayment.delete({
-      where: {
-        token,
-      },
-    });
-    return new NextResponse(
-      `
-      <html>
-        <body>
-          <script>
-            window.parent.postMessage({
-              status: 'error',
-              message: 'Ödeme işlemi başarısız oldu',
-            }, '*');
-          </script>
-        </body>
-      </html>
-      `,
-      {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      },
-    );
+    return Response.redirect(new URL("/odeme", req.nextUrl.origin));
   }
 }

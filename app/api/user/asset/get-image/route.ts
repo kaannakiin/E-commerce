@@ -9,22 +9,29 @@ const ASSET_DIR = path.join(process.cwd(), "assets");
 const DEFAULT_QUALITY = 75; // CustomImage'deki varsayılan değerle eşleştirdik
 const MAX_WIDTH = 2000;
 const BLUR_THUMBNAIL = 1; // Thumbnail için blur değeri
-
 // Thumbnail boyutları
 const THUMBNAIL_WIDTH = 10; // CustomImage'de belirtilen sizes="10px" ile uyumlu
+// OG Image boyutları
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
 
 interface ProcessImageOptions {
   width?: number;
   quality?: number;
   thumbnail?: boolean;
+  og?: boolean;
 }
 
 async function processImage(
   filePath: string,
   options: ProcessImageOptions,
 ): Promise<Buffer> {
-  const { width, quality = DEFAULT_QUALITY, thumbnail = false } = options;
-
+  const {
+    width,
+    quality = DEFAULT_QUALITY,
+    thumbnail = false,
+    og = false,
+  } = options;
   try {
     let imageProcessor = sharp(await fs.readFile(filePath));
 
@@ -38,6 +45,18 @@ async function processImage(
         .blur(BLUR_THUMBNAIL)
         .jpeg({ quality: 60 }) // Thumbnail için düşük kalite
         .toBuffer();
+    } else if (og) {
+      // OG Image işlemi
+      return await imageProcessor
+        .resize(OG_WIDTH, OG_HEIGHT, {
+          fit: "cover",
+          position: "center",
+        })
+        .jpeg({
+          quality: 90, // OG images için yüksek kalite
+          mozjpeg: true,
+        })
+        .toBuffer();
     } else {
       // Ana görsel işlemi
       if (width) {
@@ -47,7 +66,6 @@ async function processImage(
           fit: "inside",
         });
       }
-
       return await imageProcessor
         .jpeg({
           quality: Math.min(Math.max(quality, 1), 100),
@@ -70,6 +88,7 @@ export async function GET(req: NextRequest) {
       10,
     );
     const thumbnail = req.nextUrl.searchParams.get("thumbnail") === "true";
+    const og = req.nextUrl.searchParams.get("og") === "true";
 
     // Validasyonlar
     if (!url) {
@@ -78,7 +97,6 @@ export async function GET(req: NextRequest) {
         { status: 400 },
       );
     }
-
     if (url.includes("..") || url.includes("/")) {
       return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
     }
@@ -96,13 +114,15 @@ export async function GET(req: NextRequest) {
       width,
       quality,
       thumbnail,
+      og,
     });
 
     // Response headerları
     const headers = {
       "Content-Type": "image/jpeg",
       "Cache-Control": "public, max-age=31536000, stale-while-revalidate=86400",
-      "Last-Modified": new Date().toUTCString(),
+      "Access-Control-Allow-Origin": "*",
+      "Cross-Origin-Resource-Policy": "cross-origin",
     };
 
     return new NextResponse(processedImage, { headers });

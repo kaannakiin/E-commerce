@@ -30,7 +30,7 @@ const feedPage = cache(async () => {
 const page = async () => {
   const slider = await feedPage();
   return (
-    <div className="px-4 py-10">
+    <div className="p-4">
       <div className="flex w-full flex-row gap-4"></div>
       <SliderTable slider={slider} />
     </div>

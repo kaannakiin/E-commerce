@@ -1,18 +1,59 @@
 import { prisma } from "@/lib/prisma";
-import AddProductForm from "../../_components/AddProductForm";
 import { cache } from "react";
+import ProductForm from "../_components/ProductForm";
+import { Prisma } from "@prisma/client";
+export type googleType = Prisma.GoogleCategoryGetPayload<{
+  select: {
+    id: true;
+    name: true;
+    level: true;
+    fullPath: true;
+    parentPath: true;
+    breadcrumbs: true;
+  };
+}>;
+export type categoryType = Prisma.CategoryGetPayload<{
+  select: {
+    name: true;
+    id: true;
+    slug: true;
+  };
+}>;
 const feed = cache(async () => {
-  const feedCat = await prisma.category.findMany({
-    select: {
-      name: true,
-      id: true,
-    },
-  });
-  return feedCat;
-});
-const AdminAddProduct = async () => {
-  const feedCat = await feed();
-  return <AddProductForm feedCat={feedCat} />;
-};
+  const [categories, googleCategories] = await Promise.all([
+    prisma.category.findMany({
+      select: {
+        name: true,
+        id: true,
+        slug: true,
+      },
+    }),
+    prisma.googleCategory.findMany({
+      where: { level: 1 }, // Ana kategorileri getir
+      select: {
+        id: true,
+        name: true,
+        level: true,
+        fullPath: true,
+        parentPath: true,
+        breadcrumbs: true,
+      },
+    }),
+  ]);
 
+  return {
+    categories,
+    googleCategories,
+  };
+});
+
+const AdminAddProduct = async () => {
+  const data = await feed();
+  return (
+    <ProductForm
+      data={data.categories}
+      googleCategory={data.googleCategories}
+    />
+  );
+};
 export default AdminAddProduct;

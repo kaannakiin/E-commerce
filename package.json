@@ -2,25 +2,47 @@
   "name": "welnessclubbyoyku",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "prisma:seed": "tsx prisma/seed.ts",
+    "clean-db": "node clean-db.mjs",
+    "find:unused": "next-unused"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "next-unused": {
+    "alias": {},
+    "include": [],
+    "exclude": [],
+    "entrypoints": []
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
     "@hookform/resolvers": "^3.9.0",
-    "@mantine/carousel": "^7.14.1",
-    "@mantine/core": "^7.14.1",
-    "@mantine/dates": "^7.14.1",
-    "@mantine/dropzone": "^7.14.1",
-    "@mantine/spotlight": "^7.14.1",
+    "@mantine/carousel": "^7.15.1",
+    "@mantine/core": "^7.15.1",
+    "@mantine/dates": "^7.15.1",
+    "@mantine/dropzone": "^7.15.1",
+    "@mantine/spotlight": "^7.15.1",
     "@paralleldrive/cuid2": "^2.2.2",
     "@prisma/client": "^6.0.0",
     "@tanstack/react-query": "^5.61.0",
+    "@tiptap/extension-highlight": "^2.10.3",
+    "@tiptap/extension-link": "^2.10.3",
+    "@tiptap/extension-subscript": "^2.10.3",
+    "@tiptap/extension-superscript": "^2.10.3",
+    "@tiptap/extension-text-align": "^2.10.3",
+    "@tiptap/extension-underline": "^2.10.3",
+    "@tiptap/pm": "^2.10.3",
+    "@tiptap/react": "^2.10.3",
+    "@tiptap/starter-kit": "^2.10.3",
     "@types/crypto-js": "^4.2.2",
     "@types/nodemailer": "^6.4.17",
     "bcryptjs": "^2.4.3",
@@ -36,6 +58,7 @@
     "nodemailer": "^6.9.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-dropzone": "^14.3.5",
     "react-hook-form": "^7.53.1",
     "react-icons": "^5.3.0",
     "react-imask": "^7.6.1",
@@ -49,13 +72,15 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
-    "@types/node": "^20.17.9",
+    "@types/node": "^20.17.10",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-dropzone": "^4.2.2",
     "@types/react-input-mask": "^3.0.6",
     "@types/uuid": "^10.0.0",
     "eslint": "^8",
     "eslint-config-next": "15.0.1",
+    "next-unused": "^0.0.6",
     "postcss": "^8",
     "postcss-preset-mantine": "^1.17.0",
     "prettier": "^3.3.3",
@@ -63,6 +88,8 @@
     "prisma": "^6.0.0",
     "sass": "^1.80.3",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   }
 }

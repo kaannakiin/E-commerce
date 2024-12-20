@@ -34,8 +34,7 @@ const CheckoutForm = () => {
   const [loadingProvinces, setLoadingProvinces] = useState(true);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
-  const [opened, { open, close }] = useDisclosure(false);
-  const [threeDHTML, setThreeDHTML] = useState<string>("");
+
   const items = useStore((state) => state.items);
   const clearCart = useStore((state) => state.clearCart);
   const router = useRouter();
@@ -55,24 +54,7 @@ const CheckoutForm = () => {
       },
     },
   });
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.status === "error") {
-        close();
-        setError("root", {
-          message: event.data.message || "Ödeme işlemi başarısız oldu.",
-        });
-      }
-      if (event.data?.status === "success") {
-        clearCart(); // useStore'dan clearCart'ı eklemeyi unutmayın
-        close();
-        router.push(event.data.redirectUrl);
-      }
-    };
 
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [close, router, setError, clearCart]);
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
@@ -93,7 +75,18 @@ const CheckoutForm = () => {
     };
     fetchProvinces();
   }, []);
-
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status === "0") {
+      setError("root", {
+        message:
+          "3D Secure doğrulaması başarısız oldu. Lütfen tekrar deneyiniz.",
+      });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("status");
+      router.replace(`?${newParams.toString()}`, { scroll: false });
+    }
+  }, [searchParams, setError, router]);
   const handleProvinceChange = async (provinceName: string | null) => {
     setSelectedProvince(provinceName);
     setValue("address.city", provinceName || "", { shouldValidate: true });
@@ -133,434 +126,419 @@ const CheckoutForm = () => {
         variantId: item.variantId,
         quantity: item.quantity,
       }));
-      const params = searchParams.get("discountCode") || "";
-      try {
-        await fetchWrapper
-          .post("/user/payment/Tami/non-auth-user", {
-            data,
-            variantIdQty,
-            params,
-          })
-          .then((res) => {
-            if (res.status === 400) {
+      const params = searchParams.get("discountCode") || null;
+      await fetchWrapper
+        .post("/user/payment/auth-user", {
+          data,
+          params,
+          variantIdQty,
+        })
+        .then(
+          (res: {
+            data: {
+              status: number;
+              orderNumber: string;
+              message: string;
+              htmlContent?: string;
+            };
+            status: number;
+            error?: string;
+          }) => {
+            if (res.error) {
               setError("root", {
-                message: res.data.toString(),
+                message: res.error,
               });
+              return;
             }
-            if (res.status === 200) {
-              open();
-              setThreeDHTML(res.htmlContent);
-            } else {
-              setError("root", {
-                message:
-                  "Ödeme işlemi başarısız oldu. Lütfen tekrar deneyiniz.",
-              });
+            if (res.data.status === 200) {
+              router.push(`/siparis/${res.data.orderNumber}`);
+            } else if (res.data.status === 203 && res.data.htmlContent) {
+              const tempDiv = document.createElement("div");
+              tempDiv.innerHTML = res.data.htmlContent;
+              document.body.appendChild(tempDiv);
+
+              const form = tempDiv.querySelector("form");
+              if (form) {
+                form.submit();
+              } else {
+                throw new Error("3D Secure form bulunamadı");
+              }
             }
-          });
-      } catch (error) {
-        setError("root", {
-          message:
-            "3D ödeme işlemi başlatılırken bir hata oluştu. Lütfen tekrar deneyiniz.",
-        });
-      }
+          },
+        );
     } catch (error) {
-      console.error("Genel ödeme hatası:", error);
       setError("root", {
-        message:
-          "Ödeme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyiniz.",
+        message: "Bir hata oluştu. Lütfen tekrar deneyiniz.",
       });
-    } finally {
     }
   };
 
   return (
-    <Container size="md" p={0}>
-      <Modal
-        opened={opened}
-        onClose={close}
-        size="xl"
-        title={<Title order={3}>3D Secure Doğrulama</Title>}
-        centered
-      >
-        <Paper p="md">
-          <iframe
-            srcDoc={threeDHTML}
-            style={{
-              width: "100%",
-              height: "500px",
-              border: "none",
-            }}
-            sandbox="allow-forms allow-scripts allow-same-origin allow-top-navigation allow-top-navigation-by-user-activation"
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {
+        <LoadingOverlay
+          visible={isSubmitting}
+          zIndex={1000}
+          overlayProps={{ radius: "sm", blur: 2 }}
+          loaderProps={{ color: "primary.9", type: "bars" }}
+        />
+      }
+      <Stack>
+        <Title order={2}>Siparişi Tamamla</Title>
+
+        <Paper shadow="xs" p="md" withBorder>
+          <Title order={3} mb="md">
+            Kişisel Bilgiler
+          </Title>
+          <Grid>
+            <Grid.Col span={{ base: 6, md: 6 }}>
+              <Controller
+                name="firstName"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius={0}
+                    placeholder="Ad"
+                    error={errors.firstName?.message}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData.getData("text");
+                      field.onChange(text.trim());
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 6, md: 6 }}>
+              <Controller
+                name="lastName"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius={0}
+                    placeholder="Soyad"
+                    error={errors.lastName?.message}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData.getData("text");
+                      field.onChange(text.trim());
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius={0}
+                    placeholder="E-posta"
+                    error={errors.email?.message}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData.getData("text");
+                      field.onChange(text.trim().toLowerCase());
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Controller
+                name="phone"
+                control={control}
+                render={({ field }) => (
+                  <InputBase
+                    component={IMaskInput}
+                    mask="(000) 000 00 00"
+                    placeholder="Telefon Numaranız"
+                    value={field.value || ""}
+                    error={errors.phone?.message}
+                    radius={0}
+                    onAccept={(value) => {
+                      field.onChange(value);
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData
+                        .getData("text")
+                        .replace(/\D/g, "") // Sadece rakamları al
+                        .slice(0, 10); // İlk 10 rakamı al
+
+                      if (text.length === 10) {
+                        const formatted = `(${text.slice(0, 3)}) ${text.slice(3, 6)} ${text.slice(6, 8)} ${text.slice(8)}`;
+                        field.onChange(formatted);
+                      }
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+          </Grid>
+        </Paper>
+
+        <Paper shadow="xs" p="md" withBorder>
+          <Title order={3} mb="md">
+            Adres Bilgileri
+          </Title>
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Controller
+                name="address.city"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    radius={0}
+                    placeholder="İl seçiniz"
+                    data={provinces}
+                    error={errors.address?.city?.message}
+                    disabled={loadingProvinces}
+                    searchable
+                    value={selectedProvince}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      handleProvinceChange(value);
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Controller
+                name="address.district"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    radius={0}
+                    placeholder="İlçe seçiniz"
+                    onChange={handleDistrictChange}
+                    data={districts}
+                    error={errors.address?.district?.message}
+                    disabled={loadingDistricts || !selectedProvince}
+                    searchable
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Controller
+                name="address.street"
+                control={control}
+                render={({ field }) => (
+                  <Textarea
+                    {...field}
+                    radius={0}
+                    placeholder="Adres"
+                    minRows={2}
+                    maxRows={4}
+                    error={errors.address?.street?.message}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData.getData("text");
+                      field.onChange(text.trim());
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+          </Grid>
+        </Paper>
+
+        <Paper shadow="xs" p="md" withBorder>
+          <Title order={3} mb="md">
+            Kart Bilgileri
+          </Title>
+          <Grid>
+            <Grid.Col span={12}>
+              <Controller
+                name="cardInfo.cardHolderName"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius={0}
+                    placeholder="Kart üzerindeki isim"
+                    error={errors.cardInfo?.cardHolderName?.message}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData.getData("text");
+                      field.onChange(text.trim().toUpperCase());
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={12}>
+              <Controller
+                name="cardInfo.cardNumber"
+                control={control}
+                render={({ field }) => (
+                  <InputBase
+                    component={IMaskInput}
+                    mask="0000 0000 0000 0000"
+                    placeholder="Kart Numarası"
+                    value={field.value || ""}
+                    error={errors.cardInfo?.cardNumber?.message}
+                    radius={0}
+                    onAccept={(value) => {
+                      field.onChange(value);
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData
+                        .getData("text")
+                        .replace(/\D/g, "")
+                        .slice(0, 16);
+
+                      if (text.length === 16) {
+                        const formatted =
+                          text.match(/.{1,4}/g)?.join(" ") || "";
+                        field.onChange(formatted);
+                      }
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 4, md: 4 }}>
+              <Controller
+                name="cardInfo.expireMonth"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    radius={0}
+                    data={[
+                      "1",
+                      "2",
+                      "3",
+                      "4",
+                      "5",
+                      "6",
+                      "7",
+                      "8",
+                      "9",
+                      "10",
+                      "11",
+                      "12",
+                    ]}
+                    placeholder="Ay"
+                    error={errors.cardInfo?.expireMonth?.message}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 4, md: 4 }}>
+              <Controller
+                name="cardInfo.expireYear"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    data={new Array(20)
+                      .fill(0)
+                      .map((_, index) =>
+                        (new Date().getFullYear() + index).toString(),
+                      )}
+                    radius={0}
+                    placeholder="Yıl"
+                    error={errors.cardInfo?.expireYear?.message}
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 4, md: 4 }}>
+              <Controller
+                name="cardInfo.cvc"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius={0}
+                    placeholder="CVV"
+                    maxLength={3}
+                    error={errors.cardInfo?.cvc?.message}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData
+                        .getData("text")
+                        .replace(/\D/g, "")
+                        .slice(0, 3);
+                      field.onChange(text);
+                    }}
+                  />
+                )}
+              />
+            </Grid.Col>
+          </Grid>
+          <Controller
+            name="cardInfo.threeDsecure"
+            control={control}
+            render={({ field: { value, onChange, ...field } }) => (
+              <Checkbox
+                {...field}
+                className="my-2 font-bold"
+                size="xs"
+                label="3D secure ile öde"
+                checked={value}
+                onChange={(event) => onChange(event.currentTarget.checked)}
+              />
+            )}
           />
         </Paper>
-      </Modal>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {
-          <LoadingOverlay
-            visible={isSubmitting}
-            zIndex={1000}
-            overlayProps={{ radius: "sm", blur: 2 }}
-            loaderProps={{ color: "primary.9", type: "bars" }}
-          />
-        }
-        <Stack>
-          <Title order={2}>Siparişi Tamamla</Title>
-
-          <Paper shadow="xs" p="md" withBorder>
-            <Title order={3} mb="md">
-              Kişisel Bilgiler
-            </Title>
-            <Grid>
-              <Grid.Col span={{ base: 6, md: 6 }}>
-                <Controller
-                  name="firstName"
-                  control={control}
-                  render={({ field }) => (
-                    <TextInput
-                      {...field}
-                      radius={0}
-                      placeholder="Ad"
-                      error={errors.firstName?.message}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData.getData("text");
-                        field.onChange(text.trim());
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 6, md: 6 }}>
-                <Controller
-                  name="lastName"
-                  control={control}
-                  render={({ field }) => (
-                    <TextInput
-                      {...field}
-                      radius={0}
-                      placeholder="Soyad"
-                      error={errors.lastName?.message}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData.getData("text");
-                        field.onChange(text.trim());
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Controller
-                  name="email"
-                  control={control}
-                  render={({ field }) => (
-                    <TextInput
-                      {...field}
-                      radius={0}
-                      placeholder="E-posta"
-                      error={errors.email?.message}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData.getData("text");
-                        field.onChange(text.trim().toLowerCase());
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Controller
-                  name="phone"
-                  control={control}
-                  render={({ field }) => (
-                    <InputBase
-                      component={IMaskInput}
-                      mask="(000) 000 00 00"
-                      placeholder="Telefon Numaranız"
-                      value={field.value || ""}
-                      error={errors.phone?.message}
-                      radius={0}
-                      onAccept={(value) => {
-                        field.onChange(value);
-                      }}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData
-                          .getData("text")
-                          .replace(/\D/g, "") // Sadece rakamları al
-                          .slice(0, 10); // İlk 10 rakamı al
-
-                        if (text.length === 10) {
-                          const formatted = `(${text.slice(0, 3)}) ${text.slice(3, 6)} ${text.slice(6, 8)} ${text.slice(8)}`;
-                          field.onChange(formatted);
-                        }
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-            </Grid>
-          </Paper>
-
-          <Paper shadow="xs" p="md" withBorder>
-            <Title order={3} mb="md">
-              Adres Bilgileri
-            </Title>
-            <Grid>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Controller
-                  name="address.city"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      radius={0}
-                      placeholder="İl seçiniz"
-                      data={provinces}
-                      error={errors.address?.city?.message}
-                      disabled={loadingProvinces}
-                      searchable
-                      value={selectedProvince}
-                      onChange={(value) => {
-                        field.onChange(value);
-                        handleProvinceChange(value);
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 12, md: 6 }}>
-                <Controller
-                  name="address.district"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      radius={0}
-                      placeholder="İlçe seçiniz"
-                      onChange={handleDistrictChange}
-                      data={districts}
-                      error={errors.address?.district?.message}
-                      disabled={loadingDistricts || !selectedProvince}
-                      searchable
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={12}>
-                <Controller
-                  name="address.street"
-                  control={control}
-                  render={({ field }) => (
-                    <Textarea
-                      {...field}
-                      radius={0}
-                      placeholder="Adres"
-                      minRows={2}
-                      maxRows={4}
-                      error={errors.address?.street?.message}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData.getData("text");
-                        field.onChange(text.trim());
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-            </Grid>
-          </Paper>
-
-          <Paper shadow="xs" p="md" withBorder>
-            <Title order={3} mb="md">
-              Kart Bilgileri
-            </Title>
-            <Grid>
-              <Grid.Col span={12}>
-                <Controller
-                  name="cardInfo.cardHolderName"
-                  control={control}
-                  render={({ field }) => (
-                    <TextInput
-                      {...field}
-                      radius={0}
-                      placeholder="Kart üzerindeki isim"
-                      error={errors.cardInfo?.cardHolderName?.message}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData.getData("text");
-                        field.onChange(text.trim().toUpperCase());
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={12}>
-                <Controller
-                  name="cardInfo.cardNumber"
-                  control={control}
-                  render={({ field }) => (
-                    <InputBase
-                      component={IMaskInput}
-                      mask="0000 0000 0000 0000"
-                      placeholder="Kart Numarası"
-                      value={field.value || ""}
-                      error={errors.cardInfo?.cardNumber?.message}
-                      radius={0}
-                      onAccept={(value) => {
-                        field.onChange(value);
-                      }}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData
-                          .getData("text")
-                          .replace(/\D/g, "")
-                          .slice(0, 16);
-
-                        if (text.length === 16) {
-                          const formatted =
-                            text.match(/.{1,4}/g)?.join(" ") || "";
-                          field.onChange(formatted);
-                        }
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 4, md: 4 }}>
-                <Controller
-                  name="cardInfo.expireMonth"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      radius={0}
-                      data={[
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7",
-                        "8",
-                        "9",
-                        "10",
-                        "11",
-                        "12",
-                      ]}
-                      placeholder="Ay"
-                      error={errors.cardInfo?.expireMonth?.message}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 4, md: 4 }}>
-                <Controller
-                  name="cardInfo.expireYear"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      data={new Array(20)
-                        .fill(0)
-                        .map((_, index) =>
-                          (new Date().getFullYear() + index).toString(),
-                        )}
-                      radius={0}
-                      placeholder="Yıl"
-                      error={errors.cardInfo?.expireYear?.message}
-                    />
-                  )}
-                />
-              </Grid.Col>
-              <Grid.Col span={{ base: 4, md: 4 }}>
-                <Controller
-                  name="cardInfo.cvc"
-                  control={control}
-                  render={({ field }) => (
-                    <TextInput
-                      {...field}
-                      radius={0}
-                      placeholder="CVV"
-                      maxLength={3}
-                      error={errors.cardInfo?.cvc?.message}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const text = e.clipboardData
-                          .getData("text")
-                          .replace(/\D/g, "")
-                          .slice(0, 3);
-                        field.onChange(text);
-                      }}
-                    />
-                  )}
-                />
-              </Grid.Col>
-            </Grid>
+        <Paper shadow="xs" p="md" withBorder>
+          <Title order={3} mb="md">
+            Sözleşmeler
+          </Title>
+          <Stack>
             <Controller
-              name="cardInfo.threeDsecure"
+              name="agreements.termsAccepted"
               control={control}
               render={({ field: { value, onChange, ...field } }) => (
                 <Checkbox
                   {...field}
-                  className="my-2 font-bold"
-                  size="xs"
-                  label="3D secure ile öde"
                   checked={value}
                   onChange={(event) => onChange(event.currentTarget.checked)}
+                  label="Mesafeli satış sözleşmesini okudum ve kabul ediyorum"
+                  error={errors.agreements?.termsAccepted?.message}
                 />
               )}
             />
-          </Paper>
+            <Controller
+              name="agreements.privacyAccepted"
+              control={control}
+              render={({ field: { value, onChange, ...field } }) => (
+                <Checkbox
+                  {...field}
+                  checked={value}
+                  onChange={(event) => onChange(event.currentTarget.checked)}
+                  label="Gizlilik politikasını okudum ve kabul ediyorum"
+                  error={errors.agreements?.privacyAccepted?.message}
+                />
+              )}
+            />
+          </Stack>
+        </Paper>
 
-          <Paper shadow="xs" p="md" withBorder>
-            <Title order={3} mb="md">
-              Sözleşmeler
-            </Title>
-            <Stack>
-              <Controller
-                name="agreements.termsAccepted"
-                control={control}
-                render={({ field: { value, onChange, ...field } }) => (
-                  <Checkbox
-                    {...field}
-                    checked={value}
-                    onChange={(event) => onChange(event.currentTarget.checked)}
-                    label="Mesafeli satış sözleşmesini okudum ve kabul ediyorum"
-                    error={errors.agreements?.termsAccepted?.message}
-                  />
-                )}
-              />
-              <Controller
-                name="agreements.privacyAccepted"
-                control={control}
-                render={({ field: { value, onChange, ...field } }) => (
-                  <Checkbox
-                    {...field}
-                    checked={value}
-                    onChange={(event) => onChange(event.currentTarget.checked)}
-                    label="Gizlilik politikasını okudum ve kabul ediyorum"
-                    error={errors.agreements?.privacyAccepted?.message}
-                  />
-                )}
-              />
-            </Stack>
-          </Paper>
+        {errors.root && (
+          <Text color="red" mt="md">
+            {errors.root.message}
+          </Text>
+        )}
 
-          {errors.root && (
-            <Text color="red" mt="md">
-              {errors.root.message}
-            </Text>
-          )}
-
-          <Button type="submit" fullWidth radius={0}>
-            Siparişi Tamamla
-          </Button>
-        </Stack>
-      </form>
-    </Container>
+        <Button type="submit" fullWidth radius={0}>
+          Siparişi Tamamla
+        </Button>
+      </Stack>
+    </form>
   );
 };
 

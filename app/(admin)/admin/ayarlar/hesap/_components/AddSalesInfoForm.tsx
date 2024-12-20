@@ -1,4 +1,8 @@
 "use client";
+import CustomImage from "@/components/CustomImage";
+import FeedbackDialog from "@/components/FeedbackDialog";
+import { SalerInfoFormValues, SalerInfoSchema } from "@/zodschemas/authschema";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
   Card,
@@ -7,26 +11,26 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import React, { useState } from "react";
-import ImageDropzone from "../../../_components/ImageDropzone";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import {
-  FaWhatsapp,
+  FaFacebook,
   FaInstagram,
   FaPinterest,
-  FaFacebook,
   FaTwitter,
+  FaWhatsapp,
 } from "react-icons/fa";
 import { IMaskInput } from "react-imask";
-import { SubmitHandler, useForm, Controller } from "react-hook-form";
-import { SalerInfoFormValues, SalerInfoSchema } from "@/zodschemas/authschema";
-import { zodResolver } from "@hookform/resolvers/zod";
+import CustomDropzone from "../../../urunler/_components/CustomDropzone";
 import { AddInfo } from "../_actions/SalerInfoAction";
 import { info } from "../page";
-import CustomImage from "@/components/CustomImage";
-import FeedbackDialog from "@/components/FeedbackDialog";
-import { useRouter } from "next/navigation";
 
-const AddSalesInfoForm = ({ info }: { info: info }) => {
+const AddSalesInfoForm = React.memo(function AddSalesInfoForm({
+  info,
+}: {
+  info: info;
+}) {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     message: string;
@@ -36,34 +40,50 @@ const AddSalesInfoForm = ({ info }: { info: info }) => {
     message: "",
     type: "success",
   });
-  const defaultValues: SalerInfoFormValues = {
-    storeName: info?.storeName || "",
-    storeDescription: info?.storeDescription || "",
-    address: info?.address || "",
-    contactEmail: info?.contactEmail || "",
-    contactPhone: info?.contactPhone || "",
-    whatsapp: info?.whatsapp || "",
-    instagram: info?.instagram || "",
-    pinterest: info?.pinterest || "",
-    twitter: info?.twitter || "",
-    facebook: info?.facebook || "",
-    seoTitle: info?.seoTitle || "",
-    seoDescription: info?.seoDescription || "",
-  };
-  const { refresh } = useRouter();
+  const defaultValues = {} as SalerInfoFormValues; // Boş başlat
+
   const { control, handleSubmit, formState, setValue, trigger, watch, reset } =
     useForm<SalerInfoFormValues>({
       resolver: zodResolver(SalerInfoSchema),
       defaultValues,
     });
+
+  useEffect(() => {
+    if (info) {
+      reset({
+        storeName: info.storeName || "",
+        storeDescription: info.storeDescription || "",
+        address: info.address || "",
+        contactEmail: info.contactEmail || "",
+        contactPhone: info.contactPhone || "",
+        whatsapp: info.whatsapp || "",
+        instagram: info.instagram || "",
+        pinterest: info.pinterest || "",
+        twitter: info.twitter || "",
+        facebook: info.facebook || "",
+        seoTitle: info.seoTitle || "",
+        seoDescription: info.seoDescription || "",
+      });
+    }
+  }, [info, reset]);
+  const { refresh } = useRouter();
+
   const onSubmit: SubmitHandler<SalerInfoFormValues> = async (data) => {
-    await AddInfo(data).then((res) => {
+    const formData: SalerInfoFormValues = {
+      ...data,
+      logo: data.logo || [],
+    };
+
+    await AddInfo(formData).then(async (res) => {
       if (res.status) {
         setDialogState({
           isOpen: true,
           message: res.message,
           type: "success",
         });
+
+        refresh();
+        reset({}, { keepDefaultValues: true }); // keepDefaultValues opsiyonu eklenmiş
       }
       if (!res.status) {
         setDialogState({
@@ -72,26 +92,25 @@ const AddSalesInfoForm = ({ info }: { info: info }) => {
           type: "error",
         });
       }
-      reset();
-      refresh();
     });
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Card padding={"xs"} radius="sm" shadow="sm">
-        {info.logo.url && (
+        {info?.logo.url && (
           <Card.Section className="relative my-4 h-24 w-full">
             <CustomImage src={info.logo.url} objectFit="contain" />
           </Card.Section>
         )}
-        <ImageDropzone
-          name="logo"
-          setValue={setValue}
-          trigger={trigger}
-          value={watch("logo")}
-          error={formState.errors?.logo?.message}
-          isNotMultiple
-        />
+        <div className="flex flex-col">
+          <h1>Logo</h1>
+          <CustomDropzone
+            name="logo"
+            control={control}
+            maxFiles={5}
+            videosEnabled={true}
+          />
+        </div>
 
         <Grid gutter={{ base: "sm", sm: "md" }}>
           <Grid.Col span={{ base: 12, md: 12 }}>
@@ -322,6 +341,6 @@ const AddSalesInfoForm = ({ info }: { info: info }) => {
       />
     </form>
   );
-};
+});
 
 export default AddSalesInfoForm;

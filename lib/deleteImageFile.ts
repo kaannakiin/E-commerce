@@ -68,7 +68,7 @@ export async function DeleteImage(
       : [
           mainFilePath,
           thumbnailPath,
-          path.join(ASSETS_DIR, `${fileNameWithoutExt}-og${extension}`),
+          path.join(ASSETS_DIR, `${fileNameWithoutExt}-og.jpeg`),
         ];
 
     const deletionResults = await Promise.all(

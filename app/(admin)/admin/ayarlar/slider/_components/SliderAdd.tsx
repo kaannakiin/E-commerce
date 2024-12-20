@@ -14,7 +14,7 @@ import ImageDropzone from "../../../_components/ImageDropzone";
 import { AddSliderSchemaType, AddSliderSchema } from "@/zodschemas/authschema";
 import { addSliderAction } from "../_actions/SliderAction";
 import FeedbackDialog from "@/components/FeedbackDialog";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const SliderAdd = () => {
@@ -63,7 +63,6 @@ const SliderAdd = () => {
           push("/admin/ayarlar/slider");
         }
         if (!res.success) {
-          console.log(res);
           setFeedbackState({
             isOpen: true,
             message: "Ürün eklenirken bir hata oluştu",
@@ -128,7 +127,7 @@ const SliderAdd = () => {
             )}
           />
           {isMultiple && (
-            <>
+            <Fragment>
               <Controller
                 name="title"
                 control={control}
@@ -181,7 +180,7 @@ const SliderAdd = () => {
                   />
                 )}
               />
-            </>
+            </Fragment>
           )}
           <Button
             type="submit"

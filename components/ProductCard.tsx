@@ -40,7 +40,7 @@ const ProductCard = ({
       }
       if (res.isMustLogin) {
         await signIn(undefined, {
-          redirectTo: `/${product.product.categories[0].slug}/${product.slug}`,
+          redirectTo: slug,
           redirect: true,
         });
       }
@@ -98,11 +98,17 @@ const ProductCard = ({
 
         {!isInHomePage && (
           <ActionIcon
-            onClick={() =>
-              onClickHeart(
-                `/${product.product.categories[0].slug}/${product.slug}`,
-              )
-            }
+            onClick={() => {
+              const categorySlug = product.product.categories?.[0]?.slug;
+              const productSlug = product.slug;
+
+              const path =
+                categorySlug !== undefined && productSlug !== undefined
+                  ? `/${categorySlug}/${productSlug}`
+                  : "/";
+
+              onClickHeart(path);
+            }}
             className={`absolute right-4 top-4 z-20 ${isInFavoritesPage ? "h-4 w-4" : "h-11 w-11"} rounded-full bg-white/80 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white`}
           >
             {isInFavoritesPage ? (
@@ -118,7 +124,12 @@ const ProductCard = ({
 
       {/* Product Info */}
       <Link
-        href={`/${product.product.categories[0].slug}/${product.slug}`}
+        href={
+          product.product?.categories[0]?.slug !== undefined &&
+          product.slug !== undefined
+            ? `/${product.product.categories[0].slug}/${product.slug}`
+            : "/"
+        }
         className="flex flex-1 flex-col p-5 transition-all duration-300"
       >
         <div className="mb-2 flex items-center justify-between gap-4">
