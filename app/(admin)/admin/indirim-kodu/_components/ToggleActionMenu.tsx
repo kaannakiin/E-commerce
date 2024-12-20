@@ -1,7 +1,7 @@
 "use client";
 import { Menu } from "@mantine/core";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { FiEdit, FiEye, FiToggleLeft, FiTrash2 } from "react-icons/fi";
 import { IoReorderThreeSharp } from "react-icons/io5";
 import { deleteDiscount, switchActive } from "../_actions/toggleAction";
@@ -12,7 +12,7 @@ interface ToggleActionMenuProps {
   status: DiscountStatus;
 }
 
-interface NotificationType {
+export interface NotificationType {
   show: boolean;
   message: string;
   type: "success" | "error";
@@ -108,7 +108,7 @@ const ToggleActionMenu = ({
 
         <Menu.Dropdown>
           {isDisabled ? (
-            <>
+            <Fragment>
               <Menu.Item leftSection={<FiEye size={14} />} onClick={handleEdit}>
                 Detayları Gör
               </Menu.Item>
@@ -120,10 +120,10 @@ const ToggleActionMenu = ({
               >
                 Sil
               </Menu.Item>
-            </>
+            </Fragment>
           ) : (
             // Full options for active discounts
-            <>
+            <Fragment>
               <Menu.Item
                 leftSection={<FiEdit size={14} />}
                 onClick={handleEdit}
@@ -145,7 +145,7 @@ const ToggleActionMenu = ({
               >
                 Sil
               </Menu.Item>
-            </>
+            </Fragment>
           )}
         </Menu.Dropdown>
       </Menu>

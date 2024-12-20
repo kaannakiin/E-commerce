@@ -49,6 +49,7 @@ interface Variant {
     id: string;
     name: string;
     description: string;
+    taxRate: number;
   };
   discount: number;
   price: number;
@@ -83,8 +84,6 @@ type CartState = {
   totalItems: number;
   totalOriginalPrice: number;
   totalFinalPrice: number;
-  totalDiscountAmount: number;
-  totalTaxAmount: number;
 };
 
 type CartActions = {
@@ -104,8 +103,6 @@ const initialCartState: CartState = {
   totalItems: 0,
   totalOriginalPrice: 0,
   totalFinalPrice: 0,
-  totalDiscountAmount: 0,
-  totalTaxAmount: 0,
 };
 
 export const createCartSlice: StateCreator<
@@ -124,7 +121,11 @@ export const createCartSlice: StateCreator<
         (item) => item.variantId === variant.id,
       );
 
-      const priceCalculation = calculatePrice(variant.price, variant.discount);
+      const priceCalculation = calculatePrice(
+        variant.price,
+        variant.discount,
+        variant.product.taxRate,
+      );
 
       if (existingItem) {
         existingItem.quantity += 1;
@@ -165,21 +166,6 @@ export const createCartSlice: StateCreator<
           0,
         ),
       );
-
-      state.totalDiscountAmount = truncateToTwo(
-        state.items.reduce(
-          (sum, item) =>
-            sum + item.priceCalculation.discountAmount * item.quantity,
-          0,
-        ),
-      );
-
-      state.totalTaxAmount = truncateToTwo(
-        state.items.reduce(
-          (sum, item) => sum + item.priceCalculation.taxAmount * item.quantity,
-          0,
-        ),
-      );
     });
 
     return success;
@@ -207,22 +193,6 @@ export const createCartSlice: StateCreator<
           state.items.reduce(
             (sum, item) =>
               sum + item.priceCalculation.finalPrice * item.quantity,
-            0,
-          ),
-        );
-
-        state.totalDiscountAmount = truncateToTwo(
-          state.items.reduce(
-            (sum, item) =>
-              sum + item.priceCalculation.discountAmount * item.quantity,
-            0,
-          ),
-        );
-
-        state.totalTaxAmount = truncateToTwo(
-          state.items.reduce(
-            (sum, item) =>
-              sum + item.priceCalculation.taxAmount * item.quantity,
             0,
           ),
         );
@@ -262,22 +232,6 @@ export const createCartSlice: StateCreator<
             0,
           ),
         );
-
-        state.totalDiscountAmount = truncateToTwo(
-          state.items.reduce(
-            (sum, item) =>
-              sum + item.priceCalculation.discountAmount * item.quantity,
-            0,
-          ),
-        );
-
-        state.totalTaxAmount = truncateToTwo(
-          state.items.reduce(
-            (sum, item) =>
-              sum + item.priceCalculation.taxAmount * item.quantity,
-            0,
-          ),
-        );
       }
     }),
 
@@ -300,21 +254,6 @@ export const createCartSlice: StateCreator<
       state.totalFinalPrice = truncateToTwo(
         state.items.reduce(
           (sum, item) => sum + item.priceCalculation.finalPrice * item.quantity,
-          0,
-        ),
-      );
-
-      state.totalDiscountAmount = truncateToTwo(
-        state.items.reduce(
-          (sum, item) =>
-            sum + item.priceCalculation.discountAmount * item.quantity,
-          0,
-        ),
-      );
-
-      state.totalTaxAmount = truncateToTwo(
-        state.items.reduce(
-          (sum, item) => sum + item.priceCalculation.taxAmount * item.quantity,
           0,
         ),
       );
@@ -342,21 +281,6 @@ export const createCartSlice: StateCreator<
       state.totalFinalPrice = truncateToTwo(
         state.items.reduce(
           (sum, item) => sum + item.priceCalculation.finalPrice * item.quantity,
-          0,
-        ),
-      );
-
-      state.totalDiscountAmount = truncateToTwo(
-        state.items.reduce(
-          (sum, item) =>
-            sum + item.priceCalculation.discountAmount * item.quantity,
-          0,
-        ),
-      );
-
-      state.totalTaxAmount = truncateToTwo(
-        state.items.reduce(
-          (sum, item) => sum + item.priceCalculation.taxAmount * item.quantity,
           0,
         ),
       );

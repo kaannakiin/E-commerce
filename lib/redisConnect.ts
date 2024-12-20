@@ -18,7 +18,6 @@ try {
       return delay;
     },
     reconnectOnError(err) {
-      console.log("Reconnection error:", err);
       return true;
     },
   });
@@ -27,9 +26,7 @@ try {
     console.error("Redis Client Error:", err);
   });
 
-  redisClient.on("connect", () => {
-    console.log("Successfully connected to Redis");
-  });
+  redisClient.on("connect", () => {});
 } catch (error) {
   console.error("Redis Client Creation Error:", error);
   redisClient = null;

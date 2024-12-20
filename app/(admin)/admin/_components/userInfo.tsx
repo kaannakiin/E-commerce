@@ -10,7 +10,7 @@ export function UserInfo() {
         color="primary"
         radius="xl"
         styles={{
-          root: { backgroundColor: "#5474b4" },
+          root: { backgroundColor: "white" },
         }}
       >
         {session?.user?.name?.[0] ?? "A"}

@@ -10,6 +10,7 @@ import MenuCategory from "./MenuCategory";
 import MenuUser from "./MenuUser";
 import SearchSpotlight from "./SearchSpotlight";
 import ShoppingIcon from "./ShoppingIcon";
+import CustomImage from "./CustomImage";
 
 const feedHeader = cache(async () => {
   try {
@@ -36,6 +37,7 @@ const feedHeader = cache(async () => {
     // Önce variant'ları al
     const variants = await prisma.variant.findMany({
       where: {
+        softDelete: false,
         isPublished: true,
         isSpotlightFeatured: true,
       },
@@ -67,8 +69,15 @@ const feedHeader = cache(async () => {
       },
       take: 10,
     });
-
-    // Sonra verileri transform et
+    const salerInfo = await prisma.salerInfo.findFirst({
+      select: {
+        logo: {
+          select: {
+            url: true,
+          },
+        },
+      },
+    });
     const featuredProducts = variants.map((variant) => ({
       slug: variant.product.categories[0].slug + "/" + variant.slug,
       product: {
@@ -86,6 +95,7 @@ const feedHeader = cache(async () => {
     return {
       data,
       featuredProducts,
+      salerInfo: salerInfo?.logo?.url,
     };
   } catch (error) {
     console.error("Header data fetch error:", error);
@@ -97,7 +107,7 @@ const feedHeader = cache(async () => {
 });
 
 const Header = async () => {
-  const { featuredProducts, data } = await feedHeader();
+  const { featuredProducts, data, salerInfo } = await feedHeader();
   const session = await auth();
   const isUser = session?.user ? true : false;
   const favoritesUrl = isUser
@@ -120,13 +130,14 @@ const Header = async () => {
         {/* CENTER SECTION - Logo */}
         <div className="flex h-full items-center lg:absolute lg:left-1/2 lg:-translate-x-1/2">
           <Link className="relative h-full w-52 sm:w-72" href="/">
-            <Image
-              src={"/WELLNESSCLUBLOGO.svg"}
-              sizes="100vw"
-              alt="Logo Footer"
-              fill
-              className="object-contain"
-            />
+            {salerInfo && (
+              <CustomImage
+                src={salerInfo}
+                alt="logo Footer"
+                sizes="100vw"
+                objectFit="contain"
+              />
+            )}
           </Link>
         </div>
 

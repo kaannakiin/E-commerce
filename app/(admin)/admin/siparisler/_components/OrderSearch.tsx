@@ -18,6 +18,7 @@ const OrderSearchHeader = () => {
       dates.length === 2 &&
       dates[0] instanceof Date &&
       dates[1] instanceof Date;
+
     if (isValidDateRange) {
       newParams.set("startDate", dates[0].toISOString());
       newParams.set("endDate", dates[1].toISOString());
@@ -25,18 +26,20 @@ const OrderSearchHeader = () => {
       newParams.delete("startDate");
       newParams.delete("endDate");
     }
-
     router.replace(`${pathname}?${newParams.toString()}`);
   };
+
   const onSelectChange = (value: string) => {
     const newParams = new URLSearchParams(params.toString());
     if (value && value !== "all") {
+      newParams.set("page", "1");
       newParams.set("status", value);
     } else {
       newParams.delete("status");
     }
     router.replace(`${pathname}?${newParams.toString()}`);
   };
+
   return (
     <Group
       align="center"
@@ -72,20 +75,20 @@ const OrderSearchHeader = () => {
             },
           }}
         />
-
         <Select
           data={[
             { value: "all", label: "Tümü" },
-            { value: OrderStatus.PENDING, label: "Onay bekliyor" },
-            { value: OrderStatus.PROCESSING, label: "Onaylandı" },
-            { value: OrderStatus.SHIPPED, label: "Kargoya verildi" },
-            { value: OrderStatus.DELIVERED, label: "Tamamlandı" },
-            { value: OrderStatus.CANCELLED, label: "İptal edildi" },
+            { value: OrderStatus.PENDING, label: "Beklemede" },
+            { value: OrderStatus.PROCESSING, label: "İşleniyor" },
+            { value: OrderStatus.SHIPPED, label: "Kargoya Verildi" },
+            { value: OrderStatus.DELIVERED, label: "Teslim Edildi" },
+            { value: OrderStatus.CANCELLED, label: "İptal Edildi" },
+            { value: OrderStatus.COMPLETED, label: "Tamamlandı" },
           ].map((option) => ({
             ...option,
-            disabled: option.value === params.get("status"), // URL'den mevcut değeri al
+            disabled: option.value === params.get("status"),
           }))}
-          value={params.get("status") || "all"} // URL'den değeri al, yoksa 'all'
+          value={params.get("status") || "all"}
           onChange={onSelectChange}
           styles={{
             input: {

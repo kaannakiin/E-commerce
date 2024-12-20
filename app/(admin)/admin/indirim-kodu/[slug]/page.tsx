@@ -40,6 +40,7 @@ const feedDiscount = cache(async (slug) => {
       return notFound();
     }
     const variants = await prisma.variant.findMany({
+      where: { softDelete: false },
       select: {
         id: true,
         product: {

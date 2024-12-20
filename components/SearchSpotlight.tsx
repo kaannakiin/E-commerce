@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { Fragment } from "react";
 import { Spotlight, spotlight } from "@mantine/spotlight";
 import { IoSearchOutline } from "react-icons/io5";
 import CustomImage from "./CustomImage";
@@ -14,8 +14,8 @@ import {
 import { useDebouncedCallback } from "@mantine/hooks";
 import "@mantine/spotlight/styles.css";
 import { SearchProductForSpotlight } from "@/actions/user/search-product-for-spotlight";
-import { formatPrice } from "@/lib/formatter";
 import { calculatePrice } from "@/lib/calculatePrice";
+import { formattedPrice } from "@/lib/format";
 
 const SearchSpotlight = ({ featuredProducts }) => {
   const [query, setQuery] = React.useState("");
@@ -104,11 +104,13 @@ const SearchSpotlight = ({ featuredProducts }) => {
         >
           <Group gap="md" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
             <div className="relative h-20 w-20 flex-shrink-0">
-              <CustomImage
-                src={item.Image[0].url.replace(/\.[^/.]+$/, "")}
-                objectFit="contain"
-                quality={20}
-              />
+              {item.Image[0] && (
+                <CustomImage
+                  src={item.Image[0].url}
+                  objectFit="contain"
+                  quality={20}
+                />
+              )}
             </div>
             <Stack gap="xs" style={{ minWidth: 0, flex: 1, maxWidth: "60%" }}>
               <Text fw={500} size="sm" className="truncate text-gray-900">
@@ -140,17 +142,17 @@ const SearchSpotlight = ({ featuredProducts }) => {
           </Group>
           <Stack gap="xs" align="flex-end" className="ml-4 flex-shrink-0">
             <Text size="sm" fw={700}>
-              {formatPrice(priceCalculation.finalPrice)}
+              {formattedPrice(priceCalculation.finalPrice)}
             </Text>
             {item.discount > 0 && (
-              <>
+              <Fragment>
                 <Text size="sm" td="line-through" c="dimmed">
-                  {formatPrice(priceCalculation.originalPrice)}
+                  {formattedPrice(priceCalculation.originalPrice)}
                 </Text>
                 <Badge color="red" variant="light">
                   %{priceCalculation.discount} İndirim
                 </Badge>
-              </>
+              </Fragment>
             )}
           </Stack>
         </Group>
@@ -159,7 +161,7 @@ const SearchSpotlight = ({ featuredProducts }) => {
   });
 
   return (
-    <>
+    <Fragment>
       <IoSearchOutline
         size={28}
         className="cursor-pointer"
@@ -211,7 +213,7 @@ const SearchSpotlight = ({ featuredProducts }) => {
           )}
         </Spotlight.ActionsList>
       </Spotlight.Root>
-    </>
+    </Fragment>
   );
 };
 

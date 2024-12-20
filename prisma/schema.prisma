@@ -8,6 +8,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model SalerInfo {
+  id               String  @id @default(cuid())
+  storeName        String // Mağaza adı
+  storeDescription String?
+  address          String?
+
+  //logo
+  logoId String? @unique // Sadece bir logo olabilmesi için @unique
+  logo   Image?  @relation(fields: [logoId], references: [id])
+
+  contactEmail String
+  contactPhone String
+
+  seoTitle       String?
+  seoDescription String?
+  instagram      String?
+  pinterest      String?
+  facebook       String?
+  whatsapp       String?
+  twitter        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
   id               String             @id @default(cuid())
   name             String?
@@ -21,8 +46,8 @@ model User {
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   Adress           Address[]
-  Order            Order[]
   FavoriteVariants FavoriteVariants[]
+  Order            Order[]
 }
 
 enum Role {
@@ -37,16 +62,55 @@ enum VariantType {
   WEIGHT
 }
 
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+}
+
 model Product {
-  id               String     @id @default(uuid())
+  id               String          @id @default(uuid())
   name             String
   description      String
+  googleCategory   Int?
+  active           Boolean         @default(true)
   shortDescription String
-  categories       Category[] @relation("ProductCategory") // Değişiklik burada
-  taxRate          Float      @default(18)
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  type             ProductType     @default(PHYSICAL)
+  categories       Category[]      @relation("ProductCategory")
+  taxRate          Float           @default(18)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
   Variant          Variant[]
+  GoogleCategory   GoogleCategory? @relation(fields: [googleCategoryId], references: [id])
+  googleCategoryId Int?
+
+  @@index([googleCategoryId])
+}
+
+model GoogleCategory {
+  id         Int              @id
+  name       String // Kategori adı (örn: "Bebek Bezi Çantaları")
+  fullPath   String // Tam kategori yolu (örn: "Giyim & Aksesuar > Çantalar > Bebek Bezi Çantaları")
+  parentPath String // Üst kategorilerin yolu (örn: "Giyim & Aksesuar > Çantalar")
+  level      Int // Kategori seviyesi (1,2,3 gibi)
+  isLeaf     Boolean // En alt kategori mi?
+  parentId   Int? // Üst kategori ID'si
+  parent     GoogleCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children   GoogleCategory[] @relation("CategoryHierarchy")
+  products   Product[]
+
+  metaTitle       String? // SEO başlığı
+  metaDescription String? // SEO açıklaması
+  breadcrumbs     String[] // ["Giyim & Aksesuar", "Çantalar", "Bebek Bezi Çantaları"]
+
+  // Schema.org için
+  schemaType String @default("Product") // Schema.org type
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([level])
+  @@index([isLeaf])
 }
 
 model Variant {
@@ -55,6 +119,8 @@ model Variant {
   value               String
   unit                String? // only for weight
   price               Float
+  softDelete          Boolean            @default(false)
+  richTextDescription String?            @db.Text
   slug                String             @unique
   discount            Float              @default(0)
   isPublished         Boolean            @default(false)
@@ -66,10 +132,15 @@ model Variant {
   updatedAt           DateTime           @updatedAt
   Image               Image[]
   discountCodes       DiscountCode[]
-  OrderItems          OrderItems[]
   FavoriteVariants    FavoriteVariants[]
 
+  seoTitle       String? // Variant'a özel SEO başlığı
+  seoDescription String? // Variant'a özel SEO açıklaması
+  canonicalUrl   String? // Canonical URL
+  OrderItems     OrderItems[]
+
   @@index([productId])
+  @@index([slug])
 }
 
 model Image {
@@ -83,6 +154,8 @@ model Image {
   categoryId      String?
   category        Category?         @relation(fields: [categoryId], references: [id])
   MainHeroSection MainHeroSection[]
+  SalerInfo       SalerInfo?
+  MainSeoSettings MainSeoSettings?
 
   @@index([variantId])
   @@index([categoryId])
@@ -100,16 +173,34 @@ model Category {
   Image       Image[]
 }
 
-model MainHeroSection {
-  id          String   @id @default(uuid())
+enum AssetType {
+  IMAGE
+  VIDEO
+}
+
+model MainSeoSettings {
+  id          String  @id @default(cuid())
+  image       Image?  @relation(fields: [imageId], references: [id])
+  imageId     String? @unique
   title       String
-  text        String
-  buttonTitle String
-  buttonLink  String
-  image       Image    @relation(fields: [imageId], references: [id])
-  imageId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String
+  themeColor  String
+}
+
+model MainHeroSection {
+  id              String    @id @default(uuid())
+  isFunctionality Boolean   @default(false)
+  alt             String
+  title           String?
+  text            String?
+  buttonTitle     String?
+  buttonLink      String?
+  image           Image     @relation(fields: [imageId], references: [id])
+  imageId         String    @unique
+  type            AssetType
+  isPublished     Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([imageId])
 }
@@ -126,68 +217,12 @@ model DiscountCode {
   limit          Int?
   expiresAt      DateTime?
   variants       Variant[]
-  //order add here
   Order          Order[]
 }
 
 enum DiscountType {
   PERCENTAGE
   FIXED
-}
-
-model TempPayment {
-  id                String    @id @default(cuid())
-  token             String    @unique
-  paymentId         String?   @unique
-  basketId          String    @unique
-  paidPrice         Float
-  currency          String    @default("TRY")
-  discountCode      String?
-  discountCodePrice Float?
-  createdAt         DateTime  @default(now())
-  addressId         String?   @unique
-  expiresAt         DateTime?
-  address           Address?  @relation(fields: [addressId], references: [id])
-}
-
-model Order {
-  id              String        @id @default(cuid())
-  orderNumber     String        @unique
-  paymentId       String        @unique
-  basketId        String        @unique
-  paidPrice       Float
-  currency        String        @default("TRY")
-  addressId       String
-  address         Address       @relation(fields: [addressId], references: [id])
-  orderItems      OrderItems[]
-  orderStatus     OrderStatus   @default(PENDING)
-  user            User?         @relation(fields: [userId], references: [id])
-  userId          String?
-  discountCode    DiscountCode? @relation(fields: [discountCodeId], references: [id])
-  discountCodeId  String?
-  createdAt       DateTime      @default(now()) @db.Date
-  paidPriceIyzico Float? // burada iyzico tarafından ödenilecek tutar gelecek  merchantPayoutAmount değerinden alınacak
-  ip              String? // burada buyer ip gelecek
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-}
-
-model OrderItems {
-  id         String  @id @default(cuid())
-  basketId   String
-  variantId  String
-  variant    Variant @relation(fields: [variantId], references: [id])
-  quantity   Int
-  price      Float
-  totalPrice Float
-  currency   String  @default("TRY")
-  order      Order   @relation(fields: [basketId], references: [basketId])
 }
 
 model Address {
@@ -201,15 +236,111 @@ model Address {
   addressDetail String
   addressTitle  String?
 
-  tempPayment   TempPayment?
-  tempPaymentId String?
-  user          User?        @relation(fields: [userId], references: [id])
-  userId        String?
-  isDeleted     Boolean      @default(false)
-  deletedAt     DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  Order         Order[]
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String?
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  temporary Boolean   @default(false)
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Order     Order[]
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum CancelReason {
+  CUSTOMER_REQUEST // Müşteri isteği ile iptal
+  STOCK_PROBLEM // Stok problemi nedeniyle iptal
+  PRICE_ERROR // Fiyat hatası nedeniyle iptal
+  DUPLICATE_ORDER // Mükerrer sipariş nedeniyle iptal
+  DELIVERY_AREA // Teslimat bölgesi dışında olduğu için iptal
+  PAYMENT_ISSUE // Ödeme ile ilgili sorun nedeniyle iptal
+  VARIANT_UNAVAILABLE // Seçilen varyant artık mevcut değil
+  SYSTEM_ERROR // Sistem hatası nedeniyle iptal
+  SELLER_REQUEST // Satıcı tarafından iptal talebi
+  OTHER // Diğer nedenler
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  orderNumber    String        @unique
+  paymentId      String        @unique
+  status         OrderStatus   @default(PENDING)
+  paymentStatus  PaymentStatus @default(PENDING)
+  paymentDate    DateTime?
+  total          Float
+  priceIyzico    Float
+  discountCode   DiscountCode? @relation(fields: [discountCodeId], references: [id])
+  discountCodeId String?
+  user           User?         @relation(fields: [userId], references: [id])
+  userId         String?
+  address        Address       @relation(fields: [addressId], references: [id])
+  addressId      String
+  ip             String
+
+  // Card Info
+  cardType         String?
+  maskedCardNumber String?
+  cardFamily       String?
+  cardAssociation  String?
+
+  // Cancellation Fields
+  isCancelled       Boolean       @default(false) // Siparişin iptal edilip edilmediği
+  cancelReason      CancelReason? // İptal nedeni
+  cancelProcessDate DateTime? // İptalin işleme alındığı tarih
+  cancelPaymentId   String? // İyzico iptal işlem ID'si
+
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  OrderItems OrderItems[]
+}
+
+model OrderItems {
+  id                   String        @id @default(cuid())
+  order                Order         @relation(fields: [orderId], references: [id])
+  orderId              String
+  variant              Variant       @relation(fields: [variantId], references: [id])
+  variantId            String
+  quantity             Int
+  price                Float
+  iyzicoPrice          Float
+  paymentTransactionId String?
+  // Refund Fields
+  isRefunded           Boolean       @default(false) // Ürünün iade edilip edilmediği
+  refundReason         CancelReason? // Ürün bazında iade nedeni
+  refundStatus         RefundStatus? @default(NONE) // Ürün bazında iade durumu
+  refundRequestDate    DateTime? // Ürün iade talep tarihi
+  refundPaymentId      String? // İyzico ürün iade işlem ID'si
+  refundAmount         Float? // İade edilen tutar
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+enum OrderStatus {
+  PENDING // Sipariş beklemede
+  PROCESSING // İşleniyor
+  SHIPPED // Kargoya verildi
+  DELIVERED // Teslim edildi
+  CANCELLED // İptal edildi
+  COMPLETED // Tamamlandı
+}
+
+enum RefundStatus {
+  NONE // İade talebi yok
+  REQUESTED // İade talep edildi
+  PROCESSING // İade işleniyor
+  COMPLETED // İade tamamlandı
+  REJECTED // İade reddedildi
 }
 
 model FavoriteVariants {

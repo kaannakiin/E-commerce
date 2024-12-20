@@ -21,8 +21,6 @@ export async function GET(request: Request) {
     }
 
     const value = await redisClient.get(key);
-    console.log("Retrieved value for key:", key, "Value:", value);
-
     if (!value) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }

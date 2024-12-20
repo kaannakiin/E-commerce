@@ -119,7 +119,7 @@ const ImageDropzone = <T extends FieldValues>({
 
       if (!SUPPORTED_FORMATS.includes(file.type)) {
         errors.push(
-          `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp`
+          `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp`,
         );
         isValid = false;
       }
@@ -271,7 +271,7 @@ const ImageDropzone = <T extends FieldValues>({
                       // Video preview için
                       <video
                         src={URL.createObjectURL(file)}
-                        className="object-contain rounded w-full h-full"
+                        className="h-full w-full rounded object-contain"
                         controls // Kontrol butonlarını göster
                         muted // Sessiz başlat
                         loop // Döngüye al
@@ -284,14 +284,14 @@ const ImageDropzone = <T extends FieldValues>({
                         src={URL.createObjectURL(file)}
                         alt={`Preview ${index}`}
                         fill
-                        className="object-contain rounded w-full h-full"
+                        className="h-full w-full rounded object-contain"
                       />
                     )}
                     <ActionIcon
                       color="red"
                       variant="filled"
                       size="sm"
-                      className="absolute top-1 right-1"
+                      className="absolute right-1 top-1"
                       onClick={() => handleFileDelete(index)}
                     >
                       <FaTrash size={12} />

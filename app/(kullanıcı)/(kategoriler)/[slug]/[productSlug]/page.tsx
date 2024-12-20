@@ -1,17 +1,32 @@
+import { auth } from "@/auth";
 import AddToCartButton from "@/components/AddToCartButton";
+import FavHeart from "@/components/FavHeart";
 import ProductDetails from "@/components/InfoAccordion";
 import ProductGallery from "@/components/ProductGallery";
 import { calculatePrice } from "@/lib/calculatePrice";
-import { formatPrice } from "@/lib/formatter";
+import { formattedPrice } from "@/lib/format";
 import { getImageUrl } from "@/lib/getImageUrl";
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
 import { ColorSwatch } from "@mantine/core";
 import { VariantType } from "@prisma/client";
+
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cache } from "react";
+import { cache, Fragment } from "react";
 import { FaClockRotateLeft } from "react-icons/fa6";
+const getFavorites = cache(async (userId: string | undefined) => {
+  if (!userId) return [];
+
+  return prisma.favoriteVariants.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+    },
+    select: { variantId: true },
+  });
+});
+
 const feed = cache(async (slug, productSlug) => {
   const cat = await prisma.category.findUnique({
     where: {
@@ -26,6 +41,7 @@ const feed = cache(async (slug, productSlug) => {
     where: {
       slug: productSlug,
       isPublished: true,
+      softDelete: false,
     },
     select: {
       id: true,
@@ -33,8 +49,10 @@ const feed = cache(async (slug, productSlug) => {
         select: {
           id: true,
           name: true,
+          GoogleCategory: true,
           description: true,
           taxRate: true,
+          active: true,
         },
       },
       discount: true,
@@ -51,12 +69,11 @@ const feed = cache(async (slug, productSlug) => {
       },
     },
   });
-  if (!variant) {
+  if (!variant || variant.product.active === false) {
     return notFound();
   }
   return variant;
 });
-//TO DO BUNLAR AYARLANACAK
 export async function generateMetadata({
   params,
 }: {
@@ -68,13 +85,19 @@ export async function generateMetadata({
     process.env.NEXT_PUBLIC_SITE_URL || "https://yoursiteurl.com";
   const productUrl = `${SITE_URL}/${deneme.slug}/${deneme.productSlug}`;
   const price = variant.discount
-    ? formatPrice(Number(variant.price) * (1 - variant.discount / 100))
-    : formatPrice(Number(variant.price));
+    ? formattedPrice(Number(variant.price) * (1 - variant.discount / 100))
+    : formattedPrice(Number(variant.price));
+
+  // Google Category bilgilerini hazırlama
+  const categoryInfo = {
+    name: variant.product.GoogleCategory?.name || "",
+    fullPath: variant.product.GoogleCategory?.fullPath || "",
+    breadcrumbs: variant.product.GoogleCategory?.breadcrumbs || [],
+  };
 
   return {
     title: `${variant.product.name.toUpperCase()} `,
     description: variant.product.description,
-
     openGraph: {
       title: variant.product.name,
       description: variant.product.description,
@@ -87,8 +110,8 @@ export async function generateMetadata({
         alt: img.alt || variant.product.name,
       })),
       locale: "tr_TR",
+      type: "website",
     },
-
     twitter: {
       card: "summary_large_image",
       title: variant.product.name,
@@ -101,35 +124,37 @@ export async function generateMetadata({
             "&width=100" || "",
       ),
     },
-
     alternates: {
       canonical: productUrl,
     },
-
     robots: {
-      index: variant.stock > 0, // Stokta yoksa indekslemeyi engelleyebiliriz
+      index: variant.stock > 0,
       follow: true,
       "max-image-preview": "large",
       "max-snippet": -1,
       "max-video-preview": -1,
     },
-
     other: {
-      price: price,
-      currency: "TRY",
-      availability: variant.stock > 0 ? "in stock" : "out of stock",
-      variant_type: variant.type,
-      variant_value: variant.value,
-      variant_unit: variant.unit,
+      "product:price": price,
+      "product:currency": "TRY",
+      "product:availability": variant.stock > 0 ? "in stock" : "out of stock",
+      "product:variant_type": variant.type,
+      "product:variant_value": variant.value,
+      "product:variant_unit": variant.unit,
+      "product:category": categoryInfo.fullPath,
+      "product:category_name": categoryInfo.name,
+      "product:category_breadcrumbs": categoryInfo.breadcrumbs.join(" > "),
     },
   };
 }
 
 const page = async (props: { params: Params }) => {
+  const session = await auth();
+  const favoriteIds = await getFavorites(session?.user?.id);
   const params = await props.params;
   const { slug, productSlug } = params;
   const variant = await feed(slug, productSlug);
-
+  const isFavorited = favoriteIds.some((fav) => fav.variantId === variant.id);
   const ingredients = [
     "Vitamin C",
     "Hyaluronic Acid",
@@ -145,16 +170,17 @@ const page = async (props: { params: Params }) => {
         </div>
         <div className="flex w-full flex-col space-y-6 p-6 lg:flex-1">
           {/* Ürün Başlığı */}
-          <div className="space-y-2">
+          <div className="relative space-y-2">
+            <FavHeart isFavorited={isFavorited} productId={variant.id} />
             <h1 className="text-3xl font-medium uppercase tracking-tight text-gray-900">
               {variant.product.name}
             </h1>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {variant.discount ? (
-                  <>
+                  <Fragment>
                     <span className="text-2xl font-semibold text-primary-500">
-                      {formatPrice(
+                      {formattedPrice(
                         calculatePrice(
                           variant.price,
                           variant.discount,
@@ -163,7 +189,7 @@ const page = async (props: { params: Params }) => {
                       )}
                     </span>
                     <span className="text-xl text-gray-500 line-through">
-                      {formatPrice(
+                      {formattedPrice(
                         calculatePrice(
                           variant.price,
                           variant.discount,
@@ -182,10 +208,10 @@ const page = async (props: { params: Params }) => {
                       }{" "}
                       İndirim
                     </span>
-                  </>
+                  </Fragment>
                 ) : (
                   <span className="text-2xl font-semibold text-primary-500">
-                    {formatPrice(
+                    {formattedPrice(
                       calculatePrice(
                         variant.price,
                         variant.discount,

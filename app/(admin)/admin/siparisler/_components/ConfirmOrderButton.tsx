@@ -1,9 +1,9 @@
 "use client";
-import { Button, Group } from "@mantine/core";
-import React, { useState, useTransition, useEffect } from "react";
-import { confirmOrder } from "../_actions/StatusCheck";
-import { useRouter } from "next/navigation";
 import FeedbackDialog from "@/components/FeedbackDialog";
+import { Button } from "@mantine/core";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition } from "react";
+import { confirmOrder } from "../_actions/StatusCheck";
 
 interface ConfirmOrderFormProps {
   orderId: string;
@@ -64,7 +64,7 @@ export default function ConfirmOrderButton({ orderId }: ConfirmOrderFormProps) {
   return (
     <form action={handleSubmit}>
       <Button type="submit" loading={isPending}>
-        Onayla
+        Siparişi Onayla
       </Button>
       <FeedbackDialog
         isOpen={dialogState.isOpen}

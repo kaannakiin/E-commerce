@@ -14,7 +14,6 @@ export default auth(async (req) => {
     req.auth?.user?.role === Role.SUPERADMIN ||
     req.auth?.user?.role === Role.ADMIN;
 
-  // 5. Route yönlendirmeleri
   if (login && nextUrl.pathname.startsWith(PROTECT_FOR_LOGIN_USERS)) {
     return NextResponse.redirect(new URL("/hesabim", nextUrl.origin));
   }
@@ -35,4 +34,3 @@ export default auth(async (req) => {
 export const config = {
   matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/(api|trpc)(.*)", "/"],
 };
-

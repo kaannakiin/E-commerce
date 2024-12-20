@@ -7,7 +7,6 @@ import { revalidatePath } from "next/cache";
 
 export async function AddFavorite(
   id: IdForEverythingType,
-  slug: string,
 ): Promise<{ success: boolean; message: string; isMustLogin?: boolean }> {
   try {
     const session = await auth();
@@ -20,7 +19,7 @@ export async function AddFavorite(
     }
 
     const variant = await prisma.variant.findUnique({
-      where: { id },
+      where: { id, softDelete: false },
     });
     if (!variant) {
       return {

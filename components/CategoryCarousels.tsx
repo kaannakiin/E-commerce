@@ -43,19 +43,29 @@ function Card({ image, title, category, slug }: CardProps) {
 }
 
 export function CategoryCarousels({ categories }) {
-  const data = categories.map((category) => ({
-    image: "/api/user/asset/get-image?url=" + category.Image[0].url,
-    title: category.name,
-    category: category.description,
-    slug: category.slug,
-  }));
+  const data =
+    categories.length > 0 &&
+    categories.map((category) => {
+      const imageUrl = category.Image?.[0]?.url
+        ? "/api/user/asset/get-image?url=" + category.Image[0].url
+        : "/placeholder-image.jpg"; // varsayılan bir resim yolu
+
+      return {
+        image: imageUrl,
+        title: category.name ?? "İsimsiz Kategori",
+        category: category.description ?? "Açıklama yok",
+        slug: category.slug ?? "#",
+      };
+    });
   const theme = useMantineTheme();
   const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
-  const slides = data.map((item) => (
-    <Carousel.Slide key={item.title}>
-      <Card {...item} />
-    </Carousel.Slide>
-  ));
+  const slides =
+    data &&
+    data.map((item) => (
+      <Carousel.Slide key={item.title}>
+        <Card {...item} />
+      </Carousel.Slide>
+    ));
 
   return (
     <Carousel

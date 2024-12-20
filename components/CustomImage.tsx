@@ -37,7 +37,6 @@ const CustomImage = ({
     setImgSrc(src);
   }, [src]);
 
-  // Image loader'ları için URL parametrelerini güvenli hale getir
   const safeEncodeURIComponent = (str: string) => {
     return encodeURIComponent(str).replace(
       /[!'()*]/g,
@@ -85,7 +84,7 @@ const CustomImage = ({
 
   // Base className'leri birleştir
   const imageClassName = twMerge(
-    "absolute inset-0 h-full w-full",
+    "absolute inset-0 h-full w-full bg-white",
     objectFit === "cover" ? "object-cover" : "object-contain",
     className,
   );
@@ -101,12 +100,10 @@ const CustomImage = ({
 
   return (
     <div className="relative h-full w-full bg-gray-50">
-      {/* Blur placeholder */}
       {loading && (
         <div className="absolute inset-0 animate-pulse bg-gray-200" />
       )}
 
-      {/* Düşük kaliteli thumbnail */}
       {!error && (
         <Image
           fill

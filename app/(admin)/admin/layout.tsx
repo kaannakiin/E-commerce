@@ -1,9 +1,22 @@
 // app/(admin)/layout.tsx
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { Box } from "@mantine/core";
 import { redirect } from "next/navigation";
-import AdminNav from "./_components/AdminNav";
-
+import { cache } from "react";
+import Info from "./_components/Info";
+import { HeaderSearch } from "./_components/AdminHeader";
+const feedLayout = cache(async () => {
+  try {
+    const info = await prisma.salerInfo.findFirst();
+    if (!info) {
+      return null;
+    }
+    return info;
+  } catch (error) {
+    return error;
+  }
+});
 export default async function AdminLayout({
   children,
 }: Readonly<{
@@ -13,17 +26,14 @@ export default async function AdminLayout({
   if (!session?.user) {
     redirect("/auth/signin");
   }
+  const info = await feedLayout();
 
   return (
     <Box>
-      <AdminNav />
-      <main
-        style={{
-          minHeight: "calc(100vh - 60px)",
-          backgroundColor: "#f8f9fa",
-          marginTop: "60px",
-        }}
-      >
+      <HeaderSearch />
+
+      <main>
+        {info === null ? <Info /> : null}
         {children}
       </main>
     </Box>

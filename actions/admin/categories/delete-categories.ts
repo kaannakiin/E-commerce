@@ -1,11 +1,19 @@
 "use server";
 import { DeleteImage } from "@/lib/deleteImageFile";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 
 export async function DeleteCategories(
-  slug: string
+  slug: string,
 ): Promise<{ success: boolean; message: string }> {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     return await prisma.$transaction(async (tx) => {
       const category = await tx.category.findUnique({
         where: { slug },
@@ -27,10 +35,10 @@ export async function DeleteCategories(
             return { url: image.url, ...result };
           }
           return null;
-        })
+        }),
       );
       const failedDeletes = deleteResults.filter(
-        (result) => result && !result.success
+        (result) => result && !result.success,
       );
       if (failedDeletes.length > 0) {
         console.error("Failed to delete some images:", failedDeletes);

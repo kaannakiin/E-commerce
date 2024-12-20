@@ -14,30 +14,18 @@ export const calculatePrice = (
   discount: number = 0,
   taxRate: number = 18,
 ): PriceCalculationResult => {
-  if (price < 0) throw new Error("Price cannot be negative");
-  if (discount < 0 || discount > 100)
-    throw new Error("Discount must be between 0 and 100");
-  if (taxRate < 0) throw new Error("Tax rate cannot be negative");
-
   const basePrice = truncateToTwo(price);
-  const discountRate = truncateToTwo(discount);
-  const truncatedTaxRate = truncateToTwo(taxRate);
+  const taxAmount = truncateToTwo((basePrice * taxRate) / 100);
+  const originalPrice = truncateToTwo(basePrice + taxAmount);
 
-  const discountAmount = truncateToTwo((basePrice * discountRate) / 100);
-  const priceAfterDiscount = truncateToTwo(basePrice - discountAmount);
-  const taxAmount = truncateToTwo(
-    (priceAfterDiscount * truncatedTaxRate) / 100,
-  );
-  const finalPrice = priceAfterDiscount + taxAmount;
-
-  const taxAmountOriginal = truncateToTwo((basePrice * truncatedTaxRate) / 100);
-  const originalPrice = basePrice + taxAmountOriginal;
+  const discountAmount = truncateToTwo((originalPrice * discount) / 100);
+  const finalPrice = truncateToTwo(originalPrice - discountAmount);
 
   return {
     finalPrice,
     originalPrice,
-    discount: discountRate,
+    discount,
     discountAmount,
-    taxAmount: discount > 0 ? taxAmount : taxAmountOriginal,
+    taxAmount,
   };
 };

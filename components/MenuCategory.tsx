@@ -25,10 +25,7 @@ const MenuCategory = ({
     >
       <MenuTarget>
         <UnstyledButton className="group relative cursor-pointer text-black transition-all ease-in-out hover:text-blue-400">
-          <span className="flex flex-row items-center gap-2">
-            Kategoriler
-            <FaArrowDown className="transition-transform duration-500 group-hover:rotate-180" />
-          </span>
+          <span className="flex flex-row items-center gap-2">Kategoriler</span>
         </UnstyledButton>
       </MenuTarget>
       <MenuDropdown className="flex flex-col gap-2">

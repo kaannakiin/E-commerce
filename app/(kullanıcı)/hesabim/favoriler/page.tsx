@@ -26,6 +26,8 @@ const feedPage = cache(async (id: IdForEverythingType) => {
                 value: true,
                 type: true,
                 unit: true,
+                stock: true,
+                createdAt: true,
                 slug: true,
                 Image: {
                   select: {
@@ -40,6 +42,7 @@ const feedPage = cache(async (id: IdForEverythingType) => {
                     categories: {
                       take: 1,
                       select: {
+                        name: true,
                         slug: true,
                       },
                     },

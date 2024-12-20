@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 import {
   EditDiscountCodeSchema,
   EditDiscountCodeSchemaType,
@@ -205,7 +205,7 @@ const EditDiscountForm = ({
   );
 
   return (
-    <>
+    <Fragment>
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-2xl p-6">
         <Stack gap="md">
           {discountCode.expiresAt &&
@@ -248,14 +248,14 @@ const EditDiscountForm = ({
                         {discountCode.uses}
                       </Badge>
                       {discountCode.limit ? (
-                        <>
+                        <Fragment>
                           / {discountCode.limit} kez
                           {discountCode.uses >= discountCode.limit && (
                             <Badge size="sm" color="red">
                               Limit Dolmuş!
                             </Badge>
                           )}
-                        </>
+                        </Fragment>
                       ) : (
                         "kez (Limitsiz)"
                       )}
@@ -497,7 +497,7 @@ const EditDiscountForm = ({
         type={dialogType}
         autoCloseDelay={2000}
       />
-    </>
+    </Fragment>
   );
 };
 

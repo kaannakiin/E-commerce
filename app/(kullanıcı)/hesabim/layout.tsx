@@ -11,7 +11,7 @@ export default async function HesabimLayout({
   return (
     <div className="container mx-auto flex flex-col gap-8 px-4 py-8 lg:flex-row">
       <Navbar session={session.user} />
-      <div className="flex-1">{children}</div>
+      <div className="flex-1 ">{children}</div>
     </div>
   );
 }

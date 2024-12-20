@@ -1,5 +1,5 @@
 "use client";
-import { formatPrice } from "@/lib/formatter";
+import { formattedPrice } from "@/lib/format";
 import { useStore } from "@/store/store";
 import {
   Button,
@@ -22,7 +22,6 @@ const CartPage = () => {
   const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const totalOriginalPrice = useStore((state) => state.totalOriginalPrice);
   const totalFinalPrice = useStore((state) => state.totalFinalPrice);
-  const totalDiscountAmount = useStore((state) => state.totalDiscountAmount);
 
   const hasDiscount = totalOriginalPrice !== totalFinalPrice;
 
@@ -75,34 +74,35 @@ const CartPage = () => {
                   <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                     <span className="text-sm text-gray-600">Ara Toplam</span>
                     <span className="text-base font-medium">
-                      {formatPrice(totalOriginalPrice)}
+                      {formattedPrice(totalOriginalPrice)}
                     </span>
                   </div>
                   {hasDiscount && (
-                    <>
+                    <Fragment>
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-1 text-sm text-emerald-600">
                           İndirim Tutarı
                         </span>
                         <span className="text-base font-medium text-emerald-600">
-                          -{formatPrice(totalDiscountAmount)}
+                          -
+                          {formattedPrice(totalOriginalPrice - totalFinalPrice)}
                         </span>
                       </div>
 
                       <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                         <span className="text-base font-semibold">Toplam</span>
                         <span className="text-xl font-bold text-primary-600">
-                          {formatPrice(totalFinalPrice)}
+                          {formattedPrice(totalFinalPrice)}
                         </span>
                       </div>
-                    </>
+                    </Fragment>
                   )}
 
                   {!hasDiscount && (
                     <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                       <span className="text-base font-semibold">Toplam</span>
                       <span className="text-xl font-bold text-primary-600">
-                        {formatPrice(totalOriginalPrice)}
+                        {formattedPrice(totalOriginalPrice)}
                       </span>
                     </div>
                   )}

@@ -15,7 +15,6 @@ export async function POST(request: Request) {
     const { key, value } = body;
 
     // Gelen veriyi logla
-    console.log("Received data:", { key, value });
 
     if (!key || !value) {
       return NextResponse.json(
@@ -26,15 +25,12 @@ export async function POST(request: Request) {
 
     // Redis bağlantısını test et
     const pingResult = await redisClient.ping();
-    console.log("Redis ping result:", pingResult);
 
     // Veriyi kaydetmeyi dene ve sonucu logla
     const setResult = await redisClient.set(key, JSON.stringify(value));
-    console.log("Redis set result:", setResult);
 
     // Kaydedilen veriyi hemen oku ve kontrol et
     const savedValue = await redisClient.get(key);
-    console.log("Saved value:", savedValue);
 
     if (setResult !== "OK") {
       throw new Error(`Redis set failed: ${setResult}`);

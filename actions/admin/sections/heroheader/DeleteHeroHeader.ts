@@ -1,12 +1,20 @@
 "use server";
 import { prisma } from "@/lib/prisma";
 import { deleteAssetFileWithExtension } from "@/lib/deleteAssetFileWithExtension";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 
 export async function DeleteHeroHeader(id: string): Promise<{
   success: boolean;
   message: string;
 }> {
   try {
+    const session = await isAuthorized();
+    if (
+      !session ||
+      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
+    ) {
+      return { success: false, message: "Unauthorized" };
+    }
     if (!id) {
       return { success: false, message: "ID parametresi gereklidir" };
     }

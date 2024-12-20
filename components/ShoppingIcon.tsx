@@ -3,10 +3,11 @@ import { useStore } from "@/store/store";
 import { Button, Drawer, Indicator, ScrollArea } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { usePathname, useRouter } from "next/navigation";
-import React from "react";
+import React, { Fragment } from "react";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { IoMdClose } from "react-icons/io";
 import ShoppingProduct from "./ShoppingProduct";
+import { formattedPrice } from "@/lib/format";
 
 const CartDrawer = () => {
   const items = useStore((state) => state.items);
@@ -35,7 +36,7 @@ const CartDrawer = () => {
   };
 
   return (
-    <>
+    <Fragment>
       <Drawer.Root
         opened={open && !isCartPage}
         onClose={() => setOpen(false)}
@@ -80,17 +81,17 @@ const CartDrawer = () => {
                       Toplam Fiyat
                     </span>
                     <span className="text-base text-gray-500 line-through">
-                      {totalOriginalPrice.toLocaleString("tr-TR")} ₺
+                      {formattedPrice(totalOriginalPrice)}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-medium text-gray-700">
-                        İndirimli Fiyat
+                        İndirim
                       </span>
                     </div>
                     <span className="text-xl font-bold text-green-600">
-                      {totalFinalPrice.toLocaleString("tr-TR")} ₺
+                      -{formattedPrice(totalOriginalPrice - totalFinalPrice)}
                     </span>
                   </div>
                 </div>
@@ -99,7 +100,7 @@ const CartDrawer = () => {
               <div className="flex items-center justify-between">
                 <span className="text-lg font-medium">Ödenecek Tutar</span>
                 <span className="text-2xl font-bold text-primary-600">
-                  {totalFinalPrice.toLocaleString("tr-TR")} ₺
+                  {formattedPrice(totalFinalPrice)}
                 </span>
               </div>
 
@@ -134,7 +135,7 @@ const CartDrawer = () => {
           />
         </Indicator>
       )}
-    </>
+    </Fragment>
   );
 };
 

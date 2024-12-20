@@ -20,7 +20,7 @@ import {
 import { DateInput } from "@mantine/dates";
 import { DiscountType, VariantType } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { FaTurkishLiraSign } from "react-icons/fa6";
 import {
@@ -177,7 +177,7 @@ const DiscountForm = ({ variants }: DiscountFormProps) => {
   );
 
   return (
-    <>
+    <Fragment>
       <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-2xl p-6">
         <Stack gap="md">
           {/* Existing form fields remain the same */}
@@ -397,7 +397,7 @@ const DiscountForm = ({ variants }: DiscountFormProps) => {
         type={dialogType}
         autoCloseDelay={2000}
       />
-    </>
+    </Fragment>
   );
 };
 

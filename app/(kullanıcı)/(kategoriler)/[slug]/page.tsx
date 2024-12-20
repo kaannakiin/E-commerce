@@ -9,7 +9,6 @@ import { VariantType } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-// Types
 export interface CategoryVariant {
   id: string;
   type: VariantType;
@@ -123,6 +122,17 @@ const feedCat = cache(
       if (!categoryExists) {
         return { categoryVariants: [], count: 0 };
       }
+      const categoryPublished = await prisma.category.findFirst({
+        where: {
+          slug,
+        },
+        select: {
+          active: true,
+        },
+      });
+      if (!categoryPublished.active) {
+        return { categoryVariants: [], count: 0 };
+      }
 
       let orderByClause: unknown = {};
       switch (orderBy) {
@@ -140,6 +150,7 @@ const feedCat = cache(
       }
 
       const whereClause = {
+        softDelete: false,
         isPublished: true,
         stock: {
           gt: 0,
@@ -182,6 +193,7 @@ const feedCat = cache(
             discount: true,
             stock: true,
             createdAt: true,
+            unit: true,
             product: {
               select: {
                 name: true,

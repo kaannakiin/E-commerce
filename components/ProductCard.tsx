@@ -3,12 +3,11 @@ import { CategoryVariant } from "@/app/(kullanıcı)/(kategoriler)/[slug]/page";
 import { AddFavorite } from "@/app/(kullanıcı)/(kategoriler)/_actions/ProductAction";
 import CustomImage from "@/components/CustomImage";
 import { calculatePrice } from "@/lib/calculatePrice";
-import { formatPrice } from "@/lib/formatter";
+import { formattedPrice } from "@/lib/format";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { ActionIcon, ColorSwatch, Text } from "@mantine/core";
+import { ActionIcon, ColorSwatch } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { VariantType } from "@prisma/client";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,14 +32,15 @@ const ProductCard = ({
   const [isFave, setIsFave] = useState(isFavorited);
   const pathname = usePathname();
   const isInFavoritesPage = pathname === "/hesabim/favoriler";
+  const isInHomePage = pathname === "/";
   const onClickHeart = async (slug: string) => {
-    await AddFavorite(product.id, slug).then(async (res) => {
+    await AddFavorite(product.id).then(async (res) => {
       if (res.success) {
         setIsFave(!isFave);
       }
       if (res.isMustLogin) {
         await signIn(undefined, {
-          redirectTo: `/${product.product.categories[0].slug}/${product.slug}`,
+          redirectTo: slug,
           redirect: true,
         });
       }
@@ -96,33 +96,57 @@ const ProductCard = ({
           </div>
         )}
 
-        {/* Favorite Button */}
-        <ActionIcon
-          onClick={() =>
-            onClickHeart(
-              `/${product.product.categories[0].slug}/${product.slug}`,
-            )
-          }
-          className={`absolute right-4 top-4 z-20 ${isInFavoritesPage ? "h-4 w-4" : "h-11 w-11"} rounded-full bg-white/80 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white`}
-        >
-          {isInFavoritesPage ? (
-            <LiaTimesSolid className="h-4 w-4 font-bold text-gray-700 transition-colors duration-300 hover:text-red-500" />
-          ) : isFave ? (
-            <FaHeart className="text-xl text-red-500" />
-          ) : (
-            <FaRegHeart className="text-xl text-gray-700 transition-colors duration-300 group-hover:text-red-500" />
-          )}
-        </ActionIcon>
+        {!isInHomePage && (
+          <ActionIcon
+            onClick={() => {
+              const categorySlug = product.product.categories?.[0]?.slug;
+              const productSlug = product.slug;
+
+              const path =
+                categorySlug !== undefined && productSlug !== undefined
+                  ? `/${categorySlug}/${productSlug}`
+                  : "/";
+
+              onClickHeart(path);
+            }}
+            className={`absolute right-4 top-4 z-20 ${isInFavoritesPage ? "h-4 w-4" : "h-11 w-11"} rounded-full bg-white/80 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white`}
+          >
+            {isInFavoritesPage ? (
+              <LiaTimesSolid className="h-4 w-4 font-bold text-gray-700 transition-colors duration-300 hover:text-red-500" />
+            ) : isFave ? (
+              <FaHeart className="text-xl text-red-500" />
+            ) : (
+              <FaRegHeart className="text-xl text-gray-700 transition-colors duration-300 group-hover:text-red-500" />
+            )}
+          </ActionIcon>
+        )}
       </div>
 
       {/* Product Info */}
       <Link
-        href={`/${product.product.categories[0].slug}/${product.slug}`}
+        href={
+          product.product?.categories[0]?.slug !== undefined &&
+          product.slug !== undefined
+            ? `/${product.product.categories[0].slug}/${product.slug}`
+            : "/"
+        }
         className="flex flex-1 flex-col p-5 transition-all duration-300"
       >
         <div className="mb-2 flex items-center justify-between gap-4">
           <h3 className="text-md font-medium text-gray-900 group-hover:text-gray-700">
-            {product.product.name}
+            {product.product.name.charAt(0).toLocaleUpperCase() +
+              product.product.name.slice(1).toLowerCase()}{" "}
+            {product.type === "COLOR" && <ColorSwatch color={product.value} />}
+            {product.type === "WEIGHT" && (
+              <span className="text-md font-medium text-gray-500">
+                {product.value} {product.unit}
+              </span>
+            )}
+            {product.type === "SIZE" && (
+              <span className="text-md font-medium text-gray-500">
+                {product.value}
+              </span>
+            )}
           </h3>
         </div>
 
@@ -132,12 +156,12 @@ const ProductCard = ({
 
         <div className="mt-auto flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-semibold text-gray-900">
-              {formatPrice(calculateTaxedPrice.finalPrice)}
+            <span className="text-xl font-semibold text-primary-600">
+              {formattedPrice(calculateTaxedPrice.finalPrice)}
             </span>
             {product.discount > 0 && (
-              <span className="text-sm text-gray-500 line-through">
-                {formatPrice(calculateTaxedPrice.originalPrice)}
+              <span className="text-sm font-semibold text-red-400 line-through">
+                {formattedPrice(calculateTaxedPrice.originalPrice)}
               </span>
             )}
           </div>
