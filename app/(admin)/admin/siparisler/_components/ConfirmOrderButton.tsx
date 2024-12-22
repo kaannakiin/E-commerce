@@ -3,7 +3,6 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import { Button } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { confirmOrder } from "../_actions/StatusCheck";
 
 interface ConfirmOrderFormProps {
   orderId: string;
@@ -41,24 +40,24 @@ export default function ConfirmOrderButton({ orderId }: ConfirmOrderFormProps) {
   }, [dialogState.isOpen]);
 
   const handleSubmit = async (formData: FormData) => {
-    startTransition(async () => {
-      await confirmOrder(orderId).then((res) => {
-        if (res.success) {
-          setDialogState({
-            isOpen: true,
-            message: res.message,
-            type: "success",
-          });
-          router.refresh();
-        } else {
-          setDialogState({
-            isOpen: true,
-            message: res.message,
-            type: "error",
-          });
-        }
-      });
-    });
+    // startTransition(async () => {
+    //   await confirmOrder(orderId).then((res) => {
+    //     if (res.success) {
+    //       setDialogState({
+    //         isOpen: true,
+    //         message: res.message,
+    //         type: "success",
+    //       });
+    //       router.refresh();
+    //     } else {
+    //       setDialogState({
+    //         isOpen: true,
+    //         message: res.message,
+    //         type: "error",
+    //       });
+    //     }
+    //   });
+    // });
   };
 
   return (
