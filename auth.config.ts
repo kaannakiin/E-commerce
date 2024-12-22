@@ -33,8 +33,8 @@ export default {
   callbacks: {
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.emailVerified = token.emailVerified as boolean;
-        session.user.id = token.sub;
+        session.user.emailVerified = token.emailVerified || null;
+        session.user.id = token.sub!;
         session.user.role = token.role as Role;
       }
       return session;
@@ -45,11 +45,14 @@ export default {
       if (!user) {
         return token;
       }
-      token.name = user.name + " " + user.surname;
-      token.role = user.role;
-      token.emailVerified = user.emailVerified;
-      token.sub = user.id; // User ID'sini token'a ekle
-      return token;
+
+      return {
+        ...token,
+        name: user.name + " " + user.surname,
+        role: user.role,
+        emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
+        sub: user.id,
+      };
     },
     async redirect({ url, baseUrl }) {
       const cleanUrl = url.replace(/^https?:\/\/[^\/]+/, "");
