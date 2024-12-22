@@ -1,4 +1,4 @@
-import { deleteAddress } from "@/app/(kullanıcı)/hesabim/adres-defterim/_actions/AddressActions";
+import { deleteAddress } from "@/app/(kullanici)/hesabim/adres-defterim/_actions/AddressActions";
 import {
   AuthUserCreateOrder,
   groupedItemTransactions,

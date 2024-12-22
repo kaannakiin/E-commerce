@@ -101,7 +101,7 @@ const BurgerMenu = ({ isUser, categories }) => {
                   <UnstyledButton
                     key={category.slug}
                     onClick={() => {
-                      router.push(`/${category.slug}`);
+                      router.push(`/categories/${category.slug}`);
                       stack.closeAll();
                     }}
                     className="flex items-center justify-between rounded-lg p-4"

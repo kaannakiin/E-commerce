@@ -1,6 +1,6 @@
 "use client";
-import { CategoryVariant } from "@/app/(kullanıcı)/(kategoriler)/[slug]/page";
-import { AddFavorite } from "@/app/(kullanıcı)/(kategoriler)/_actions/ProductAction";
+import { AddFavorite } from "@/app/(admin)/admin/urunler/_actions/ProductActions";
+import { CategoryVariant } from "@/app/(kullanici)/categories/[slug]/page";
 import CustomImage from "@/components/CustomImage";
 import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
@@ -47,9 +47,8 @@ const ProductCard = ({
     });
   };
   return (
-    <div className="group relative flex w-full flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-500 hover:shadow-xl">
-      {/* Image Container */}
-      <div className="relative aspect-[3/4] w-full">
+    <div className="group relative flex h-[450px] w-full flex-col overflow-hidden rounded-lg bg-white transition-all duration-300 hover:shadow-lg sm:h-[500px] lg:h-[550px]">
+      <div className="relative h-[60%] w-full bg-secondary-50">
         <Carousel
           withControls={product.Image.length > 1}
           align="start"
@@ -62,105 +61,93 @@ const ProductCard = ({
           }}
           classNames={{
             controls: matches
-              ? "opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out top-1/2 -translate-y-1/2"
-              : "top-1/2 -translate-y-1/2",
+              ? "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              : "",
             control:
-              "bg-white/80 backdrop-blur-sm hover:bg-white border-none shadow-md",
+              "bg-white/90 hover:bg-white border border-secondary-100 shadow-sm",
           }}
         >
           {product.Image.map((image, index) => (
             <Carousel.Slide key={index}>
               <div className="relative h-full w-full overflow-hidden">
-                <div className="relative h-full w-full transform transition-transform duration-500 group-hover:scale-105">
-                  <CustomImage
-                    src={image.url}
-                    quality={21}
-                    priority={index === 0}
-                    objectFit="contain"
-                    alt={product.product.name}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
+                <CustomImage
+                  src={image.url}
+                  quality={80}
+                  priority={index === 0}
+                  objectFit="cover"
+                  alt={product.product.name}
+                />
               </div>
             </Carousel.Slide>
           ))}
         </Carousel>
 
-        {/* Hover Overlay with Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-        {/* Discount Badge */}
-        {product.discount > 0 && (
-          <div className="absolute left-4 top-4 z-20 rounded-xl bg-red-500/90 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm">
-            -%{calculateTaxedPrice.discount}
-          </div>
-        )}
+        <div className="absolute left-3 top-3 z-20 flex flex-col gap-2">
+          {product.discount > 0 && (
+            <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+              -%{calculateTaxedPrice.discount}
+            </span>
+          )}
+        </div>
 
         {!isInHomePage && (
           <ActionIcon
             onClick={() => {
               const categorySlug = product.product.categories?.[0]?.slug;
               const productSlug = product.slug;
-
               const path =
-                categorySlug !== undefined && productSlug !== undefined
+                categorySlug && productSlug
                   ? `/${categorySlug}/${productSlug}`
                   : "/";
-
               onClickHeart(path);
             }}
-            className={`absolute right-4 top-4 z-20 ${isInFavoritesPage ? "h-4 w-4" : "h-11 w-11"} rounded-full bg-white/80 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white`}
+            className="absolute right-3 top-3 z-20 h-8 w-8 rounded-full bg-white/90 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md"
           >
             {isInFavoritesPage ? (
-              <LiaTimesSolid className="h-4 w-4 font-bold text-gray-700 transition-colors duration-300 hover:text-red-500" />
+              <LiaTimesSolid className="h-4 w-4 text-secondary-700 hover:text-primary-500" />
             ) : isFave ? (
-              <FaHeart className="text-xl text-red-500" />
+              <FaHeart className="text-sm text-primary-500" />
             ) : (
-              <FaRegHeart className="text-xl text-gray-700 transition-colors duration-300 group-hover:text-red-500" />
+              <FaRegHeart className="text-sm text-secondary-600 group-hover:text-primary-500" />
             )}
           </ActionIcon>
         )}
       </div>
 
-      {/* Product Info */}
       <Link
-        href={
-          product.product?.categories[0]?.slug !== undefined &&
-          product.slug !== undefined
-            ? `/${product.product.categories[0].slug}/${product.slug}`
-            : "/"
-        }
-        className="flex flex-1 flex-col p-5 transition-all duration-300"
+        href={product.slug ? `/${product.slug}` : "/"}
+        className="flex h-[40%] w-full flex-col p-4 transition-colors"
       >
-        <div className="mb-2 flex items-center justify-between gap-4">
-          <h3 className="text-md font-medium text-gray-900 group-hover:text-gray-700">
-            {product.product.name.charAt(0).toLocaleUpperCase() +
-              product.product.name.slice(1).toLowerCase()}{" "}
-            {product.type === "COLOR" && <ColorSwatch color={product.value} />}
-            {product.type === "WEIGHT" && (
-              <span className="text-md font-medium text-gray-500">
-                {product.value} {product.unit}
-              </span>
-            )}
-            {product.type === "SIZE" && (
-              <span className="text-md font-medium text-gray-500">
-                {product.value}
-              </span>
-            )}
+        <div className="flex items-center gap-2">
+          <h3 className="text-secondary-950 group-hover:text-primary-950 line-clamp-1 flex-1 text-base font-semibold">
+            {product.product.name.length > 20
+              ? product.product.name.slice(0, 20) + "..."
+              : product.product.name}
           </h3>
+          {product.type === "COLOR" && (
+            <span
+              className="h-6 w-6 rounded-full"
+              style={{ backgroundColor: product.value }}
+            />
+          )}
+          {product.type !== "COLOR" && (
+            <span className="text-secondary-950 inline-flex shrink-0 items-center rounded-full bg-secondary-100 px-2 py-0.5 text-xs font-medium">
+              {product.type === "WEIGHT" && `${product.value}${product.unit}`}
+              {product.type === "SIZE" && `${product.value}`}
+            </span>
+          )}
         </div>
 
-        <p className="mb-4 line-clamp-2 text-sm text-gray-500 group-hover:text-gray-600">
+        <p className="mt-1 line-clamp-2 h-[40px] text-sm">
           {product.product.shortDescription}
         </p>
-
         <div className="mt-auto flex items-center justify-between">
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl font-semibold text-primary-600">
+          <div className="flex flex-row items-center gap-2">
+            <span className="text-secondary-950 text-lg font-semibold">
               {formattedPrice(calculateTaxedPrice.finalPrice)}
             </span>
             {product.discount > 0 && (
-              <span className="text-sm font-semibold text-red-400 line-through">
+              <span className="-mt-1 text-xs font-medium text-red-500 line-through">
                 {formattedPrice(calculateTaxedPrice.originalPrice)}
               </span>
             )}

@@ -1,10 +1,9 @@
 "use client";
+import { AddFavorite } from "@/app/(admin)/admin/urunler/_actions/ProductActions";
 import { ActionIcon } from "@mantine/core";
-import React, { useState } from "react";
-import { LiaTimesSolid } from "react-icons/lia";
-import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { AddFavorite } from "@/app/(kullanıcı)/(kategoriler)/_actions/ProductAction";
 import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 const FavHeart = ({ isFavorited, productId }) => {
   const onClickHeart = async () => {

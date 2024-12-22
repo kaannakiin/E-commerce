@@ -4,8 +4,27 @@ import {
   ProductType,
   VariantType,
 } from "@prisma/client";
-import { optional, z } from "zod";
-import { v4 } from "uuid";
+import { z } from "zod";
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string({ message: "Bu alan zorunludur" })
+    .email({ message: "Geçerli bir email adresi giriniz" }),
+});
+export type ForgotPasswordSchemaType = z.infer<typeof forgotPasswordSchema>;
+export const passwordCheckSchema = z
+  .object({
+    password: z
+      .string({ message: "Bu alan zorunludur" })
+      .min(6, { message: "Şifreniz en az 6 karakter olmalıdır" }),
+    confirmPassword: z
+      .string({ message: "Bu alan zorunludur" })
+      .min(6, { message: "Şifreniz en az 6 karakter olmalıdır" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Şifreler eşleşmiyor",
+    path: ["confirmPassword"],
+  });
+export type PasswordCheckType = z.infer<typeof passwordCheckSchema>;
 export const LoginSchema = z.object({
   email: z
     .string({ message: "Bu alan zorunludur" })
@@ -59,6 +78,9 @@ export const RegisterSchema = z
           message: "Geçerli bir cep telefon numarası giriniz",
         },
       ),
+    termsAndPrivacyPolicy: z.boolean().refine((val) => val === true, {
+      message: "Sözleşmeleri kabul etmelisiniz",
+    }),
   })
   .superRefine(({ confirmPassword, password }, ctx) => {
     if (confirmPassword !== password) {
@@ -77,190 +99,6 @@ const SUPPORTED_FORMATS = [
   "image/webp",
   "image/jpg",
 ];
-
-export const WeightUnit = z.enum(["ML", "L", "G", "KG"], {
-  errorMap: () => ({ message: "Geçerli bir birim seçiniz" }),
-});
-export type WeightUnitType = z.infer<typeof WeightUnit>;
-
-export const Size = z.enum(["XS", "S", "M", "L", "XL", "XXL"], {
-  errorMap: () => ({ message: "Geçerli bir beden seçiniz" }),
-});
-export type SizeType = z.infer<typeof Size>;
-
-const EditBaseVariantProps = z.object({
-  price: z
-    .number({ message: "Bu alan boş olamaz" })
-    .min(0, { message: "Ürün fiyatı 0'dan küçük olamaz" }),
-  discount: z
-    .number({ message: "Bu alan boş olamaz" })
-    .min(0, { message: "Ürün indirimi 0'dan küçük olamaz" })
-    .default(0),
-  active: z.boolean({ message: "Bu alan boş olamaz" }),
-  isSpotlightPublished: z.boolean({ message: "Bu alan boş olamaz" }),
-  stock: z
-    .number({ message: "Bu alan boş olamaz" })
-    .min(0, { message: "Ürün stok miktarı 0'dan küçük olamaz" }),
-  imageFile: z
-    .array(z.instanceof(File, { message: "Geçerli bir dosya seçiniz" }))
-    .optional()
-    .superRefine((files, ctx) => {
-      if (!files || files.length === 0) return;
-
-      files.forEach((file) => {
-        if (file.size >= MAX_FILE_SIZE) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
-          });
-        }
-        if (!SUPPORTED_FORMATS.includes(file.type)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp`,
-          });
-        }
-      });
-    }),
-});
-
-export const EditColorVariant = EditBaseVariantProps.extend({
-  type: z.literal(VariantType.COLOR, { message: "Varyant tipi seçiniz" }),
-  value: z
-    .string({ message: "Bu alan zorunludur" })
-    .refine(
-      (value) => {
-        if (!value.startsWith("#")) return false;
-        const hex = value.slice(1);
-        if (![3, 6].includes(hex.length)) return false;
-        const isValidHex = /^[0-9A-Fa-f]+$/.test(hex);
-        return isValidHex;
-      },
-      {
-        message: "Geçerli bir hex renk kodu giriniz (örn: #FF0000 veya #F00)",
-      },
-    )
-    .transform((val) => {
-      if (val.length === 4) {
-        const hex = val.slice(1);
-        return `#${hex
-          .split("")
-          .map((char) => char + char)
-          .join("")}`;
-      }
-      return val.toUpperCase();
-    }),
-});
-
-export const EditSizeVariant = EditBaseVariantProps.extend({
-  type: z.literal(VariantType.SIZE, { message: "Varyant tipi seçiniz" }),
-  value: Size,
-});
-
-export const EditWeightVariant = EditBaseVariantProps.extend({
-  type: z.literal(VariantType.WEIGHT, { message: "Varyant tipi seçiniz" }),
-  value: z
-    .number({ message: "Bu alan boş olamaz" })
-    .min(0, { message: "Ağırlık 0'dan küçük olamaz" }),
-  unit: WeightUnit,
-});
-
-const EditVariant = z.discriminatedUnion(
-  "type",
-  [EditColorVariant, EditSizeVariant, EditWeightVariant],
-  {
-    errorMap: () => ({ message: "Geçerli bir varyant tipi seçiniz" }),
-  },
-);
-
-export const EditProductSchema = z.object({
-  name: z
-    .string({ message: "Bu alan zorunludur" })
-    .min(1, { message: "Ürün adı zorunludur" }),
-  description: z
-    .string({ message: "Bu alan zorunludur" })
-    .min(1, { message: "Ürün açıklaması zorunludur" }),
-  shortDescription: z
-    .string({ message: "Bu alan zorunludur" })
-    .min(1, { message: "Kısa açıklama zorunludur" }),
-  taxPrice: z
-    .number({ message: "Bu alan boş olamaz" })
-    .min(0, { message: "Vergi fiyatı 0'dan küçük olamaz" }),
-  categories: z
-    .array(z.string({ message: "Bu alan zorunludur" }))
-    .min(1, { message: "En az bir kategori seçilmelidir" }),
-  variants: z
-    .array(EditVariant, { message: "Varyant eklenmelidir" })
-    .min(1, { message: "En az bir varyant eklenmelidir" }),
-});
-
-export type EditProductSchemaType = z.infer<typeof EditProductSchema>;
-export type EditColorVariantType = z.infer<typeof EditColorVariant>;
-export type EditSizeVariantType = z.infer<typeof EditSizeVariant>;
-export type EditWeightVariantType = z.infer<typeof EditWeightVariant>;
-export const AddCategorySchema = z.object({
-  name: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, "Kategori adı zorunludur"),
-  description: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, "Kategori açıklaması zorunludur"),
-  active: z.boolean({ message: "Bu alan boş olamaz" }),
-
-  imageFile: z.array(z.instanceof(File)).superRefine((files, ctx) => {
-    if (!files || files.length === 0)
-      ctx.addIssue({
-        code: "custom",
-        message: "En az bir fotoğraf eklemelisiniz",
-      });
-    files.forEach((file) => {
-      if (file.size >= MAX_FILE_SIZE) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
-        });
-      }
-      if (!SUPPORTED_FORMATS.includes(file.type)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp`,
-        });
-      }
-    });
-  }),
-});
-
-export type AddCategorySchemaType = z.infer<typeof AddCategorySchema>;
-export const EditCategorySchema = z.object({
-  name: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, "Kategori adı zorunludur"),
-  description: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, "Kategori açıklaması zorunludur"),
-  active: z.boolean({ message: "Bu alan boş olamaz" }),
-  imageFile: z
-    .array(z.instanceof(File))
-    .optional()
-    .superRefine((files, ctx) => {
-      if (!files) return;
-      files.forEach((file) => {
-        if (file.size >= MAX_FILE_SIZE) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
-          });
-        }
-        if (!SUPPORTED_FORMATS.includes(file.type)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp`,
-          });
-        }
-      });
-    }),
-});
-export type EditCategorySchemaType = z.infer<typeof EditCategorySchema>;
 
 export const AddSliderSchema = z.object({
   title: z
@@ -1045,6 +883,47 @@ export const SocialMediaPreviewSchema = z.object({
       });
     })
     .optional(),
+  favicon: z
+    .array(z.instanceof(File), { message: "Bu alan zorunludur" })
+    .length(1, "Bir adet fotoğraf eklemelisiniz")
+    .superRefine((files, ctx) => {
+      if (!files || files.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Bir fotoğraf eklemelisiniz",
+        });
+      }
+      if (files.length > 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Sadece bir fotoğraf yükleyebilirsiniz",
+        });
+      }
+      files.forEach((file) => {
+        if (file.size >= MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+          });
+        }
+
+        const SUPPORTED_FORMATS = [
+          "image/jpeg",
+          "image/png",
+          "video/mp4",
+          "image/jpg",
+          "image/webp",
+        ];
+
+        if (!SUPPORTED_FORMATS.includes(file.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+          });
+        }
+      });
+    })
+    .optional(),
   title: z
     .string({ message: "Bu alan boş olamaz" })
     .min(1, { message: "Bu alan boş olamaz" })
@@ -1052,14 +931,23 @@ export const SocialMediaPreviewSchema = z.object({
   description: z
     .string({ message: "Bu alan boş olamaz" })
     .min(1, { message: "Bu alan boş olamaz" })
-    .max(160, { message: "Açıklama en fazla 160 karakter olabilir" }),
-  themeColor: z
+    .max(300, { message: "Açıklama en fazla 300 karakter olabilir" }),
+  themeColor1: z
     .string({ message: "Bu alan boş olamaz" })
     .min(1, { message: "Bir renk seçmelisiniz" })
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
       message: "Geçerli bir HEX renk kodu girilmelidir (örn: #FF0000)",
     })
     .transform((val) => val.toUpperCase()),
+  themeColor2: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, { message: "Bir renk seçmelisiniz" })
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
+      message: "Geçerli bir HEX renk kodu girilmelidir (örn: #FF0000)",
+    })
+    .transform((val) => val.toUpperCase()),
+  googleId: z.string().optional().nullable(),
+  googleVerification: z.string().optional().nullable(),
 });
 export type SocialMediaPreviewType = z.infer<typeof SocialMediaPreviewSchema>;
 
@@ -1304,3 +1192,53 @@ export const ProductAddSchema = z.object({
 });
 
 export type ProductAddFormValues = z.infer<typeof ProductAddSchema>;
+export const CategoryEditableSchema = z.object({
+  name: z
+    .string({ message: "Bu alan zorunludur" })
+    .trim() // Trimmed
+    .min(1, { message: "Kategori adı en az 1 karakter olmalıdır" })
+    .max(50, { message: "Kategori adı en fazla 50 karakter olabilir" }),
+  description: z
+    .string({ message: "Bu alan zorunludur" })
+    .trim()
+    .min(1, { message: "Kategori açıklaması en az 1 karakter olmalıdır" })
+    .max(500, {
+      message: "Kategori açıklaması en fazla 500 karakter olabilir",
+    }),
+  active: z.boolean().default(true),
+  imageFiles: z
+    .array(z.instanceof(File), { message: "Bu alan zorunludur" })
+    .optional()
+    .superRefine((files, ctx) => {
+      files.forEach((file) => {
+        if (file.size >= MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+          });
+        }
+        if (!SUPPORTED_FORMATS.includes(file.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+          });
+        }
+      });
+    }),
+  metaTitle: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, "SEO başlık en az 1 karakter olmalıdır")
+    .max(60, "SEO başlık 60 karakterden uzun olamaz"),
+  metaDescription: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, "SEO Açıklaması en az 1 karakter olmalıdır")
+    .max(160, "SEO açıklama 160 karakterden uzun olamaz"),
+  metaKeywords: z
+    .string()
+    .transform((val) => (val ? val.split(",").filter(Boolean) : []))
+    .pipe(z.array(z.string()))
+    .transform((val) => val.join(","))
+    .optional(),
+  googleCategories: z.string({ message: "Bu alan zorunludur" }).trim(),
+});
+export type CategoryEditableFormValues = z.infer<typeof CategoryEditableSchema>;

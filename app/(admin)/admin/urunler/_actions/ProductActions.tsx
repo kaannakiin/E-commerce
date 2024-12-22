@@ -1,140 +1,136 @@
 "use server";
-import { DeleteImage } from "@/lib/deleteImageFile";
+import { auth } from "@/auth";
+import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { processImages } from "@/lib/recordImage";
 import { variantSlugify } from "@/utils/SlugifyVariants";
 import {
+  IdForEverythingType,
   IdForEverythingTypeUuid,
   ProductAddFormValues,
   ProductAddSchema,
 } from "@/zodschemas/authschema";
 import { Prisma } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
+export async function AddProduct(data: ProductAddFormValues) {
+  try {
+    // Yetkilendirme kontrolü
+    const session = await isAuthorized();
+    if (!session) {
+      return { success: false, message: "Yetkisiz işlem" };
+    }
 
-// export async function AddProduct(data: ProductAddFormValues) {
-//   try {
-//     const session = await isAuthorized();
-//     if (!session) {
-//       return { success: false, message: "Yetkisiz işlem" };
-//     }
-//     const { variants } = ProductAddSchema.parse(data);
-//     const createdFiles: string[] = [];
+    // Veri doğrulama
+    try {
+      ProductAddSchema.parse(data);
+    } catch (error) {
+      return { success: false, message: "Geçersiz ürün verisi" };
+    }
 
-//     try {
-//       return await prisma.$transaction(
-//         async (tx) => {
-//           const firstCategoryName = await tx.category.findUnique({
-//             where: { id: data.categories[0] },
-//             select: {
-//               name: true,
-//             },
-//           });
-//           if (!firstCategoryName) {
-//             throw new Error("Kategori bulunamadı");
-//           }
+    // Kategori kontrolü
+    const firstCategory = await prisma.category.findFirst({
+      where: {
+        id: data.categories[0],
+      },
+    });
 
-//           await tx.product.create({
-//             data: {
-//               name: data.name,
-//               description: data.description,
-//               shortDescription: data.shortDescription,
-//               googleCategoryId: Number(data.googleCategories),
-//               active: data.active,
-//               categories: {
-//                 connect: data.categories.map((category) => ({ id: category })),
-//               },
-//               type: data.productType,
-//               taxRate: data.taxPrice,
-//               Variant: {
-//                 create: await Promise.all(
-//                   variants.map(async (variant) => {
-//                     let variantValue = variant.value;
-//                     let variantUnit = variant.unit;
+    if (!firstCategory) {
+      return { success: false, message: "Kategori bulunamadı" };
+    }
 
-//                     if (variant.type === "WEIGHT") {
-//                       variantValue = variant.weightValue?.toString() || "0";
-//                       variantUnit = variant.unit || "G";
-//                     }
+    // Transaction işlemi
+    return await prisma.$transaction(
+      async (tx) => {
+        // Ürün adı kontrolü
+        const existingProduct = await tx.product.findFirst({
+          where: {
+            name: {
+              equals: data.name,
+              mode: "insensitive",
+            },
+          },
+        });
 
-//                     // Process images once for the variant
-//                     const processedImages = await processImages(
-//                       variant.imageFiles,
-//                       {
-//                         quality: 80,
-//                         maxWidth: 1920,
-//                         maxHeight: 1920,
-//                         format: "webp",
-//                       },
-//                     );
+        if (existingProduct) {
+          return { success: false, message: "Bu ürün adı zaten kullanılıyor" };
+        }
 
-//                     const variantSlug = variantSlugify({
-//                       productName: data.name,
-//                       type: variant.type as VariantType,
-//                       value: variantValue,
-//                       unit: variant.type === "WEIGHT" ? variantUnit : undefined,
-//                     });
+        await tx.product.create({
+          data: {
+            name: data.name,
+            taxRate: data.taxPrice,
+            description: data.description,
+            shortDescription: data.shortDescription,
+            googleCategoryId: Number(data.googleCategories),
+            active: data.active,
+            type: data.productType,
+            categories: {
+              connect: data.categories.map((category) => ({ id: category })),
+            },
+            Variant: {
+              create: await Promise.all(
+                data.variants.map(async (variant) => {
+                  const variantSlug = variantSlugify({
+                    productName: data.name,
+                    type: variant.type,
+                    value: variant.value.toString(),
+                    unit: variant.unit,
+                  });
 
-//                     return {
-//                       value: variantValue,
-//                       unit: variant.type === "WEIGHT" ? variantUnit : null,
-//                       type: variant.type,
-//                       price: variant.price,
-//                       isSpotlightFeatured: variant.isSpotLight,
-//                       discount: variant.discount,
-//                       isPublished: variant.active,
-//                       stock: variant.stock,
-//                       slug: variantSlug,
-//                       seoTitle: variant.pageTitle,
-//                       seoDescription: variant.metaDescription,
-//                       richTextDescription: variant.richTextDescription,
-//                       Image: {
-//                         createMany: {
-//                           data: processedImages.map((img) => ({
-//                             url: img.url,
-//                           })),
-//                         },
-//                       },
-//                     };
-//                   }),
-//                 ),
-//               },
-//             },
-//             include: {
-//               Variant: {
-//                 include: {
-//                   Image: true,
-//                 },
-//               },
-//             },
-//           });
+                  const urls = [];
+                  if (variant.imageFiles.length > 0) {
+                    await processImages(variant.imageFiles, {
+                      quality: 80,
+                      maxWidth: 1920,
+                      maxHeight: 1920,
+                      format: "webp",
+                    }).then((images) => {
+                      images.forEach((img) => {
+                        urls.push(img.url);
+                      });
+                    });
+                  }
 
-//           return { success: true, message: "Ürün başarıyla eklendi" };
-//         },
-//         {
-//           timeout: 20000,
-//         },
-//       );
-//     } catch (error) {
-//       console.log(error);
-//       await cleanupFiles(createdFiles);
-//       if (error?.code === "P2002" && error?.meta?.target?.includes("slug")) {
-//         return {
-//           success: false,
-//           message:
-//             "Bu ürün ve varyant kombinasyonu zaten mevcut. Lütfen farklı bir ürün adı veya varyant değeri kullanın.",
-//         };
-//       }
-//       throw error;
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return {
-//       success: false,
-//       message: "Ürün oluşturulurken bir hata oluştu",
-//     };
-//   }
-// }
+                  return {
+                    value: variant.value.toString(),
+                    unit: variant.type === "WEIGHT" ? variant.unit : null,
+                    type: variant.type,
+                    price: variant.price,
+                    isSpotlightFeatured: variant.isSpotLight,
+                    discount: variant.discount,
+                    isPublished: variant.active,
+                    stock: variant.stock,
+                    slug: variantSlug,
+                    seoTitle: variant.pageTitle,
+                    seoDescription: variant.metaDescription,
+                    richTextDescription: variant.richTextDescription,
+                    canonicalUrl: variantSlug,
+                    ...(urls.length > 0 && {
+                      Image: {
+                        createMany: {
+                          data: urls.map((url) => ({ url })),
+                          skipDuplicates: true,
+                        },
+                      },
+                    }),
+                  };
+                }),
+              ),
+            },
+          },
+        });
+
+        return { success: true, message: "Ürün başarıyla oluşturuldu" };
+      },
+      { timeout: 50000 },
+    );
+  } catch (error) {
+    console.error("AddProduct error:", error);
+    return { success: false, message: "Ürün oluşturulurken bir hata oluştu" };
+  }
+}
 export async function searchGoogleCategories(searchTerm: string) {
   try {
     const session = await isAuthorized();
@@ -147,6 +143,33 @@ export async function searchGoogleCategories(searchTerm: string) {
           { name: { contains: searchTerm, mode: "insensitive" } },
           { fullPath: { contains: searchTerm, mode: "insensitive" } },
         ],
+      },
+      select: {
+        id: true,
+        name: true,
+        level: true,
+        fullPath: true,
+        parentPath: true,
+        breadcrumbs: true,
+      },
+      take: 50,
+    });
+
+    return { success: true, data: results };
+  } catch (error) {
+    console.error("Search error:", error);
+    return { success: false, error: "Arama yapılırken bir hata oluştu" };
+  }
+}
+export async function getGoogleCategories() {
+  try {
+    const session = await isAuthorized();
+    if (!session) {
+      return { success: false, message: "Yetkisiz işlem" };
+    }
+    const results = await prisma.googleCategory.findMany({
+      where: {
+        level: 1,
       },
       select: {
         id: true,
@@ -191,7 +214,7 @@ export async function DeleteAsset(
       if (!image) {
         return { success: false, message: "Resim bulunamadı" };
       }
-      const deleteResult = await DeleteImage(imageUrl);
+      const deleteResult = await DeleteImageToAsset(imageUrl);
       if (!deleteResult.success) {
         return {
           success: false,
@@ -320,7 +343,7 @@ export async function EditProduct(
                         seoTitle: variant.pageTitle,
                         seoDescription: variant.metaDescription,
                         richTextDescription: variant.richTextDescription,
-                        canonicalUrl: firstCategory.slug + "/" + variantSlug,
+                        canonicalUrl: variantSlug,
                         Image: {
                           createMany: {
                             data: urls.map((url) => ({ url })),
@@ -377,7 +400,7 @@ export async function EditProduct(
                   seoTitle: variant.pageTitle,
                   seoDescription: variant.metaDescription,
                   richTextDescription: variant.richTextDescription,
-                  canonicalUrl: firstCategory.slug + "/" + variantSlug,
+                  canonicalUrl: variantSlug,
                   productId: id,
                   Image: {
                     createMany: {
@@ -409,6 +432,73 @@ export async function EditProduct(
     return {
       success: false,
       message: "Ürün güncellenirken bir hata oluştu",
+    };
+  }
+}
+export async function AddFavorite(
+  id: IdForEverythingType,
+): Promise<{ success: boolean; message: string; isMustLogin?: boolean }> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "Giriş yapmalısınız",
+        isMustLogin: true,
+      };
+    }
+
+    const variant = await prisma.variant.findUnique({
+      where: { id, softDelete: false },
+    });
+    if (!variant) {
+      return {
+        success: false,
+        message: "Ürün bulunamadı",
+      };
+    }
+    const existingFavorite = await prisma.favoriteVariants.findUnique({
+      where: {
+        userId_variantId: {
+          userId: session.user.id,
+          variantId: id,
+        },
+      },
+    });
+    if (existingFavorite) {
+      await prisma.favoriteVariants.update({
+        where: {
+          id: existingFavorite.id,
+        },
+        data: {
+          deletedAt: existingFavorite.deletedAt ? null : new Date(),
+        },
+      });
+      revalidatePath("/hesabim/favoriler");
+      return {
+        success: true,
+        message: existingFavorite.deletedAt
+          ? "Favorilere eklendi"
+          : "Favorilerden çıkarıldı",
+      };
+    }
+
+    await prisma.favoriteVariants.create({
+      data: {
+        userId: session.user.id,
+        variantId: id,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Ürün favorilere eklendi",
+    };
+  } catch (error) {
+    console.error("AddFavorite error:", error);
+    return {
+      success: false,
+      message: "Bir hata oluştu",
     };
   }
 }

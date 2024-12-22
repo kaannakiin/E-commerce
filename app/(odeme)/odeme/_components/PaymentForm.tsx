@@ -86,6 +86,7 @@ const PaymentForm = ({ address }) => {
           throw new Error("3D Secure form bulunamadı");
         }
       } else if (response.data.status === 200) {
+        clearCart();
         router.push(`/hesabim/siparislerim/${response.data.message}`);
       }
     } catch (error) {

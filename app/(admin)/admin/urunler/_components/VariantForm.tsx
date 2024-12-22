@@ -57,6 +57,7 @@ const VariantForm: React.FC<AddVariantProps> = ({
         : undefined;
 
     return {
+      ...variant,
       uniqueId: variant?.uniqueId || crypto.randomUUID(),
       type: variant?.type || undefined,
       value:
@@ -71,7 +72,7 @@ const VariantForm: React.FC<AddVariantProps> = ({
       unit: unitValue,
       pageTitle: variant?.pageTitle || "",
       metaDescription: variant?.metaDescription || "",
-      imageFiles: [],
+      imageFiles: variant?.imageFiles || [], // imageFiles'ı koru
       isSpotLight: variant?.isSpotLight || false,
       richTextDescription: variant?.richTextDescription || null,
     };
@@ -118,8 +119,12 @@ const VariantForm: React.FC<AddVariantProps> = ({
   const onFormSubmit: SubmitHandler<VariantData> = (data) => {
     const submissionData = {
       ...data,
-      uniqueId: editingVariant?.uniqueId ?? data.uniqueId, // Düzenleme modunda orijinal uniqueId'yi koru
-      value: data.type === VariantType.WEIGHT ? String(data.value) : data.value,
+      uniqueId: editingVariant?.uniqueId ?? data.uniqueId,
+      value:
+        data.type === VariantType.WEIGHT
+          ? parseInt(data.value.toString())
+          : data.value,
+      imageFiles: data.imageFiles,
     };
     onSubmitProp?.(submissionData);
     onClose();
@@ -211,7 +216,7 @@ const VariantForm: React.FC<AddVariantProps> = ({
                   error={errors.value?.message}
                   {...field}
                   onChange={(value) => {
-                    setValue("value", Number(value), { shouldValidate: true });
+                    setValue("value", value, { shouldValidate: true });
                   }}
                 />
               )}
@@ -280,7 +285,6 @@ const VariantForm: React.FC<AddVariantProps> = ({
                 disabled={!!editingVariant} // Düzenleme modunda tip değiştirilemez
                 onChange={(value) => {
                   field.onChange(value);
-                  // Tip değiştiğinde value ve unit'i sıfırla
                   setValue("value", "");
                   setValue("unit", undefined);
                 }}
@@ -363,7 +367,9 @@ const VariantForm: React.FC<AddVariantProps> = ({
 
         <Card className="flex flex-col space-y-4">
           <Text className="text-lg font-bold">Ürün Görselleri</Text>
-          {existingImages && <ExistingImagesDisplay images={existingImages} />}
+          {existingImages && existingImages.length > 0 && (
+            <ExistingImagesDisplay images={existingImages} />
+          )}
           <CustomDropzone name="imageFiles" control={control} maxFiles={5} />
         </Card>
 

@@ -1,5 +1,5 @@
 "use server";
-import { DeleteImage } from "@/lib/deleteImageFile";
+import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 
@@ -8,17 +8,14 @@ export async function DeleteCategories(
 ): Promise<{ success: boolean; message: string }> {
   try {
     const session = await isAuthorized();
-    if (
-      !session ||
-      (session?.role !== "ADMIN" && session?.role !== "SUPERADMIN")
-    ) {
+    if (!session) {
       return { success: false, message: "Unauthorized" };
     }
     return await prisma.$transaction(async (tx) => {
       const category = await tx.category.findUnique({
         where: { slug },
         include: {
-          Image: true,
+          images: true,
         },
       });
 
@@ -29,9 +26,9 @@ export async function DeleteCategories(
         };
       }
       const deleteResults = await Promise.all(
-        category.Image.map(async (image) => {
+        category.images.map(async (image) => {
           if (image.url) {
-            const result = await DeleteImage(image.url);
+            const result = await DeleteImageToAsset(image.url);
             return { url: image.url, ...result };
           }
           return null;

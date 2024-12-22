@@ -22,17 +22,18 @@ interface CustomDropzoneProps {
   control: Control;
   maxFiles: number;
   videosEnabled?: boolean; // Yeni prop
+  isForce?: boolean;
 }
 
 const CustomDropzone: React.FC<CustomDropzoneProps> = ({
   name,
   control,
   maxFiles = 5,
-  videosEnabled = false, // Varsayılan olarak kapalı
+  videosEnabled = false,
+  isForce = true,
 }) => {
   const [previews, setPreviews] = useState<{ url: string; file: File }[]>([]);
 
-  // Kabul edilen dosya tiplerini videosEnabled prop'una göre belirleme
   const ACCEPTED_FILE_TYPES = videosEnabled
     ? { ...IMAGE_TYPES, ...VIDEO_TYPES }
     : IMAGE_TYPES;
@@ -46,14 +47,14 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
     defaultValue: [],
     rules: {
       validate: (files) => {
-        if (files.length === 0) return "En az bir dosya seçmelisiniz";
+        if (isForce && files.length === 0)
+          return "En az bir dosya seçmelisiniz";
         if (files.length > maxFiles)
           return `En fazla ${maxFiles} dosya seçilebilir`;
         return true;
       },
     },
   });
-
   const { getRootProps, getInputProps, isDragActive, isDragReject } =
     useDropzone({
       accept: ACCEPTED_FILE_TYPES,
@@ -89,7 +90,20 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
       });
     };
   }, []);
+  useEffect(() => {
+    if (!value || !Array.isArray(value) || value.length === 0) return;
 
+    const newPreviews = value.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+
+    setPreviews(newPreviews);
+
+    return () => {
+      newPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    };
+  }, [value]);
   const removeFile = (fileToRemove: File) => {
     const updatedFiles = value.filter((file: File) => file !== fileToRemove);
     onChange(updatedFiles);
@@ -152,7 +166,6 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
         </Group>
       </div>
 
-      {/* File List */}
       {value?.length > 0 && (
         <Group gap="sm" mt="md">
           {value.map((file: File, index: number) => (

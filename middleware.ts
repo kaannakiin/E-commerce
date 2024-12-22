@@ -3,7 +3,8 @@ import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import authConfig from "./auth.config";
 
-const PROTECT_FOR_LOGIN_USERS = "/giris";
+const PROTECTED_FOR_LOGIN_USERS = ["/giris", "/sifremi-unuttum"];
+
 const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
@@ -13,15 +14,23 @@ export default auth(async (req) => {
   const isAdmin =
     req.auth?.user?.role === Role.SUPERADMIN ||
     req.auth?.user?.role === Role.ADMIN;
+  const pathname = nextUrl.pathname;
+  if (login) {
+    // Ana sifremi-unuttum sayfası veya token ile gelen sayfa kontrolü
+    if (
+      pathname === "/sifremi-unuttum" ||
+      pathname.startsWith("/sifremi-unuttum/")
+    ) {
+      return NextResponse.redirect(new URL("/hesabim", nextUrl.origin));
+    }
 
-  if (login && nextUrl.pathname.startsWith(PROTECT_FOR_LOGIN_USERS)) {
-    return NextResponse.redirect(new URL("/hesabim", nextUrl.origin));
+    // Giriş sayfası kontrolü
+    if (pathname.startsWith("/giris")) {
+      return NextResponse.redirect(new URL("/hesabim", nextUrl.origin));
+    }
   }
-
-  if (!login && nextUrl.pathname.startsWith("/hesabim")) {
-    return NextResponse.redirect(
-      new URL(PROTECT_FOR_LOGIN_USERS, nextUrl.origin),
-    );
+  if (!login && pathname.startsWith("/hesabim")) {
+    return NextResponse.redirect(new URL("/giris", nextUrl.origin));
   }
 
   if (!isAdmin && nextUrl.pathname.startsWith("/admin")) {

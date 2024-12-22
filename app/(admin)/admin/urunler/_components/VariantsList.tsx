@@ -1,16 +1,17 @@
-import CustomImage from "@/components/CustomImage";
+"use client";
 import { VariantData } from "@/zodschemas/authschema";
 import {
   ActionIcon,
-  AspectRatio,
-  Badge,
-  Card,
   ColorSwatch,
   Group,
   Stack,
   Text,
+  Badge,
+  Card,
+  Modal,
+  Button,
 } from "@mantine/core";
-import { Fragment } from "react";
+import { useState } from "react";
 import { FaPencilAlt } from "react-icons/fa";
 import { IoColorPalette, IoResize, IoScale, IoTrash } from "react-icons/io5";
 
@@ -38,6 +39,11 @@ export function VariantList({
   onDeleteVariant,
   onEditVariant,
 }: VariantListProps) {
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null,
+  );
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
   if (!variants || variants.length === 0) {
     return (
       <Text c="dimmed" ta="center" py="xl">
@@ -45,6 +51,19 @@ export function VariantList({
       </Text>
     );
   }
+
+  const handleDeleteClick = (variantId: string) => {
+    setSelectedVariantId(variantId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedVariantId && onDeleteVariant) {
+      onDeleteVariant(selectedVariantId);
+    }
+    setIsDeleteModalOpen(false);
+    setSelectedVariantId(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -83,7 +102,7 @@ export function VariantList({
 
                 <Group gap="xs">
                   {variant.discount ? (
-                    <Fragment>
+                    <>
                       <Text size="sm" c="dimmed" td="line-through">
                         {variant.price} TL
                       </Text>
@@ -95,7 +114,7 @@ export function VariantList({
                       <Badge color="red" variant="light" size="sm">
                         %{variant.discount}
                       </Badge>
-                    </Fragment>
+                    </>
                   ) : (
                     <Text fw={600} size="lg">
                       {variant.price} TL
@@ -111,7 +130,6 @@ export function VariantList({
               )}
             </Stack>
 
-            {/* Aksiyon butonları */}
             <Group gap="sm">
               <ActionIcon
                 variant="light"
@@ -124,7 +142,7 @@ export function VariantList({
               <ActionIcon
                 variant="light"
                 color="red"
-                onClick={() => onDeleteVariant?.(variant.uniqueId)}
+                onClick={() => handleDeleteClick(variant.uniqueId)}
                 size="lg"
               >
                 <IoTrash size={18} />
@@ -133,6 +151,28 @@ export function VariantList({
           </Group>
         </Card>
       ))}
+
+      <Modal
+        opened={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="Varyantı Sil"
+        centered
+      >
+        <Text size="sm" mb="lg">
+          Bu varyantı silmek istediğinizden emin misiniz? Bu işlem geri
+          alınamaz.
+        </Text>
+        <Group justify="flex-end" gap="sm">
+          <Button variant="light" onClick={() => setIsDeleteModalOpen(false)}>
+            Vazgeç
+          </Button>
+          <Button color="red" onClick={handleConfirmDelete}>
+            Sil
+          </Button>
+        </Group>
+      </Modal>
     </div>
   );
 }
+
+export default VariantList;

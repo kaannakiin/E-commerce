@@ -2,6 +2,28 @@ import { prisma } from "@/lib/prisma";
 import { Card, Divider } from "@mantine/core";
 import { cache } from "react";
 import SocialMedia from "./_components/SocialMedia";
+import { Prisma } from "@prisma/client";
+export type SocialMediaProps = Prisma.MainSeoSettingsGetPayload<{
+  select: {
+    id: true;
+    title: true;
+    description: true;
+    themeColor: true;
+    themeColorSecondary: true;
+    favicon: {
+      select: {
+        url: true;
+      };
+    };
+    googleId: true;
+    googleVerification: true;
+    image: {
+      select: {
+        url: true;
+      };
+    };
+  };
+}>;
 const feedPage = cache(async () => {
   try {
     const feed = await prisma.mainSeoSettings.findFirst({
@@ -10,6 +32,14 @@ const feedPage = cache(async () => {
         title: true,
         description: true,
         themeColor: true,
+        themeColorSecondary: true,
+        favicon: {
+          select: {
+            url: true,
+          },
+        },
+        googleId: true,
+        googleVerification: true,
         image: {
           select: {
             url: true,
@@ -27,19 +57,7 @@ const TemaPage = async () => {
   const feed = await feedPage();
   return (
     <div className="p-4">
-      <Card withBorder shadow="xs">
-        <div className="my-2">
-          <h1 className="text-2xl font-semibold">SEO Ayarları</h1>
-          <p className="text-sm text-gray-500">
-            SEO ayarlarını ve sitenizin sosyal medya, arama motorları
-            görünürlüğünü buradan düzenleyebilirsiniz.
-          </p>
-        </div>
-        <Divider />
-        <div className="flex flex-col gap-4 py-4">
-          <SocialMedia data={feed} />
-        </div>
-      </Card>
+      <SocialMedia data={feed} />
     </div>
   );
 };

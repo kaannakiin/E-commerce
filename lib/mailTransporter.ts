@@ -29,7 +29,6 @@ const defaultConfig: EmailConfig = {
 };
 
 export function createTransporter(customConfig?: Partial<EmailConfig>) {
- 
   const config = {
     ...defaultConfig,
     ...customConfig,

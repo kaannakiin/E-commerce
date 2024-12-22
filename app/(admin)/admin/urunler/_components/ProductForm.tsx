@@ -1,5 +1,6 @@
 "use client";
 import FeedbackDialog from "@/components/FeedbackDialog";
+import MainLoader from "@/components/MainLoader";
 import {
   ProductAddFormValues,
   ProductAddSchema,
@@ -7,10 +8,10 @@ import {
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Box,
   Button,
   Card,
   Divider,
-  LoadingOverlay,
   MultiSelect,
   NumberInput,
   Select,
@@ -23,6 +24,7 @@ import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { ProductWithVariantsType } from "../[slug]/page";
 import {
+  AddProduct,
   EditProduct,
   searchGoogleCategories,
 } from "../_actions/ProductActions";
@@ -43,6 +45,7 @@ const ProductForm = ({
 }) => {
   const router = useRouter();
   const params = useParams();
+
   const [dialogState, setDialogState] = useState({
     isOpen: false,
     message: "",
@@ -117,13 +120,15 @@ const ProductForm = ({
     setEditingVariant(variant);
     setIsVariantFormOpen(true);
   };
-
   const handleUpdateVariant = (updatedVariant: VariantData) => {
     const index = fields.findIndex(
       (field) => field.uniqueId === updatedVariant.uniqueId,
     );
     if (index !== -1) {
-      update(index, updatedVariant);
+      update(index, {
+        ...updatedVariant,
+        imageFiles: updatedVariant.imageFiles || [], // defaultValues kontrolünü kaldır
+      });
     }
     setIsVariantFormOpen(false);
     setEditingVariant(null);
@@ -135,22 +140,35 @@ const ProductForm = ({
       remove(index);
     }
   };
-
   const onSubmit = async (formData: ProductAddFormValues) => {
     try {
-      const { slug } = params;
+      const res = { success: false, message: "" };
       if (params.slug as string) {
-        await EditProduct(formData, params.slug as string);
+        await EditProduct(formData, params.slug as string).then((response) => {
+          res.success = response.success;
+          res.message = response.message;
+        });
+      } else {
+        await AddProduct(formData).then((response) => {
+          res.success = response.success;
+          res.message = response.message;
+        });
       }
-      setDialogState({
-        isOpen: true,
-        message: "Ürün başarıyla oluşturuldu!",
-        type: "success",
-      });
 
-      setTimeout(() => {
-        router.refresh();
-      }, 2000);
+      if (res.success) {
+        setDialogState({
+          isOpen: true,
+          message: res.message,
+          type: "success",
+        });
+        router.push("/admin/urunler");
+      } else {
+        setDialogState({
+          isOpen: true,
+          message: res.message,
+          type: "success",
+        });
+      }
     } catch (error) {
       setDialogState({
         isOpen: true,
@@ -177,21 +195,13 @@ const ProductForm = ({
     });
   };
   if (isSubmitting) {
-    return (
-      <LoadingOverlay
-        visible
-        loaderProps={{
-          color: "primary",
-          type: "bars",
-        }}
-      />
-    );
+    return <MainLoader />;
   }
   return (
     <div>
       {data.length > 0 ? (
         <div>
-          <form>
+          <Box component="form">
             <Card
               withBorder
               shadow="sm"
@@ -319,6 +329,7 @@ const ProductForm = ({
                         {...field}
                         label="Kategori Ekle"
                         description="Kendi sitemiz için kullanılacaktır"
+                        withAsterisk
                         error={errors.categories?.message}
                         multiple
                         data={data.map((item) => ({
@@ -329,12 +340,14 @@ const ProductForm = ({
                       />
                     )}
                   />
+
                   <GoogleCategorySelector
                     initialCategories={googleCategory}
                     control={control}
                     onSearch={searchGoogleCategories}
                   />
                 </div>
+                <CategoryAddModal extraCategory />
               </Card>{" "}
               <Card withBorder shadow="sm" className="p-4">
                 <div className="mb-4 flex items-center justify-between">
@@ -362,7 +375,7 @@ const ProductForm = ({
                 />
               </Card>
             </div>
-          </form>
+          </Box>
           <VariantForm
             opened={isVariantFormOpen}
             onClose={handleVariantFormClose}

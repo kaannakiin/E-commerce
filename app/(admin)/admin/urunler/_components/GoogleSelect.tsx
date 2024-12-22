@@ -39,12 +39,11 @@ const GoogleCategorySelector = ({
   onSearch,
   multiple = false,
 }: Props) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<CategoryOption[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const processCategories = useCallback(
     (categories: Category[]): CategoryOption[] => {
-      return categories.map((cat) => ({
+      return categories?.map((cat) => ({
         value: cat.id.toString(),
         label: cat.name,
         description: cat.fullPath,
@@ -53,22 +52,29 @@ const GoogleCategorySelector = ({
     },
     [],
   );
+
+  // Sonra state'i tanımla
+  const [searchResults, setSearchResults] = useState<CategoryOption[]>(() =>
+    processCategories(initialCategories),
+  );
+
   useEffect(() => {
-    const processedInitialCategories = processCategories(initialCategories);
-    setSearchResults(processedInitialCategories);
+    if (initialCategories?.length > 0) {
+      setSearchResults(processCategories(initialCategories));
+    }
   }, [initialCategories, processCategories]);
+
   const debouncedSearch = useDebouncedCallback(async (searchTerm: string) => {
     if (!searchTerm || searchTerm.trim() === "") {
       setSearchResults(processCategories(initialCategories));
       return;
     }
 
-    setIsLoading(true);
+    setIsSearching(true);
     try {
       const response = await onSearch(searchTerm);
       if (response.success && response.data) {
-        const processedResults = processCategories(response.data);
-        setSearchResults(processedResults);
+        setSearchResults(processCategories(response.data));
       } else {
         console.error("Search failed:", response.error);
         setSearchResults(processCategories(initialCategories));
@@ -77,9 +83,10 @@ const GoogleCategorySelector = ({
       console.error("Detailed Search error:", error);
       setSearchResults(processCategories(initialCategories));
     } finally {
-      setIsLoading(false);
+      setIsSearching(false);
     }
   }, 500);
+
   const SelectComponent = multiple ? MultiSelect : Select;
 
   return (
@@ -93,11 +100,12 @@ const GoogleCategorySelector = ({
           onChange={onChange}
           searchable
           clearable
+          withAsterisk
           label="Google Ürün Kategorisi"
           description="Ürününüze en uygun kategoriyi aradığınıza emin olun. Alt Kategorileri seçmek için tekrar kontrol edin."
           error={error?.message}
           placeholder="Kategori seçin..."
-          rightSection={isLoading ? <Loader size="xs" /> : null}
+          rightSection={isSearching ? <Loader size="xs" /> : null}
           onSearchChange={debouncedSearch}
           maxDropdownHeight={400}
         />

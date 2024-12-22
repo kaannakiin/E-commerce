@@ -11,51 +11,95 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
   InputBase,
-  Paper,
   PasswordInput,
+  Switch,
   Tabs,
   Text,
-  TextInput,
+  TextInput
 } from "@mantine/core";
 import Link from "next/link";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { IMaskInput } from "react-imask";
-import classes from "./modules/LoginPage.module.css";
-import { useSearchParams } from "next/navigation";
+import MainLoader from "./MainLoader";
+
 export function AuthenticationImage() {
   const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || "/";
+  const pathname = usePathname();
+  const callbackUrl = decodeURIComponent(params.get("callbackUrl") || "/");
+  const { replace, push } = useRouter();
 
+  // Login Form Controller
   const {
-    register: LoginRegister,
+    control: loginControl,
     handleSubmit: LoginHandleSubmit,
     setError: LoginSetError,
+    reset: LoginReset,
     formState: { errors: LoginErrors, isSubmitting: LoginIsSubmitting },
-  } = useForm<LoginSchemaType>({ resolver: zodResolver(LoginSchema) });
+  } = useForm<LoginSchemaType>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  // Register Form Controller
   const {
-    register: RegisterRegister,
+    control: registerControl,
     handleSubmit: RegisterHandleSubmit,
     setError: RegisterSetError,
-    setValue,
+    reset: RegisterReset,
     formState: { errors: RegisterErrors, isSubmitting: RegisterIsSubmitting },
-  } = useForm<RegisterSchemaType>({ resolver: zodResolver(RegisterSchema) });
+  } = useForm<RegisterSchemaType>({
+    resolver: zodResolver(RegisterSchema),
+    defaultValues: {
+      email: "",
+      name: "",
+      surname: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+      termsAndPrivacyPolicy: false,
+    },
+  });
 
+  // Tab Change Handler
+  const onTabChange = (value: string) => {
+    const newUrl = new URLSearchParams(params.toString());
+    newUrl.set("tab", value);
+    replace(`${pathname}?${newUrl.toString()}`);
+    if (value === "giris") {
+      LoginReset();
+    } else {
+      RegisterReset();
+    }
+  };
+
+  // Login Submit Handler
   const onSubmitLogin: SubmitHandler<LoginSchemaType> = async (data) => {
-    await Login(data, callbackUrl).then((res) => {
+    try {
+      const res = await Login(data);
       if (res.success) {
-        LoginSetError("email", {
-          message: "Başarıyla giriş yaptınız. Yönlendiriliyorsunuz.",
+        push(callbackUrl);
+      } else {
+        LoginSetError("root", {
+          message: res.message,
         });
       }
-      LoginSetError("root", { message: res.error });
-    });
+    } catch (error) {
+      LoginSetError("root", {
+        message: "Giriş sırasında bir hata oluştu",
+      });
+    }
   };
   const onSubmitRegister: SubmitHandler<RegisterSchemaType> = async (data) => {
     await Register(data).then(async (res) => {
       if (res.success) {
-        await Login(
-          { email: data.email, password: data.password },
-          callbackUrl,
+        await Login({ email: data.email, password: data.password }).then(
+          (res) => {
+            if (res.success) push(callbackUrl);
+          },
         );
       }
       if (res.error) {
@@ -68,130 +112,218 @@ export function AuthenticationImage() {
       }
     });
   };
+
+  if (LoginIsSubmitting || RegisterIsSubmitting) {
+    return <MainLoader />;
+  }
+
   return (
-    <div className={classes.wrapper}>
-      <Paper className={classes.form} radius={0} p={30}>
-        <Tabs defaultValue="giris">
-          <Tabs.List grow>
+    <div className="flex min-h-[800px] items-start justify-center p-4 pt-8">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+        <Tabs
+          defaultValue={params.get("tab") || "giris"}
+          onChange={onTabChange}
+        >
+          <Tabs.List grow className="mb-6 font-bold">
             <Tabs.Tab value="giris">Giriş Yap</Tabs.Tab>
             <Tabs.Tab value="kayit">Kayıt Ol</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="giris" className="mt-4">
-            <form onSubmit={LoginHandleSubmit(onSubmitLogin)}>
-              <TextInput
-                {...LoginRegister("email")}
-                error={LoginErrors.email?.message}
-                label="Email"
-                size="sm"
-                withAsterisk
-              />
-              <PasswordInput
-                {...LoginRegister("password")}
-                error={LoginErrors.password?.message}
-                label="Şifre"
-                mt="md"
-                size="sm"
-                withAsterisk
-              />
-              {LoginErrors.email && (
-                <p className="mt-1 text-sm text-green-500">
-                  {LoginErrors.email.message}
-                </p>
-              )}
-              {LoginErrors.root && (
-                <p className="mt-1 text-sm text-red-500">
-                  {LoginErrors.root.message}
-                </p>
-              )}
-              <div className="mt-1 cursor-pointer text-end text-sm underline">
-                <Text component={Link} href={"/sifremi-unuttum"}>
-                  Şifremi unuttum
-                </Text>
-              </div>
+          <div className="min-h-[250px]">
+            <Tabs.Panel value="giris" className="mt-4 space-y-4">
+              <form
+                onSubmit={LoginHandleSubmit(onSubmitLogin)}
+                className="space-y-4"
+              >
+                <Controller
+                  name="email"
+                  control={loginControl}
+                  render={({ field, fieldState }) => (
+                    <TextInput
+                      {...field}
+                      error={fieldState.error?.message}
+                      label="Email"
+                      size="sm"
+                      withAsterisk
+                    />
+                  )}
+                />
 
-              <Button
-                fullWidth
-                mt="md"
-                size="sm"
-                type="submit"
-                loading={LoginIsSubmitting}
+                <Controller
+                  name="password"
+                  control={loginControl}
+                  render={({ field, fieldState }) => (
+                    <PasswordInput
+                      {...field}
+                      error={fieldState.error?.message}
+                      label="Şifre"
+                      size="sm"
+                      withAsterisk
+                    />
+                  )}
+                />
+
+                {LoginErrors.root && (
+                  <p className="text-sm text-red-500">
+                    {LoginErrors.root.message}
+                  </p>
+                )}
+
+                <div className="text-end">
+                  <Text
+                    component={Link}
+                    href="/sifremi-unuttum"
+                    className="text-sm hover:underline"
+                  >
+                    Şifremi unuttum
+                  </Text>
+                </div>
+
+                <Button fullWidth size="sm" type="submit">
+                  Giriş Yap
+                </Button>
+              </form>
+            </Tabs.Panel>
+
+            <Tabs.Panel value="kayit" className="mt-4 space-y-4">
+              <form
+                onSubmit={RegisterHandleSubmit(onSubmitRegister)}
+                className="space-y-4"
               >
-                Giriş Yap
-              </Button>
-            </form>
-          </Tabs.Panel>
-          <Tabs.Panel value="kayit" className="mt-4">
-            <form onSubmit={RegisterHandleSubmit(onSubmitRegister)}>
-              <TextInput
-                label="Email"
-                {...RegisterRegister("email")}
-                error={RegisterErrors.email?.message}
-                size="sm"
-                withAsterisk
-              />
-              <TextInput
-                label="Adınız"
-                {...RegisterRegister("name")}
-                error={RegisterErrors.name?.message}
-                mt="md"
-                size="sm"
-                withAsterisk
-              />
-              <TextInput
-                label="Soyadınız"
-                {...RegisterRegister("surname")}
-                error={RegisterErrors.surname?.message}
-                mt="md"
-                size="sm"
-                withAsterisk
-              />
-              <InputBase
-                component={IMaskInput}
-                {...RegisterRegister("phone")}
-                error={RegisterErrors.phone?.message}
-                onChange={(e) => {
-                  setValue("phone", e.currentTarget.value);
-                }}
-                mask={"(000) 000 00 00"}
-                mt="md"
-                size="sm"
-                label="Telefon Numarası"
-              />
-              <PasswordInput
-                label="Şifre"
-                {...RegisterRegister("password")}
-                error={RegisterErrors.password?.message}
-                mt="md"
-                size="sm"
-                withAsterisk
-              />
-              <PasswordInput
-                label="Şifre Tekrarı"
-                {...RegisterRegister("confirmPassword")}
-                error={RegisterErrors.confirmPassword?.message}
-                mt="md"
-                size="sm"
-                withAsterisk
-              />
-              {RegisterErrors.root && (
-                <p className="mt-1 text-sm text-red-500">
-                  {RegisterErrors.root.message}
-                </p>
-              )}
-              <Button
-                fullWidth
-                mt="md"
-                size="sm"
-                type="submit"
-                loading={RegisterIsSubmitting}
-              >
-                Kayıt Ol{" "}
-              </Button>
-            </form>
-          </Tabs.Panel>
+                <Controller
+                  name="email"
+                  control={registerControl}
+                  render={({ field, fieldState }) => (
+                    <TextInput
+                      {...field}
+                      error={fieldState.error?.message}
+                      label="Email"
+                      size="sm"
+                      withAsterisk
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="name"
+                  control={registerControl}
+                  render={({ field, fieldState }) => (
+                    <TextInput
+                      {...field}
+                      error={fieldState.error?.message}
+                      label="Adınız"
+                      size="sm"
+                      withAsterisk
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="surname"
+                  control={registerControl}
+                  render={({ field, fieldState }) => (
+                    <TextInput
+                      {...field}
+                      error={fieldState.error?.message}
+                      label="Soyadınız"
+                      size="sm"
+                      withAsterisk
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="phone"
+                  control={registerControl}
+                  render={({ field, fieldState }) => (
+                    <InputBase
+                      component={IMaskInput}
+                      {...field}
+                      error={fieldState.error?.message}
+                      mask="(000) 000 00 00"
+                      label="Telefon Numarası"
+                      size="sm"
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="password"
+                  control={registerControl}
+                  render={({ field, fieldState }) => (
+                    <PasswordInput
+                      {...field}
+                      error={fieldState.error?.message}
+                      label="Şifre"
+                      size="sm"
+                      withAsterisk
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="confirmPassword"
+                  control={registerControl}
+                  render={({ field, fieldState }) => (
+                    <PasswordInput
+                      {...field}
+                      error={fieldState.error?.message}
+                      label="Şifre Tekrarı"
+                      size="sm"
+                      withAsterisk
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="termsAndPrivacyPolicy"
+                  control={registerControl}
+                  render={({ field: { onChange, ...field }, fieldState }) => (
+                    <div className="space-y-1">
+                      <Switch
+                        checked={field.value}
+                        onChange={(event) =>
+                          onChange(event.currentTarget.checked)
+                        }
+                        className="w-fit"
+                        label={
+                          <Text component="span" size="sm">
+                            <Link
+                              href="/kullanici-sozlesmesi"
+                              className="text-blue-600 hover:underline"
+                              target="_blank"
+                            >
+                              Kullanıcı sözleşmesini
+                            </Link>{" "}
+                            ve{" "}
+                            <Link
+                              href="/kvkk"
+                              className="text-blue-600 hover:underline"
+                              target="_blank"
+                            >
+                              KVKK metnini
+                            </Link>{" "}
+                            okudum ve kabul ediyorum
+                          </Text>
+                        }
+                      />
+                    </div>
+                  )}
+                />
+
+                {RegisterErrors.root && (
+                  <p className="text-sm text-red-500">
+                    {RegisterErrors.root.message}
+                  </p>
+                )}
+
+                <Button fullWidth size="sm" type="submit">
+                  Kayıt Ol
+                </Button>
+              </form>
+            </Tabs.Panel>
+          </div>
         </Tabs>
-      </Paper>
+      </div>
     </div>
   );
 }
-// TODO EMAİL DOĞRULAMASI GÖNDERİLMELİ

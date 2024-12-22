@@ -1,17 +1,10 @@
 "use client";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
+import { Paper, rem, Text, Title, useMantineTheme } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import {
-  Paper,
-  Text,
-  Title,
-  Button,
-  useMantineTheme,
-  rem,
-} from "@mantine/core";
-import classes from "./modules/CategoryCarousels.module.css";
 import Link from "next/link";
+import classes from "./modules/CategoryCarousels.module.css";
 
 interface CardProps {
   image: string;
@@ -26,7 +19,7 @@ function Card({ image, title, category, slug }: CardProps) {
       shadow="md"
       p="xl"
       component={Link}
-      href={`/${slug}`}
+      href={`/categories/${slug}`}
       style={{ backgroundImage: `url(${image})` }}
       className={classes.card}
     >
@@ -46,9 +39,9 @@ export function CategoryCarousels({ categories }) {
   const data =
     categories.length > 0 &&
     categories.map((category) => {
-      const imageUrl = category.Image?.[0]?.url
-        ? "/api/user/asset/get-image?url=" + category.Image[0].url
-        : "/placeholder-image.jpg"; // varsayılan bir resim yolu
+      const imageUrl =
+        category.images?.[0]?.url &&
+        "/api/user/asset/get-image?url=" + category.images[0].url;
 
       return {
         image: imageUrl,

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Params, SearchParams } from "@/types/types";
 import { cache } from "react";
-import CategoryTable from "../_components/CategoryTable";
+import CategoryTable from "./_components/CategoryTable";
 
 const feedCategories = cache(
   async ({

@@ -4,23 +4,63 @@ import type { MantineColorsTuple } from "@mantine/core";
 import { ColorSchemeScript, MantineProvider, createTheme } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
-import type { Metadata, Viewport } from "next"; // Viewport type'ını import ediyoruz
+import type { Metadata, Viewport } from "next";
 import { SessionProvider } from "next-auth/react";
 import { cache } from "react";
 import "./globals.css";
+
+// Type definitions for better type safety
+type SeoSettings = {
+  description: string | null;
+  title: string | null;
+  image: { url: string } | null;
+  themeColor: string | null;
+  favicon: { url: string } | null;
+  googleId: string | null;
+  googleVerification: string | null;
+  themeColorSecondary: string | null;
+};
+
+type SalerInfo = {
+  logo: { url: string } | null;
+} | null;
+
+const DEFAULT_SETTINGS = {
+  title: "%100 Sertifikalı Sağlıklı Yaşam Marketi",
+  description:
+    "Sertifikalı organik gıdadan doğal kozmetiğe, ev bakım ürünlerinden süper gıdalara kadar tüm doğal yaşam ürünlerini uygun fiyatlarla keşfedin",
+  themeColor: "#4C6EF5",
+  baseUrl: "https://8495-31-223-89-243.ngrok-free.app",
+} as const;
+
 const feedLayout = cache(async () => {
   try {
-    const data = await prisma.mainSeoSettings.findFirst({
-      select: {
-        description: true,
-        title: true,
-        image: { select: { url: true } },
-        themeColor: true,
-      },
-    });
-    if (!data) return null;
-    return data;
-  } catch (error) {}
+    const [seoData, salerInfo] = await Promise.all([
+      prisma.mainSeoSettings.findFirst({
+        select: {
+          description: true,
+          title: true,
+          image: { select: { url: true } },
+          themeColor: true,
+          favicon: { select: { url: true } },
+          googleId: true,
+          googleVerification: true,
+          themeColorSecondary: true,
+        },
+      }),
+      prisma.salerInfo.findFirst({
+        include: { logo: true },
+      }),
+    ]);
+
+    return {
+      data: seoData,
+      salerInfo,
+    };
+  } catch (error) {
+    console.error("Error in feedLayout:", error);
+    return { data: null, salerInfo: null };
+  }
 });
 
 export const viewport: Viewport = {
@@ -31,63 +71,85 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const data = await feedLayout();
-  const defaultTitle = "DevelopedByHann1ball";
-  const defaultDescription =
-    "Modern ve yenilikçi web çözümleri sunan DevelopedByHann1ball ile dijital varlığınızı güçlendirin. Full-stack web development hizmetleri.";
+  const { data, salerInfo } = await feedLayout();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_SETTINGS.baseUrl;
 
-  // Base URL'i environment'tan al
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    "https://8495-31-223-89-243.ngrok-free.app";
+  // Create image URL with proper error handling
+  const createImageUrl = (
+    imageUrl: string | undefined,
+    fallbackPath: string,
+    queryParam: string,
+  ) => {
+    if (!imageUrl) return new URL(fallbackPath, baseUrl).toString();
+    try {
+      // URL'in geçerli olduğundan emin olalım
+      if (imageUrl.includes("..") || imageUrl.includes("/")) {
+        return new URL(fallbackPath, baseUrl).toString();
+      }
 
-  // OG Image URL'ini oluştur
-
-  const ogImageUrl = data?.image?.url
-    ? new URL(
-        `/api/user/asset/get-image?url=${data.image.url}&og=true`,
+      return new URL(
+        `/api/user/asset/get-image?url=${encodeURIComponent(imageUrl)}&${queryParam}=true`,
         baseUrl,
-      ).toString()
-    : new URL("/default-og.jpg", baseUrl).toString();
+      ).toString();
+    } catch {
+      return new URL(fallbackPath, baseUrl).toString();
+    }
+  };
+
+  const ogImageUrl = createImageUrl(data?.image?.url, "/default-og.jpg", "og");
+  const faviconUrl = salerInfo?.logo?.url
+    ? createImageUrl(salerInfo.logo.url, "/favicon.ico", "favicon")
+    : undefined;
 
   return {
     metadataBase: new URL(baseUrl),
     title: {
-      default: data?.title || defaultTitle,
-      template: `%s | ${data?.title || defaultTitle}`,
+      default: data?.title ?? DEFAULT_SETTINGS.title,
+      template: `%s | ${data?.title ?? DEFAULT_SETTINGS.title}`,
     },
-    description: data?.description || defaultDescription,
+    alternates: {
+      canonical: new URL("/", baseUrl).toString(),
+    },
+    icons: faviconUrl
+      ? {
+          icon: [
+            {
+              url: faviconUrl,
+              sizes: "32x32",
+              type: "image/png",
+            },
+          ],
+        }
+      : undefined,
+    description: data?.description ?? DEFAULT_SETTINGS.description,
     openGraph: {
-      title: data?.title || defaultTitle,
-      description: data?.description || defaultDescription,
+      title: data?.title ?? DEFAULT_SETTINGS.title,
+      description: data?.description ?? DEFAULT_SETTINGS.description,
       images: [
         {
           url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: data?.title || defaultTitle,
+          alt: data?.title ?? DEFAULT_SETTINGS.title,
         },
       ],
-      siteName: data?.title || defaultTitle,
+      siteName: data?.title ?? DEFAULT_SETTINGS.title,
       locale: "tr_TR",
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: data?.title || defaultTitle,
-      description: data?.description || defaultDescription,
+      title: data?.title ?? DEFAULT_SETTINGS.title,
+      description: data?.description ?? DEFAULT_SETTINGS.description,
       images: [ogImageUrl],
     },
     robots: {
       index: true,
       follow: true,
     },
-    icons: {
-      icon: "/favicon.ico",
-      apple: "/apple-touch-icon.png",
-    },
   };
 }
+
 const secondaryColor = [
   "#fcf9e9",
   "#f6f0d9",
@@ -118,21 +180,22 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const data = await feedLayout();
-  const baseColor = data?.themeColor || "#2E2E2E";
+  const { data } = await feedLayout();
 
-  // Mantine color tuple oluştur
+  // Use default theme color if not provided
+  const baseColor = data?.themeColor ?? DEFAULT_SETTINGS.themeColor;
+
   const primaryColors = [
-    generateShades(baseColor, 0.95), // 0
-    generateShades(baseColor, 0.85), // 1
-    generateShades(baseColor, 0.75), // 2
-    generateShades(baseColor, 0.65), // 3
-    generateShades(baseColor, 0.55), // 4
-    generateShades(baseColor, 0.45), // 5
-    generateShades(baseColor, 0.35), // 6
-    generateShades(baseColor, 0.25), // 7
-    generateShades(baseColor, 0.15), // 8
-    generateShades(baseColor, 0.05), // 9
+    generateShades(baseColor, 0.95),
+    generateShades(baseColor, 0.85),
+    generateShades(baseColor, 0.75),
+    generateShades(baseColor, 0.65),
+    generateShades(baseColor, 0.55),
+    generateShades(baseColor, 0.45),
+    generateShades(baseColor, 0.35),
+    generateShades(baseColor, 0.25),
+    generateShades(baseColor, 0.15),
+    generateShades(baseColor, 0.05),
   ] as MantineColorsTuple;
 
   const theme = createAppTheme(primaryColors);
@@ -140,8 +203,7 @@ export default async function RootLayout({
   return (
     <html lang="tr" suppressHydrationWarning className="bg-white">
       <head>
-        <ColorSchemeScript forceColorScheme="light" />{" "}
-        <link rel="shortcut icon" href="/favicon.svg" />
+        <ColorSchemeScript forceColorScheme="light" />
       </head>
       <body>
         <SessionProvider>

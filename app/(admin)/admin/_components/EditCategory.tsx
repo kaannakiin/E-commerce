@@ -21,7 +21,7 @@ import {
   Title,
 } from "@mantine/core";
 import { SubmitHandler, useForm } from "react-hook-form";
-import CarouselEditImage from "./CarouselEditImage";
+import CarouselEditImage from "../kategoriler/_components/CarouselEditImage";
 import ImageDropzone from "./ImageDropzone";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -80,12 +80,12 @@ const EditCategory = ({ category, categorySlug }) => {
   };
   return (
     <Box className="w-full p-4 md:p-6">
-      <Paper shadow="xs" radius="md" className="max-w-5xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-6 p-6">
+      <Paper shadow="xs" radius="md" className="mx-auto max-w-5xl">
+        <div className="flex flex-col gap-6 p-6 md:flex-row">
           {/* LEFT SECTION - Image */}
           <div className="w-full md:w-72">
             <Paper shadow="sm" radius="md" className="sticky top-6">
-              <div className="w-full aspect-square relative">
+              <div className="relative aspect-square w-full">
                 <CarouselEditImage images={category?.Image || []} />
               </div>
             </Paper>

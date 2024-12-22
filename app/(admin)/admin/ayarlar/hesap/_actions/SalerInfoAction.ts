@@ -1,5 +1,5 @@
 "use server";
-import { DeleteImage } from "@/lib/deleteImageFile";
+import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { prisma } from "@/lib/prisma";
 import { processImages } from "@/lib/recordImage";
 import { SalerInfoFormValues } from "@/zodschemas/authschema";
@@ -69,7 +69,7 @@ export async function AddInfo(data: SalerInfoFormValues): Promise<{
 
         if (logoData) {
           if (existingInfo.logo?.url) {
-            await DeleteImage(existingInfo.logo.url, {
+            await DeleteImageToAsset(existingInfo.logo.url, {
               isLogo: true,
               maxRetries: 5,
               retryDelay: 200,

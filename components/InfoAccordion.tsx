@@ -1,18 +1,10 @@
 "use client";
+import { Accordion, ScrollArea } from "@mantine/core";
 import React from "react";
-import { Accordion } from "@mantine/core";
-import { BiPackage } from "react-icons/bi";
-import { MdOutlineDescription, MdOutlineLocalShipping } from "react-icons/md";
-import { LuLeaf } from "react-icons/lu";
-import { IoWarningOutline } from "react-icons/io5";
+import { MdOutlineDescription } from "react-icons/md";
 
 interface ProductDetailsProps {
-  description: string;
-  ingredients?: string[];
-  benefits?: Array<{
-    title: string;
-    description: string;
-  }>;
+  richText: string;
 }
 
 interface AccordionLabelProps {
@@ -29,85 +21,36 @@ const AccordionLabel = ({ label, icon }: AccordionLabelProps) => {
   );
 };
 
-const ProductDetails = ({
-  description,
-  ingredients = [],
-}: ProductDetailsProps) => {
+const ProductDetails = ({ richText }: ProductDetailsProps) => {
   return (
-    <div className="mt-8 border-t pt-6 ">
-      <Accordion variant="separated" radius="md">
-        <Accordion.Item value="ingredients">
-          <Accordion.Control>
-            <AccordionLabel label="İçindekiler" icon={<BiPackage />} />
-          </Accordion.Control>
-          <Accordion.Panel>
-            <div className="prose prose-sm text-gray-600">
-              <ul className="space-y-2">
-                {ingredients.map((ingredient, index) => (
-                  <li key={index}>{ingredient}</li>
-                ))}
-              </ul>
-              <p className="mt-2 text-sm text-primary-500">
-                * Tüm içeriklerimiz doğal ve sertifikalıdır.
-              </p>
-            </div>
-          </Accordion.Panel>
-        </Accordion.Item>
-
+    <div className="mt-8 border-t pt-6">
+      <Accordion variant="default" radius="md">
         <Accordion.Item value="description">
-          <Accordion.Control>
+          <Accordion.Control px={0} py={0}>
             <AccordionLabel
-              label="Ürün Detayı"
+              label="Ürün Açıklaması"
               icon={<MdOutlineDescription />}
             />
           </Accordion.Control>
-          <Accordion.Panel>
-            <div className="prose prose-sm text-gray-600">
-              <p>{description}</p>
-              <div className="mt-4 space-y-2">
-                <h4 className="font-medium text-gray-700">
-                  Kullanım Önerileri:
-                </h4>
-                <ul className="list-disc pl-4 space-y-1">
-                  <li>Temiz cilde uygulayın</li>
-                  <li>Günde 2 kez kullanın</li>
-                  <li>Güneş kremi ile birlikte kullanın</li>
-                </ul>
-              </div>
-            </div>
-          </Accordion.Panel>
-        </Accordion.Item>
-
-        <Accordion.Item value="shipping">
-          <Accordion.Control>
-            <AccordionLabel
-              label="Kargo & İade"
-              icon={<MdOutlineLocalShipping />}
-            />
-          </Accordion.Control>
-          <Accordion.Panel>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <MdOutlineLocalShipping className="text-xl text-primary-500 mt-1" />
-                <div>
-                  <h4 className="font-medium text-gray-700">Kargo Bilgileri</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    2-3 iş günü içinde kargoya verilir.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <IoWarningOutline className="text-xl text-primary-500 mt-1" />
-                <div>
-                  <h4 className="font-medium text-gray-700">İade Koşulları</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    14 gün içinde iade hakkınız bulunmaktadır. Ürün açılmamış ve
-                    kullanılmamış olmalıdır.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <Accordion.Panel p={0}>
+            <ScrollArea.Autosize
+              mah={180}
+              type="scroll"
+              scrollbarSize={6}
+              offsetScrollbars
+              p={0}
+            >
+              {richText ? (
+                <div
+                  className="prose prose-sm max-w-none text-gray-600"
+                  dangerouslySetInnerHTML={{ __html: richText }}
+                />
+              ) : (
+                <p className="text-gray-500">
+                  Ürün açıklaması bulunmamaktadır.
+                </p>
+              )}
+            </ScrollArea.Autosize>
           </Accordion.Panel>
         </Accordion.Item>
       </Accordion>
