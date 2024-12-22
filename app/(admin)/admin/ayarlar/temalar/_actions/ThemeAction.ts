@@ -1,5 +1,5 @@
 "use server";
-import { DeleteImage } from "@/lib/deleteImageFile";
+import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { prisma } from "@/lib/prisma";
 import { processImages } from "@/lib/recordImage";
 import {
@@ -11,74 +11,104 @@ export async function EditTheme(
   data: SocialMediaPreviewType,
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const { logo, title, description, themeColor } =
-      SocialMediaPreviewSchema.parse(data);
-    let oldImageUrl: string | null = null;
+    // Schema validation
+    const {
+      title,
+      description,
+      favicon,
+      googleId,
+      googleVerification,
+      logo,
+      themeColor1,
+      themeColor2,
+    } = SocialMediaPreviewSchema.parse(data);
+
+    // Process images in parallel if they exist
+    const [faviconResult, logoResult] = await Promise.all([
+      favicon ? processImages(favicon, { isFavicon: true }) : null,
+      logo
+        ? processImages(logo, {
+            quality: 80,
+            ogImageOptions: {
+              width: 1200,
+              height: 630,
+              format: "jpeg",
+              quality: 80,
+            },
+          })
+        : null,
+    ]);
+
+    const faviconUrl = faviconResult?.[0]?.url;
+    const logoUrl = logoResult?.[0]?.url;
+
+    // Database operations
     await prisma.$transaction(async (tx) => {
-      const existingTheme = await tx.mainSeoSettings.findFirst({
-        include: { image: true },
+      const existingSettings = await tx.mainSeoSettings.findFirst({
+        select: {
+          id: true,
+          image: { select: { url: true } },
+          favicon: { select: { url: true } },
+        },
       });
 
-      if (existingTheme) {
-        if (logo) {
-          oldImageUrl = existingTheme.image?.url || null;
-
-          const newImageUrl = await processImages(logo).then(
-            (res) => res[0].url,
-          );
-          await tx.mainSeoSettings.update({
-            where: { id: existingTheme.id },
-            data: {
-              description,
-              image: {
-                delete: existingTheme.imageId ? true : false, // Eski image'ı sil
-                create: {
-                  url: newImageUrl,
-                },
-              },
-              themeColor,
-              title,
-            },
-          });
-        } else {
-          await tx.mainSeoSettings.update({
-            where: { id: existingTheme.id },
-            data: {
-              description,
-              themeColor,
-              title,
-            },
-          });
-        }
-      } else {
-        if (!logo) {
-          throw new Error("İlk oluşturmada logo zorunludur");
-        }
-        await tx.mainSeoSettings.create({
-          data: {
-            description,
-            image: {
-              create: {
-                url: await processImages(logo).then((res) => res[0].url),
-              },
-            },
-            themeColor,
-            title,
+      // Prepare common data object
+      const commonData = {
+        description,
+        title,
+        googleId,
+        googleVerification,
+        themeColor: themeColor1,
+        themeColorSecondary: themeColor2,
+        ...(faviconUrl && {
+          favicon: {
+            create: { url: faviconUrl },
           },
+        }),
+        ...(logoUrl && {
+          image: {
+            create: { url: logoUrl },
+          },
+        }),
+      };
+
+      if (existingSettings) {
+        // Delete existing images if they exist
+        const deletePromises = [];
+        if (existingSettings.image?.url) {
+          deletePromises.push(
+            DeleteImageToAsset(existingSettings.image.url, { isLogo: true }),
+          );
+        }
+        if (existingSettings.favicon?.url) {
+          deletePromises.push(
+            DeleteImageToAsset(existingSettings.favicon.url, {
+              isFavicon: true,
+            }),
+          );
+        }
+
+        if (deletePromises.length > 0) {
+          try {
+            await Promise.all(deletePromises);
+          } catch (error) {
+            console.error("Error deleting existing images:", error);
+            throw new Error("Failed to delete existing images");
+          }
+        }
+
+        // Update existing record
+        await tx.mainSeoSettings.update({
+          where: { id: existingSettings.id },
+          data: commonData,
+        });
+      } else {
+        // Create new record
+        await tx.mainSeoSettings.create({
+          data: commonData,
         });
       }
     });
-
-    if (oldImageUrl) {
-      try {
-        await DeleteImage(oldImageUrl);
-      } catch (error) {
-        console.error("Eski resim silinirken hata:", {
-          url: oldImageUrl,
-          error: error instanceof Error ? error.message : error,
-        });
-      }
-    }
 
     return {
       success: true,
@@ -90,79 +120,52 @@ export async function EditTheme(
       stack: error instanceof Error ? error.stack : undefined,
     });
 
-    if (error instanceof Error) {
-      return {
-        success: false,
-        message: error.message,
-      };
-    }
     return {
       success: false,
-      message: "Tema güncellenirken bir hata oluştu",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Tema güncellenirken bir hata oluştu",
     };
   }
 }
-export async function DeteleSeoImage(id: string): Promise<{
+export async function DeteleSeoImage(
+  url: string,
+  type: "favicon" | "logo",
+): Promise<{
   success: boolean;
   message: string;
 }> {
   try {
-    if (!id) {
-      return {
-        success: false,
-        message: "ID gereklidir",
-      };
+    if (!url) {
+      return { success: false, message: "Resim bulunamadı" };
     }
 
-    // Önce mevcut kaydı ve image bilgisini alalım
-    const currentRecord = await prisma.mainSeoSettings.findUnique({
-      where: { id },
-      include: {
-        image: true,
-      },
-    });
-
-    if (!currentRecord?.imageId) {
-      return {
-        success: false,
-        message: "Görsel bulunamadı",
-      };
-    }
-
-    await prisma.mainSeoSettings.update({
-      where: { id },
-      data: {
-        imageId: null,
-      },
-    });
-
-    // Sonra Image kaydını silelim
-    if (currentRecord.image) {
+    if (type === "favicon") {
       await prisma.image.delete({
-        where: {
-          id: currentRecord.imageId,
-        },
+        where: { url },
       });
 
-      // En son fiziksel dosyayı silelim
-      await DeleteImage(currentRecord.image.url);
+      const deleteResult = await DeleteImageToAsset(url, { isFavicon: true });
+      return deleteResult.success
+        ? { success: true, message: "Resim başarıyla silindi" }
+        : { success: false, message: "Resim silinirken bir hata oluştu" };
     }
 
-    return {
-      success: true,
-      message: "Görsel başarıyla silindi",
-    };
-  } catch (error) {
-    console.error("Görsel silinirken hata:", error);
-    if (error instanceof Error) {
-      return {
-        success: false,
-        message: error.message,
-      };
+    if (type === "logo") {
+      await prisma.image.delete({
+        where: { url },
+      });
+
+      const deleteResult = await DeleteImageToAsset(url, { isLogo: true });
+      return deleteResult.success
+        ? { success: true, message: "Resim başarıyla silindi" }
+        : { success: false, message: "Resim silinirken bir hata oluştu" };
     }
-    return {
-      success: false,
-      message: "Görsel silinirken bir hata oluştu",
-    };
+
+    return { success: false, message: "Geçersiz resim tipi" };
+  } catch (error) {
+    console.error("Image deletion error:", error);
+    return { success: false, message: "Resim silinirken bir hata oluştu" };
   }
 }

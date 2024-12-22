@@ -65,7 +65,7 @@ const feedFeaturedProduct = cache(async () => {
 const FeedFeaturedProducts = async () => {
   const result = await feedFeaturedProduct();
   return (
-    <section className="w-full px-5 py-8">
+    <section className="w-full bg-primary-200 px-5 py-8">
       <h2 className="mb-6 text-center text-2xl font-bold">En Çok Satanlar</h2>
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {result.products &&

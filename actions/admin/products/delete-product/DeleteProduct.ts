@@ -1,6 +1,6 @@
 "use server";
 
-import { DeleteImage } from "@/lib/deleteImageFile";
+import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
@@ -44,7 +44,7 @@ export async function DeleteProduct(variantId: string) {
         });
 
         await Promise.all(
-          existingVariant.Image.map((image) => DeleteImage(image.url)),
+          existingVariant.Image.map((image) => DeleteImageToAsset(image.url)),
         );
       }
 
@@ -53,7 +53,9 @@ export async function DeleteProduct(variantId: string) {
         const allImages = existingVariant.product.Variant.flatMap(
           (v) => v.Image,
         );
-        await Promise.all(allImages.map((image) => DeleteImage(image.url)));
+        await Promise.all(
+          allImages.map((image) => DeleteImageToAsset(image.url)),
+        );
 
         // Önce ürün-kategori ilişkilerini sil
         await tx.product.update({

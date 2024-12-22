@@ -1,5 +1,5 @@
 "use server";
-import { DeleteImage } from "@/lib/deleteImageFile";
+import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { processImages } from "@/lib/recordImage";
@@ -160,7 +160,7 @@ export const deleteSliderAction = async (
     };
   }
   try {
-    await DeleteImage(heroSection.image.url);
+    await DeleteImageToAsset(heroSection.image.url);
     await prisma.mainHeroSection.delete({
       where: {
         id: id,

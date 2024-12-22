@@ -79,7 +79,7 @@ const feedHeader = cache(async () => {
       },
     });
     const featuredProducts = variants.map((variant) => ({
-      slug: variant.product.categories[0].slug + "/" + variant.slug,
+      slug: variant.slug,
       product: {
         name: variant.product.name,
         shortDescription: variant.product.shortDescription,
@@ -127,7 +127,6 @@ const Header = async () => {
           <MenuCategory categories={data} />
         </div>
 
-        {/* CENTER SECTION - Logo */}
         <div className="flex h-full items-center lg:absolute lg:left-1/2 lg:-translate-x-1/2">
           <Link className="relative h-full w-52 sm:w-72" href="/">
             {salerInfo && (

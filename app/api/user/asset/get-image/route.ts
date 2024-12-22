@@ -4,7 +4,7 @@ import fs from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import sharp from "sharp";
-
+const FAVICON_SIZES = [16, 32, 48] as const;
 const ASSET_DIR = path.join(process.cwd(), "assets");
 const DEFAULT_QUALITY = 75; // CustomImage'deki varsayılan değerle eşleştirdik
 const MAX_WIDTH = 2000;
@@ -20,6 +20,7 @@ interface ProcessImageOptions {
   quality?: number;
   thumbnail?: boolean;
   og?: boolean;
+  favicon?: boolean;
 }
 
 async function processImage(
@@ -31,12 +32,29 @@ async function processImage(
     quality = DEFAULT_QUALITY,
     thumbnail = false,
     og = false,
+    favicon = false,
   } = options;
   try {
     let imageProcessor = sharp(await fs.readFile(filePath));
+    if (favicon) {
+      const image = sharp(await fs.readFile(filePath));
 
+      // Her boyut için ayrı bir Buffer oluştur
+      const faviconBuffers = await Promise.all(
+        FAVICON_SIZES.map(async (size) => {
+          return await image
+            .resize(size, size, {
+              fit: "contain",
+              background: { r: 255, g: 255, b: 255, alpha: 0 },
+            })
+            .png()
+            .toBuffer();
+        }),
+      );
+
+      return await sharp(faviconBuffers[1]).png().toBuffer();
+    }
     if (thumbnail) {
-      // Thumbnail işlemi - CustomImage'deki düşük kaliteli placeholder için
       return await imageProcessor
         .resize(THUMBNAIL_WIDTH, undefined, {
           fit: "inside",
@@ -78,7 +96,6 @@ async function processImage(
     throw new Error("Failed to process image");
   }
 }
-
 export async function GET(req: NextRequest) {
   try {
     const url = req.nextUrl.searchParams.get("url");
@@ -89,8 +106,7 @@ export async function GET(req: NextRequest) {
     );
     const thumbnail = req.nextUrl.searchParams.get("thumbnail") === "true";
     const og = req.nextUrl.searchParams.get("og") === "true";
-
-    // Validasyonlar
+    const favicon = req.nextUrl.searchParams.get("favicon") === "true"; // Yeni eklenen
     if (!url) {
       return NextResponse.json(
         { error: "Image URL is required" },
@@ -100,26 +116,21 @@ export async function GET(req: NextRequest) {
     if (url.includes("..") || url.includes("/")) {
       return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
     }
-
-    // Dosya yolunu belirle
-    const fileName = `${url}`; // Tüm dosyaları jpg olarak saklıyoruz
+    const fileName = `${url}`;
     const filePath = path.join(ASSET_DIR, fileName);
-
     if (!existsSync(filePath)) {
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
-
-    // Resmi işle
     const processedImage = await processImage(filePath, {
       width,
       quality,
       thumbnail,
       og,
+      favicon,
     });
 
-    // Response headerları
     const headers = {
-      "Content-Type": "image/jpeg",
+      "Content-Type": favicon ? "image/png" : "image/jpeg",
       "Cache-Control": "public, max-age=31536000, stale-while-revalidate=86400",
       "Access-Control-Allow-Origin": "*",
       "Cross-Origin-Resource-Policy": "cross-origin",

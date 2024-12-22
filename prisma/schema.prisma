@@ -48,6 +48,19 @@ model User {
   Adress           Address[]
   FavoriteVariants FavoriteVariants[]
   Order            Order[]
+  passwordReset    PasswordReset?
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  @@index([token])
 }
 
 enum Role {
@@ -71,7 +84,6 @@ model Product {
   id               String          @id @default(uuid())
   name             String
   description      String
-  googleCategory   Int?
   active           Boolean         @default(true)
   shortDescription String
   type             ProductType     @default(PHYSICAL)
@@ -105,8 +117,9 @@ model GoogleCategory {
   // Schema.org için
   schemaType String @default("Product") // Schema.org type
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  Category  Category[]
 
   @@index([parentId])
   @@index([level])
@@ -144,33 +157,46 @@ model Variant {
 }
 
 model Image {
-  id              String            @id @default(uuid())
-  url             String            @unique
-  alt             String?
-  variantId       String?
-  variant         Variant?          @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  categoryId      String?
-  category        Category?         @relation(fields: [categoryId], references: [id])
-  MainHeroSection MainHeroSection[]
-  SalerInfo       SalerInfo?
-  MainSeoSettings MainSeoSettings?
+  id                String            @id @default(uuid())
+  url               String            @unique
+  alt               String?
+  variantId         String?
+  variant           Variant?          @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  categoryId        String?
+  category          Category?         @relation(fields: [categoryId], references: [id])
+  MainHeroSection   MainHeroSection[]
+  SalerInfo         SalerInfo?
+  MainSeoSettings   MainSeoSettings?  @relation(fields: [mainSeoSettingsId], references: [id])
+  mainSeoSettingsId String?
+  mainSeoImage      MainSeoSettings?  @relation("MainImage")
+  mainSeoFavicon    MainSeoSettings?  @relation("Favicon")
 
   @@index([variantId])
   @@index([categoryId])
 }
 
 model Category {
-  id          String    @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  slug        String    @unique
-  active      Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[] @relation("ProductCategory")
-  Image       Image[]
+  slug        String  @unique
+  active      Boolean @default(false)
+
+  products         Product[]       @relation("ProductCategory")
+  images           Image[] // Image -> images (çoğul olarak düzeltildi)
+  googleCategory   GoogleCategory? @relation(fields: [googleCategoryId], references: [id])
+  metaTitle        String?
+  metaDescription  String?
+  metaKeywords     String?         @db.Text //eklenebilir uzun metinler için
+  googleCategoryId Int?
+  JSONLD           Json? // jsonld olarak küçük harfle yazılması önerilir
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([googleCategoryId])
+  @@index([active])
 }
 
 enum AssetType {
@@ -179,12 +205,18 @@ enum AssetType {
 }
 
 model MainSeoSettings {
-  id          String  @id @default(cuid())
-  image       Image?  @relation(fields: [imageId], references: [id])
-  imageId     String? @unique
-  title       String
-  description String
-  themeColor  String
+  id                  String  @id @default(cuid())
+  image               Image?  @relation("MainImage", fields: [imageId], references: [id])
+  imageId             String? @unique
+  favicon             Image?  @relation("Favicon", fields: [faviconId], references: [id])
+  faviconId           String? @unique
+  googleId            String? //for google-analytics 
+  googleVerification  String? // Google site doğrulama kodu için yeni alan
+  title               String
+  description         String
+  themeColor          String
+  themeColorSecondary String?
+  Image               Image[]
 }
 
 model MainHeroSection {

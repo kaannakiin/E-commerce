@@ -8,11 +8,12 @@ const feedCat = cache(async () => {
       where: {
         active: true,
       },
+      orderBy: { createdAt: "asc" },
       select: {
         name: true,
         slug: true,
         description: true,
-        Image: {
+        images: {
           take: 1,
           select: {
             url: true,
@@ -27,7 +28,7 @@ const feedCat = cache(async () => {
 const FeedCategoryCarousels = async () => {
   const feedCategory = await feedCat();
   return (
-    <div className="px-5 h-[500px] my-10 ">
+    <div className="my-10 h-[500px] px-5">
       <CategoryCarousels categories={feedCategory} />
     </div>
   );

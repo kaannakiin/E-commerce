@@ -1,21 +1,21 @@
 "use client";
-import React, { Fragment } from "react";
-import { Spotlight, spotlight } from "@mantine/spotlight";
-import { IoSearchOutline } from "react-icons/io5";
-import CustomImage from "./CustomImage";
-import {
-  Group,
-  Stack,
-  Text,
-  Badge,
-  ColorSwatch,
-  LoadingOverlay,
-} from "@mantine/core";
-import { useDebouncedCallback } from "@mantine/hooks";
-import "@mantine/spotlight/styles.css";
 import { SearchProductForSpotlight } from "@/actions/user/search-product-for-spotlight";
 import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
+import {
+  Badge,
+  ColorSwatch,
+  Group,
+  Stack,
+  Text
+} from "@mantine/core";
+import { useDebouncedCallback } from "@mantine/hooks";
+import { Spotlight, spotlight } from "@mantine/spotlight";
+import "@mantine/spotlight/styles.css";
+import React, { Fragment } from "react";
+import { IoSearchOutline } from "react-icons/io5";
+import CustomImage from "./CustomImage";
+import MainLoader from "./MainLoader";
 
 const SearchSpotlight = ({ featuredProducts }) => {
   const [query, setQuery] = React.useState("");
@@ -34,7 +34,7 @@ const SearchSpotlight = ({ featuredProducts }) => {
 
       const transformedData = response.data.flatMap((product) =>
         product.Variant.map((variant) => ({
-          slug: product.categories[0].slug + "/" + variant.slug,
+          slug: variant.slug,
           product: {
             name: product.name,
             shortDescription: product.shortDescription,
@@ -44,6 +44,7 @@ const SearchSpotlight = ({ featuredProducts }) => {
           discount: variant.discount || 0,
           type: variant.type,
           value: variant.value,
+          unit: variant.unit,
           Image: variant.Image,
         })),
       );
@@ -107,8 +108,9 @@ const SearchSpotlight = ({ featuredProducts }) => {
               {item.Image[0] && (
                 <CustomImage
                   src={item.Image[0].url}
-                  objectFit="contain"
+                  objectFit="cover"
                   quality={20}
+                  sizes="(max-width: 640px) 100vw, 640px"
                 />
               )}
             </div>
@@ -132,11 +134,14 @@ const SearchSpotlight = ({ featuredProducts }) => {
               </div>
               {item.type === "COLOR" && (
                 <Group gap="xs">
-                  <Text size="xs" c="dimmed">
-                    Renk:
-                  </Text>
                   <ColorSwatch color={item.value} size={20} />
                 </Group>
+              )}
+              {item.type !== "COLOR" && (
+                <span className="text-secondary-950 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium">
+                  {item.type === "WEIGHT" && `${item.value}${item.unit}`}
+                  {item.type === "SIZE" && `${item.value}`}
+                </span>
               )}
             </Stack>
           </Group>
@@ -189,12 +194,7 @@ const SearchSpotlight = ({ featuredProducts }) => {
             <div
               style={{ position: "relative", height: "200px", width: "100%" }}
             >
-              <LoadingOverlay
-                visible={true}
-                zIndex={1000}
-                overlayProps={{ radius: "sm", blur: 2 }}
-                loaderProps={{ color: "primary", type: "oval" }}
-              />
+              <MainLoader />
             </div>
           ) : errorMessage ? (
             <Text c="dimmed" ta="center" py="xl">

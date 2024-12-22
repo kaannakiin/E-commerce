@@ -11,8 +11,8 @@ const ProductGallery = ({ images }) => {
       <div className="relative aspect-[11/7] w-full overflow-hidden rounded-lg">
         <CustomImage
           src={images[selectedImage]}
-          quality={21}
-          objectFit="contain"
+          quality={80}
+          objectFit="cover"
         />
       </div>
 
@@ -28,7 +28,7 @@ const ProductGallery = ({ images }) => {
                 : "ring-1 ring-gray-200"
             } transition-all duration-200 hover:ring-blue-300`}
           >
-            <CustomImage src={image} quality={21} objectFit="contain" />
+            <CustomImage src={image} quality={21} objectFit="cover" />
           </button>
         ))}
       </div>

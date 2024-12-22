@@ -159,7 +159,7 @@ export const generateRefundEmailContent = (
   <div style="font-size: 16px; line-height: 1.5; color: #484848;">
     <strong>${totalPrice}</strong> tutarındaki iade işleminiz tamamlandı. İade tutarı 3 iş günü içerisinde hesabınıza yansıyacaktır.
   </div>
- <a href="${process.env.NEXT_PUBLIC_SITE_URL}/siparis?orderNumber=${siparisNo}&status=basarili" style="text-decoration: underline; color: #484848; font-size: 14px;">
+ <a href="${process.env.NEXT_PUBLIC_APP_URL}/siparis?orderNumber=${siparisNo}&status=basarili" style="text-decoration: underline; color: #484848; font-size: 14px;">
     İade detaylarını görüntüle
   </a>
 </div>
@@ -216,7 +216,7 @@ export const generateOrderConfirmationContent = (
     ${productsList}
   </div>
   
-  <a href="${process.env.NEXT_PUBLIC_SITE_URL}/siparis?orderNumber=${orderNumber}&status=basarili" 
+  <a href="${process.env.NEXT_PUBLIC_APP_URL}/siparis?orderNumber=${orderNumber}&status=basarili" 
      style="text-decoration: underline; color: #484848; font-size: 14px;">
     Sipariş detaylarını görüntüle
   </a>

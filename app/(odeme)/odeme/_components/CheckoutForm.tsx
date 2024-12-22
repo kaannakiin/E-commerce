@@ -1,4 +1,5 @@
 "use client";
+import MainLoader from "@/components/MainLoader";
 import { fetchWrapper } from "@/lib/fetchWrapper";
 import { useStore } from "@/store/store";
 import {
@@ -9,12 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
   Checkbox,
-  Container,
   Grid,
   InputBase,
-  Loader,
-  LoadingOverlay,
-  Modal,
   Paper,
   Select,
   Stack,
@@ -23,10 +20,9 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SubmitHandler, useForm, Controller } from "react-hook-form";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { IMaskInput } from "react-imask";
 const CheckoutForm = () => {
   const [provinces, setProvinces] = useState([]);
@@ -151,6 +147,7 @@ const CheckoutForm = () => {
               return;
             }
             if (res.data.status === 200) {
+              clearCart();
               router.push(`/siparis/${res.data.orderNumber}`);
             } else if (res.data.status === 203 && res.data.htmlContent) {
               const tempDiv = document.createElement("div");
@@ -175,14 +172,7 @@ const CheckoutForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      {
-        <LoadingOverlay
-          visible={isSubmitting}
-          zIndex={1000}
-          overlayProps={{ radius: "sm", blur: 2 }}
-          loaderProps={{ color: "primary.9", type: "bars" }}
-        />
-      }
+      {<MainLoader />}
       <Stack>
         <Title order={2}>Siparişi Tamamla</Title>
 

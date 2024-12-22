@@ -1,18 +1,13 @@
 "use client";
 import { formattedPrice } from "@/lib/format";
 import { useStore } from "@/store/store";
-import {
-  Button,
-  Card,
-  LoadingOverlay,
-  ScrollArea,
-  useMantineTheme,
-} from "@mantine/core";
+import { Button, Card, ScrollArea, useMantineTheme } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Fragment } from "react";
 import { HiOutlineShoppingBag } from "react-icons/hi";
+import MainLoader from "./MainLoader";
 import ShoppingProduct from "./ShoppingProduct";
 
 const CartPage = () => {
@@ -28,12 +23,7 @@ const CartPage = () => {
   return (
     <div className="flex min-h-screen w-full items-start justify-center bg-gray-50 px-2 py-4 sm:px-4 sm:py-6 md:py-8">
       <div className="relative w-full max-w-6xl">
-        <LoadingOverlay
-          visible={status === "loading"}
-          zIndex={1000}
-          overlayProps={{ radius: "sm", blur: 2 }}
-          loaderProps={{ color: "primary", type: "bars" }}
-        />
+        <MainLoader />
         <Card
           className="w-full bg-white shadow-xl"
           style={{

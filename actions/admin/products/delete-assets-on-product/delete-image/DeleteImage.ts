@@ -20,7 +20,6 @@ async function unlinkWithRetry(filePath: string, maxRetries = 3, delay = 1000) {
 }
 
 function getBaseFilename(filename: string) {
-  // Remove all variations (-og, -thumbnail, etc) and extension
   const match = filename.match(/^\d{2}-\d{2}-\d{4}-[a-zA-Z0-9]+/);
   return match ? match[0] : filename;
 }

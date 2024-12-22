@@ -63,7 +63,7 @@ const TableSearch = () => {
           gap: "12px",
           gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
           alignItems: "start",
-          "@media (min-width: 900px)": {
+          "@media (minWidth: 900px)": {
             gridTemplateColumns: "2fr 1.5fr 1fr",
           },
         }}

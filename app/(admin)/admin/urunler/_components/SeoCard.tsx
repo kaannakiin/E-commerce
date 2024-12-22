@@ -1,7 +1,7 @@
 import { Card, Paper, Stack, Text, TextInput, Textarea } from "@mantine/core";
 import { Controller } from "react-hook-form";
 import { LiaSlashSolid } from "react-icons/lia";
-
+import { ControllerProps } from "react-hook-form";
 const SEOCard = ({ control, errors }) => {
   return (
     <Card padding="lg" radius="md">
@@ -34,6 +34,7 @@ const SEOCard = ({ control, errors }) => {
             render={({ field }) => (
               <TextInput
                 label="Sayfa Başlığı"
+                withAsterisk
                 description="SEO uyumlu, maksimum 60 karakter"
                 error={errors.pageTitle?.message}
                 {...field}
@@ -47,6 +48,7 @@ const SEOCard = ({ control, errors }) => {
             render={({ field }) => (
               <Textarea
                 label="Açıklama"
+                withAsterisk
                 description="Maksimum 160 karakter"
                 error={errors.metaDescription?.message}
                 minRows={4}

@@ -52,11 +52,10 @@ export default {
       return token;
     },
     async redirect({ url, baseUrl }) {
-      // callbackUrl'den basePath'i temizle
       const cleanUrl = url.replace(/^https?:\/\/[^\/]+/, "");
 
       if (cleanUrl.startsWith("/")) {
-        return cleanUrl; // Direkt path'i döndür
+        return cleanUrl;
       }
 
       if (url.startsWith(baseUrl)) {

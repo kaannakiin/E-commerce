@@ -12,6 +12,7 @@ interface ProcessedImage {
   height: number;
   size: number;
   format: string;
+  variants?: string[]; // Favicon varyantları için eklendi
 }
 
 interface ImageProcessingOptions {
@@ -29,8 +30,80 @@ interface ImageProcessingOptions {
     background?: string;
   };
   isLogo?: boolean;
+  isFavicon?: boolean;
 }
 
+interface FaviconSizes {
+  size: number;
+  suffix: string;
+  format: "png" | "ico";
+}
+
+const faviconSizes: FaviconSizes[] = [
+  { size: 16, suffix: "16x16", format: "png" },
+  { size: 32, suffix: "32x32", format: "png" },
+  { size: 48, suffix: "48x48", format: "png" },
+  { size: 180, suffix: "180x180", format: "png" }, // Apple Touch Icon
+  { size: 192, suffix: "192x192", format: "png" }, // Android Chrome
+  { size: 512, suffix: "512x512", format: "png" }, // PWA
+];
+
+async function processFavicon(
+  buffer: Buffer,
+  baseFileName: string,
+  assetsDir: string,
+): Promise<string[]> {
+  const createdFiles: string[] = [];
+
+  try {
+    // Her boyut için favicon oluştur
+    for (const { size, suffix, format } of faviconSizes) {
+      const fileName = `${baseFileName}-${suffix}.${format}`;
+      const outputPath = path.join(assetsDir, fileName);
+
+      await sharp(buffer)
+        .resize(size, size, {
+          fit: "contain",
+          background: { r: 255, g: 255, b: 255, alpha: 0 },
+        })
+        .png({
+          quality: 100,
+          compressionLevel: 9,
+        })
+        .toFile(outputPath);
+
+      createdFiles.push(outputPath);
+    }
+
+    // ICO dosyası oluştur (16x16 ve 32x32 boyutları içerir)
+    const icoFileName = `${baseFileName}.ico`;
+    const icoPath = path.join(assetsDir, icoFileName);
+
+    // ICO için 16x16 ve 32x32 boyutlarını hazırla
+    const smallBuffer = await sharp(buffer)
+      .resize(16, 16, {
+        fit: "contain",
+        background: { r: 255, g: 255, b: 255, alpha: 0 },
+      })
+      .toBuffer();
+
+    const mediumBuffer = await sharp(buffer)
+      .resize(32, 32, {
+        fit: "contain",
+        background: { r: 255, g: 255, b: 255, alpha: 0 },
+      })
+      .toBuffer();
+
+    await sharp(mediumBuffer).png().toFile(icoPath);
+
+    createdFiles.push(icoPath);
+
+    return createdFiles;
+  } catch (error) {
+    await cleanupFiles(createdFiles);
+    throw error;
+  }
+}
 const defaultOptions: ImageProcessingOptions = {
   quality: 80,
   maxWidth: 1920,
@@ -39,6 +112,7 @@ const defaultOptions: ImageProcessingOptions = {
   format: "webp",
   maintainAspectRatio: true,
   isLogo: false,
+  isFavicon: false,
   ogImageOptions: {
     width: 1200,
     height: 630,
@@ -123,14 +197,36 @@ export const processImages = async (
       let outputPath = "";
       let thumbnailPath = "";
       let ogImagePath = "";
-
+      let faviconPaths: string[] = []; // Burada tanımlandı
       try {
         const buffer = Buffer.from(await (file as CustomFile).arrayBuffer());
 
         const isLogo =
           file.name.toLowerCase().startsWith("logo") || mergedOptions.isLogo;
+        const isFavicon = mergedOptions.isFavicon;
 
-        const baseFileName = generateFileName(isLogo ? "logo-" : "");
+        const baseFileName = generateFileName(
+          isLogo ? "logo-" : isFavicon ? "favicon-" : "",
+        );
+        if (isFavicon) {
+          faviconPaths = await processFavicon(buffer, baseFileName, ASSETS_DIR);
+          createdFiles.push(...faviconPaths);
+          const mainFaviconName = `${baseFileName}.ico`;
+
+          // Favicon sonuçlarını ekle
+          const result: ProcessedImage = {
+            url: mainFaviconName,
+            thumbnail: `${baseFileName}-32x32.png`,
+            width: 32,
+            height: 32,
+            size: (await fs.stat(path.join(ASSETS_DIR, mainFaviconName))).size,
+            format: "ico",
+            variants: faviconPaths.map((p) => path.basename(p)),
+          };
+
+          processedImages.push(result);
+          continue; // Normal resim işleme sürecini atla
+        }
         const fileName = `${baseFileName}.${mergedOptions.format}`;
         const thumbnailName = `${baseFileName}-thumbnail.${mergedOptions.format}`;
 

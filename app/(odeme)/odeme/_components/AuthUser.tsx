@@ -20,7 +20,7 @@ import {
 } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
 import { Address } from "../page";
-import AddressForm from "@/app/(kullanıcı)/hesabim/adres-defterim/_components/AddressForm";
+import AddressForm from "@/app/(kullanici)/hesabim/adres-defterim/_components/AddressForm";
 import PaymentForm from "./PaymentForm";
 import { useRouter, useSearchParams } from "next/navigation";
 

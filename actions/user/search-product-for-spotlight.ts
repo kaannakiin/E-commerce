@@ -37,6 +37,7 @@ export const SearchProductForSpotlight = async (query: string) => {
             slug: true,
             price: true,
             type: true,
+            unit: true,
             value: true,
             discount: true,
             Image: {
