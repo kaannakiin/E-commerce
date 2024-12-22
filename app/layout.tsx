@@ -8,6 +8,7 @@ import type { Metadata, Viewport } from "next";
 import { SessionProvider } from "next-auth/react";
 import { cache } from "react";
 import "./globals.css";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 // Type definitions for better type safety
 type SeoSettings = {
@@ -122,6 +123,9 @@ export async function generateMetadata(): Promise<Metadata> {
         }
       : undefined,
     description: data?.description ?? DEFAULT_SETTINGS.description,
+    verification: {
+      google: data?.googleVerification ?? "",
+    },
     openGraph: {
       title: data?.title ?? DEFAULT_SETTINGS.title,
       description: data?.description ?? DEFAULT_SETTINGS.description,
@@ -216,6 +220,7 @@ export default async function RootLayout({
           </MantineProvider>
         </SessionProvider>
       </body>
+      {data.googleId && <GoogleAnalytics gaId={data.googleId} />}
     </html>
   );
 }

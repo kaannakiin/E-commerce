@@ -186,6 +186,11 @@ export const processImages = async (
   options: ImageProcessingOptions = {},
 ): Promise<ProcessedImage[]> => {
   const ASSETS_DIR = path.join(process.cwd(), "assets");
+  try {
+    await fs.access(ASSETS_DIR);
+  } catch (error) {
+    await fs.mkdir(ASSETS_DIR, { recursive: true });
+  }
   const createdFiles: string[] = [];
   const mergedOptions = { ...defaultOptions, ...options };
 
