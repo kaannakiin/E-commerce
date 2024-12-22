@@ -42,6 +42,9 @@ const EditableCategoryForm = ({
   googleCategories,
   onClosed,
 }: FormProps) => {
+  const combobox = useCombobox({
+    onDropdownClose: () => combobox.resetSelectedOption(),
+  });
   const {
     control,
     handleSubmit,
@@ -108,7 +111,9 @@ const EditableCategoryForm = ({
         }
       });
     }
-    onClosed && onClosed();
+    if (onClosed) {
+      onClosed();
+    }
   };
   const handleFormSubmit = (isActive: boolean) => {
     return handleSubmit((data) => {
@@ -133,6 +138,7 @@ const EditableCategoryForm = ({
         const target = e.target as HTMLFormElement;
         if (!target.querySelector(":focus")) {
           e.preventDefault();
+          return false;
         }
       }}
     >
@@ -239,10 +245,6 @@ const EditableCategoryForm = ({
             name="metaKeywords"
             control={control}
             render={({ field, fieldState }) => {
-              const combobox = useCombobox({
-                onDropdownClose: () => combobox.resetSelectedOption(),
-              });
-
               const currentValues = field.value
                 ? field.value.split(",").filter(Boolean)
                 : [];
@@ -332,7 +334,7 @@ const EditableCategoryForm = ({
               </Text>
 
               <Text size="sm" c="dimmed" style={{ maxWidth: "600px" }}>
-                "Sayfa açıklaması buraya gelecek..."
+                &quot;Sayfa açıklaması buraya gelecek...&quot;
               </Text>
             </div>
           </Paper>

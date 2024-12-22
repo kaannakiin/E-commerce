@@ -37,7 +37,7 @@ interface TipTapEditorProps {
   className?: string;
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor }) => {
   if (!editor) return null;
 
   return (
@@ -273,7 +273,11 @@ const TipTapEditor = ({ value, onChange, className }: TipTapEditorProps) => {
     <Fragment>
       <style>{editorStyles}</style>
       <MenuBar editor={editor} />
-      <EditorContent editor={editor} className="bg-gray-200" placeholder="Metin girin..." />
+      <EditorContent
+        editor={editor}
+        className="bg-gray-200"
+        placeholder="Metin girin..."
+      />
     </Fragment>
   );
 };

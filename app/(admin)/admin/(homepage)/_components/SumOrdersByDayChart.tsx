@@ -22,7 +22,7 @@ const CustomTooltip = ({
   label,
 }: {
   active?: boolean;
-  payload?: any[];
+  payload?;
   label?: string;
 }) => {
   if (!active || !payload || !payload.length) {

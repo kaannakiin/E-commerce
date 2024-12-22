@@ -27,7 +27,7 @@ interface SearchResponse {
 }
 
 interface Props {
-  control: any;
+  control;
   initialCategories?: Category[];
   onSearch: (term: string) => Promise<SearchResponse>;
   multiple?: boolean;
