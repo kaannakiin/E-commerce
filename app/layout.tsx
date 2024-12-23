@@ -4,27 +4,11 @@ import type { MantineColorsTuple } from "@mantine/core";
 import { ColorSchemeScript, MantineProvider, createTheme } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { SessionProvider } from "next-auth/react";
 import { cache } from "react";
 import "./globals.css";
-import { GoogleAnalytics } from "@next/third-parties/google";
-
-// Type definitions for better type safety
-type SeoSettings = {
-  description: string | null;
-  title: string | null;
-  image: { url: string } | null;
-  themeColor: string | null;
-  favicon: { url: string } | null;
-  googleId: string | null;
-  googleVerification: string | null;
-  themeColorSecondary: string | null;
-};
-
-type SalerInfo = {
-  logo: { url: string } | null;
-} | null;
 
 const DEFAULT_SETTINGS = {
   title: "%100 Sertifikalı Sağlıklı Yaşam Marketi",
