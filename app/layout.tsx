@@ -204,6 +204,7 @@ export default async function RootLayout({
           </MantineProvider>
         </SessionProvider>
       </body>
+
 {data?.googleId && <GoogleAnalytics gaId={data.googleId} />}
     </html>
   );
