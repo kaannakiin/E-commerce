@@ -7,15 +7,11 @@ cmds = ["npm ci"]
 [phases.build]
 cmds = [
   "npm install",
-  "npx prisma generate",
+  "npx prisma generate", 
   "npx prisma db push",
-  "npx prisma db seed",
+  "npm run prisma:seed",
   "SKIP_ENV_VALIDATION=1 npm run build"
 ]
 
 [start]
 cmd = "npm run start"
-
-[deploy]
-startCmd = "npm run start"
-healthCheck = "/"
