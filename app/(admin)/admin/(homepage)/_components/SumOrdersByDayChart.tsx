@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 
-interface SumOrdersByDayChartProps {
+export interface SumOrdersByDayChartProps {
   date: string;
   total: number;
   count: number;
