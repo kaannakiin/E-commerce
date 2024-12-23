@@ -180,7 +180,7 @@ const htmlTemplate = (token: string, name: string) => {
         <div class="content">
             <p>Merhaba</p>
             <p>Şifre sıfırlama talebiniz alındı. Şifrenizi sıfırlamak için aşağıdaki butona tıklayın:</p>
-            <a href="${process.env.NEXT_PUBLIC_API_URL}/sifremi-unuttum/${token}" class="button">Şifremi Sıfırla</a>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/sifremi-unuttum/${token}" class="button">Şifremi Sıfırla</a>
             <p style="font-size: 14px; color: #666666;">Bu link 15 dakika boyunca geçerli olacaktır.</p>
             <p style="font-size: 14px;">Eğer bu talebi siz yapmadıysanız, lütfen bu emaili dikkate almayın.</p>
         </div>
