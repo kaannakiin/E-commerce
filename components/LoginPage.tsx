@@ -15,7 +15,7 @@ import {
   Switch,
   Tabs,
   Text,
-  TextInput
+  TextInput,
 } from "@mantine/core";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -113,10 +113,6 @@ export function AuthenticationImage() {
     });
   };
 
-  if (LoginIsSubmitting || RegisterIsSubmitting) {
-    return <MainLoader />;
-  }
-
   return (
     <div className="flex min-h-[800px] items-start justify-center p-4 pt-8">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
@@ -129,198 +125,213 @@ export function AuthenticationImage() {
             <Tabs.Tab value="kayit">Kayıt Ol</Tabs.Tab>
           </Tabs.List>
           <div className="min-h-[250px]">
-            <Tabs.Panel value="giris" className="mt-4 space-y-4">
-              <form
-                onSubmit={LoginHandleSubmit(onSubmitLogin)}
-                className="space-y-4"
+            {LoginIsSubmitting || RegisterIsSubmitting ? (
+              <Tabs.Panel
+                value="giris"
+                className="flex h-full items-center justify-center"
               >
-                <Controller
-                  name="email"
-                  control={loginControl}
-                  render={({ field, fieldState }) => (
-                    <TextInput
-                      {...field}
-                      error={fieldState.error?.message}
-                      label="Email"
-                      size="sm"
-                      withAsterisk
-                    />
-                  )}
-                />
-
-                <Controller
-                  name="password"
-                  control={loginControl}
-                  render={({ field, fieldState }) => (
-                    <PasswordInput
-                      {...field}
-                      error={fieldState.error?.message}
-                      label="Şifre"
-                      size="sm"
-                      withAsterisk
-                    />
-                  )}
-                />
-
-                {LoginErrors.root && (
-                  <p className="text-sm text-red-500">
-                    {LoginErrors.root.message}
-                  </p>
-                )}
-
-                <div className="text-end">
-                  <Text
-                    component={Link}
-                    href="/sifremi-unuttum"
-                    className="text-sm hover:underline"
+                <MainLoader />
+              </Tabs.Panel>
+            ) : (
+              <>
+                <Tabs.Panel value="giris" className="mt-4 space-y-4">
+                  <form
+                    onSubmit={LoginHandleSubmit(onSubmitLogin)}
+                    className="space-y-4"
                   >
-                    Şifremi unuttum
-                  </Text>
-                </div>
-
-                <Button fullWidth size="sm" type="submit">
-                  Giriş Yap
-                </Button>
-              </form>
-            </Tabs.Panel>
-
-            <Tabs.Panel value="kayit" className="mt-4 space-y-4">
-              <form
-                onSubmit={RegisterHandleSubmit(onSubmitRegister)}
-                className="space-y-4"
-              >
-                <Controller
-                  name="email"
-                  control={registerControl}
-                  render={({ field, fieldState }) => (
-                    <TextInput
-                      {...field}
-                      error={fieldState.error?.message}
-                      label="Email"
-                      size="sm"
-                      withAsterisk
+                    <Controller
+                      name="email"
+                      control={loginControl}
+                      render={({ field, fieldState }) => (
+                        <TextInput
+                          {...field}
+                          error={fieldState.error?.message}
+                          label="Email"
+                          size="sm"
+                          withAsterisk
+                        />
+                      )}
                     />
-                  )}
-                />
 
-                <Controller
-                  name="name"
-                  control={registerControl}
-                  render={({ field, fieldState }) => (
-                    <TextInput
-                      {...field}
-                      error={fieldState.error?.message}
-                      label="Adınız"
-                      size="sm"
-                      withAsterisk
+                    <Controller
+                      name="password"
+                      control={loginControl}
+                      render={({ field, fieldState }) => (
+                        <PasswordInput
+                          {...field}
+                          error={fieldState.error?.message}
+                          label="Şifre"
+                          size="sm"
+                          withAsterisk
+                        />
+                      )}
                     />
-                  )}
-                />
 
-                <Controller
-                  name="surname"
-                  control={registerControl}
-                  render={({ field, fieldState }) => (
-                    <TextInput
-                      {...field}
-                      error={fieldState.error?.message}
-                      label="Soyadınız"
-                      size="sm"
-                      withAsterisk
-                    />
-                  )}
-                />
+                    {LoginErrors.root && (
+                      <p className="text-sm text-red-500">
+                        {LoginErrors.root.message}
+                      </p>
+                    )}
 
-                <Controller
-                  name="phone"
-                  control={registerControl}
-                  render={({ field, fieldState }) => (
-                    <InputBase
-                      component={IMaskInput}
-                      {...field}
-                      error={fieldState.error?.message}
-                      mask="(000) 000 00 00"
-                      label="Telefon Numarası"
-                      size="sm"
-                    />
-                  )}
-                />
-
-                <Controller
-                  name="password"
-                  control={registerControl}
-                  render={({ field, fieldState }) => (
-                    <PasswordInput
-                      {...field}
-                      error={fieldState.error?.message}
-                      label="Şifre"
-                      size="sm"
-                      withAsterisk
-                    />
-                  )}
-                />
-
-                <Controller
-                  name="confirmPassword"
-                  control={registerControl}
-                  render={({ field, fieldState }) => (
-                    <PasswordInput
-                      {...field}
-                      error={fieldState.error?.message}
-                      label="Şifre Tekrarı"
-                      size="sm"
-                      withAsterisk
-                    />
-                  )}
-                />
-
-                <Controller
-                  name="termsAndPrivacyPolicy"
-                  control={registerControl}
-                  render={({ field: { onChange, ...field }, fieldState }) => (
-                    <div className="space-y-1">
-                      <Switch
-                        checked={field.value}
-                        onChange={(event) =>
-                          onChange(event.currentTarget.checked)
-                        }
-                        className="w-fit"
-                        label={
-                          <Text component="span" size="sm">
-                            <Link
-                              href="/kullanici-sozlesmesi"
-                              className="text-blue-600 hover:underline"
-                              target="_blank"
-                            >
-                              Kullanıcı sözleşmesini
-                            </Link>{" "}
-                            ve{" "}
-                            <Link
-                              href="/kvkk"
-                              className="text-blue-600 hover:underline"
-                              target="_blank"
-                            >
-                              KVKK metnini
-                            </Link>{" "}
-                            okudum ve kabul ediyorum
-                          </Text>
-                        }
-                      />
+                    <div className="text-end">
+                      <Text
+                        component={Link}
+                        href="/sifremi-unuttum"
+                        className="text-sm hover:underline"
+                      >
+                        Şifremi unuttum
+                      </Text>
                     </div>
-                  )}
-                />
 
-                {RegisterErrors.root && (
-                  <p className="text-sm text-red-500">
-                    {RegisterErrors.root.message}
-                  </p>
-                )}
+                    <Button fullWidth size="sm" type="submit">
+                      Giriş Yap
+                    </Button>
+                  </form>
+                </Tabs.Panel>
 
-                <Button fullWidth size="sm" type="submit">
-                  Kayıt Ol
-                </Button>
-              </form>
-            </Tabs.Panel>
+                <Tabs.Panel value="kayit" className="mt-4 space-y-4">
+                  <form
+                    onSubmit={RegisterHandleSubmit(onSubmitRegister)}
+                    className="space-y-4"
+                  >
+                    <Controller
+                      name="email"
+                      control={registerControl}
+                      render={({ field, fieldState }) => (
+                        <TextInput
+                          {...field}
+                          error={fieldState.error?.message}
+                          label="Email"
+                          size="sm"
+                          withAsterisk
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="name"
+                      control={registerControl}
+                      render={({ field, fieldState }) => (
+                        <TextInput
+                          {...field}
+                          error={fieldState.error?.message}
+                          label="Adınız"
+                          size="sm"
+                          withAsterisk
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="surname"
+                      control={registerControl}
+                      render={({ field, fieldState }) => (
+                        <TextInput
+                          {...field}
+                          error={fieldState.error?.message}
+                          label="Soyadınız"
+                          size="sm"
+                          withAsterisk
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="phone"
+                      control={registerControl}
+                      render={({ field, fieldState }) => (
+                        <InputBase
+                          component={IMaskInput}
+                          {...field}
+                          error={fieldState.error?.message}
+                          mask="(000) 000 00 00"
+                          label="Telefon Numarası"
+                          size="sm"
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="password"
+                      control={registerControl}
+                      render={({ field, fieldState }) => (
+                        <PasswordInput
+                          {...field}
+                          error={fieldState.error?.message}
+                          label="Şifre"
+                          size="sm"
+                          withAsterisk
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="confirmPassword"
+                      control={registerControl}
+                      render={({ field, fieldState }) => (
+                        <PasswordInput
+                          {...field}
+                          error={fieldState.error?.message}
+                          label="Şifre Tekrarı"
+                          size="sm"
+                          withAsterisk
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="termsAndPrivacyPolicy"
+                      control={registerControl}
+                      render={({
+                        field: { onChange, ...field },
+                        fieldState,
+                      }) => (
+                        <div className="space-y-1">
+                          <Switch
+                            checked={field.value}
+                            onChange={(event) =>
+                              onChange(event.currentTarget.checked)
+                            }
+                            error={fieldState.error?.message}
+                            className="w-fit"
+                            label={
+                              <Text component="span" size="sm">
+                                <Link
+                                  href="/kullanici-sozlesmesi"
+                                  className="text-blue-600 hover:underline"
+                                  target="_blank"
+                                >
+                                  Kullanıcı sözleşmesini
+                                </Link>{" "}
+                                ve{" "}
+                                <Link
+                                  href="/kvkk"
+                                  className="text-blue-600 hover:underline"
+                                  target="_blank"
+                                >
+                                  KVKK metnini
+                                </Link>{" "}
+                                okudum ve kabul ediyorum
+                              </Text>
+                            }
+                          />
+                        </div>
+                      )}
+                    />
+
+                    {RegisterErrors.root && (
+                      <p className="text-sm text-red-500">
+                        {RegisterErrors.root.message}
+                      </p>
+                    )}
+
+                    <Button fullWidth size="sm" type="submit">
+                      Kayıt Ol
+                    </Button>
+                  </form>
+                </Tabs.Panel>
+              </>
+            )}
           </div>
         </Tabs>
       </div>

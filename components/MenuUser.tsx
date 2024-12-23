@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Menu } from "@mantine/core";
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -12,7 +12,6 @@ import {
   RiUserAddLine,
   RiUserLine,
 } from "react-icons/ri";
-
 const MenuUser = ({ isUser }: { isUser: boolean }) => {
   const params = useSearchParams();
   const pathname = usePathname();
@@ -22,6 +21,11 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
     const fullPath = `${pathname}${currentQuery ? `?${currentQuery}` : ""}`;
     const encodedCallbackUrl = encodeURIComponent(fullPath);
     push(`/giris?tab=${tab}&callbackUrl=${encodedCallbackUrl}`);
+  };
+  const handleSignOut = () => {
+    const currentQuery = params.toString();
+    const fullPath = `${pathname}${currentQuery ? `?${currentQuery}` : ""}`;
+    signOut({ redirect: true, redirectTo: `/${fullPath}` });
   };
   return (
     <Menu
@@ -90,7 +94,7 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
                 inner: "p-0",
                 label: "w-full flex items-center gap-2 ",
               }}
-              onClick={() => signOut()}
+              onClick={handleSignOut}
             >
               <RiLogoutBoxLine size={18} />
               Çıkış yap

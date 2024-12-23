@@ -118,12 +118,12 @@ const Header = async () => {
       <div className="mx-auto flex h-full max-w-[1920px] items-center justify-between px-2 lg:justify-between lg:px-10">
         {/* LEFT SECTION - Only visible on lg and up */}
         <div className="hidden w-1/3 flex-row items-center gap-4 lg:flex">
-          <Link
+          {/* <Link
             className="group relative cursor-pointer text-black transition-all ease-in-out hover:text-blue-400"
             href={"/urunler"}
           >
             Tüm Ürünler
-          </Link>
+          </Link> */}
           <MenuCategory categories={data} />
         </div>
 
