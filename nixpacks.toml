@@ -1,3 +1,4 @@
+
 [phases.setup]
 nixPkgs = ["nodejs", "postgresql"]
 
@@ -15,3 +16,4 @@ cmds = [
 
 [start]
 cmd = "npm run start"
+
