@@ -9,7 +9,7 @@ import {
   PasswordCheckType,
 } from "@/zodschemas/authschema";
 import { v4 as uuidv4 } from "uuid";
-import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 export async function ResetPassword(
   data: ForgotPasswordSchemaType,
 ): Promise<{ success: boolean; message: string }> {
@@ -100,7 +100,7 @@ export async function resetPasswordCheck(
       return { success: false, message: "Şifreler eşleşmiyor" };
     }
 
-    const hashedPassword = await hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     await prisma.$transaction([
       prisma.user.update({
         where: { id: reset.userId },

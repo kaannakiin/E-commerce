@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { Role } from "@prisma/client";
-import { compare } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { getUserByEmail, getUserById } from "./lib/getUser";
@@ -20,7 +20,7 @@ export default {
           const { email, password } = validatedFields.data;
           const user = await getUserByEmail(email);
           if (!user || !("password" in user)) return null;
-          const passwordCheck = await compare(password, user.password);
+          const passwordCheck = await bcrypt.compare(password, user.password);
           if (passwordCheck) return user;
         }
         return null;
