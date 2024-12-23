@@ -1,6 +1,6 @@
 // prisma/seed.ts
 import { PrismaClient } from "@prisma/client";
-import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import * as fs from "fs";
 import * as path from "path";
 import * as readline from "readline";
@@ -16,7 +16,7 @@ async function main() {
     });
 
     if (!adminExists) {
-      const hashedPassword = await hash("2401Kaan.!", 10);
+      const hashedPassword = await bcrypt.hash("2401Kaan.!", 10);
       await prisma.user.create({
         data: {
           email: "admin@example.com",

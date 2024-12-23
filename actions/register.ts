@@ -3,7 +3,7 @@
 import { getUserByEmail } from "@/lib/getUser";
 import { prisma } from "@/lib/prisma";
 import { RegisterSchema, RegisterSchemaType } from "@/zodschemas/authschema";
-import { hash } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { ZodError } from "zod";
 
 export const Register = async (data: RegisterSchemaType) => {
@@ -22,7 +22,7 @@ export const Register = async (data: RegisterSchemaType) => {
       return { error: "Şifreler eşleşmiyor" };
     }
 
-    const hashedPassword = await hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
       data: {
