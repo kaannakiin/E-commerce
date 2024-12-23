@@ -23,7 +23,7 @@ async function main() {
           name: "Admin User",
           password: hashedPassword,
           role: "ADMIN",
-          emailVerified: true,
+          emailVerified: new Date(),
         },
       });
     }
