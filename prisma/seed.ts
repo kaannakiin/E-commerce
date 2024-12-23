@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
+    await prisma.user.deleteMany();
     const adminExists = await prisma.user.findUnique({
       where: {
         email: "akinkaan49@gmail.com",

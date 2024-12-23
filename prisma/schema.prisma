@@ -51,6 +51,19 @@ model User {
   passwordReset    PasswordReset?
 }
 
+model AltSectionImage {
+  id      String  @id @default(cuid())
+  image   Image?  @relation(fields: [imageId], references: [id])
+  imageId String? @unique // @unique ile tek image garantilenir
+  title   String
+  text    String
+  color   String
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model PasswordReset {
   id        String   @id @default(cuid())
   userId    String   @unique
@@ -172,6 +185,7 @@ model Image {
   mainSeoSettingsId String?
   mainSeoImage      MainSeoSettings?  @relation("MainImage")
   mainSeoFavicon    MainSeoSettings?  @relation("Favicon")
+  AltSectionImage   AltSectionImage[]
 
   @@index([variantId])
   @@index([categoryId])
