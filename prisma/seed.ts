@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   try {
+    await prisma.passwordReset.deleteMany();
     await prisma.user.deleteMany();
 
     const adminExists = await prisma.user.findUnique({
