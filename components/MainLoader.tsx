@@ -6,7 +6,7 @@ const MainLoader = () => {
     <LoadingOverlay
       visible
       zIndex={1000}
-      overlayProps={{ color: "white", opacity: 0.7 }}
+      overlayProps={{ opacity: 0.7 }}
       loaderProps={{ type: "dots", color: "primary", size: "lg" }}
     />
   );

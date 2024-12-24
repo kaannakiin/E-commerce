@@ -3,8 +3,6 @@ import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import authConfig from "./auth.config";
 
-const PROTECTED_FOR_LOGIN_USERS = ["/giris", "/sifremi-unuttum"];
-
 const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
@@ -21,12 +19,12 @@ export default auth(async (req) => {
       pathname === "/sifremi-unuttum" ||
       pathname.startsWith("/sifremi-unuttum/")
     ) {
-      return NextResponse.redirect(new URL("/hesabim", nextUrl.origin));
+      return NextResponse.redirect(new URL("/", nextUrl.origin));
     }
 
     // Giriş sayfası kontrolü
     if (pathname.startsWith("/giris")) {
-      return NextResponse.redirect(new URL("/hesabim", nextUrl.origin));
+      return NextResponse.redirect(new URL("/", nextUrl.origin));
     }
   }
   if (!login && pathname.startsWith("/hesabim")) {
