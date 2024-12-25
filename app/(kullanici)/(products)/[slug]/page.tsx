@@ -178,6 +178,7 @@ export async function generateMetadata(params: {
     seoSite,
     salerInfo,
     ogImage,
+    jsonLd,
   } = await getPageData(slug);
 
   return {
@@ -209,6 +210,9 @@ export async function generateMetadata(params: {
       countryName: "Turkey",
       locale: "tr_TR",
       ttl: 60 * 60 * 24,
+    },
+    other: {
+      "script:ld+json": jsonLd ? JSON.stringify(jsonLd) : null,
     },
   };
 }

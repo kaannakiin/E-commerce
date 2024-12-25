@@ -71,10 +71,9 @@ const SettingsPage = () => {
     },
     {
       icon: <CiImageOn className="h-6 w-6 text-primary-600" />,
-      title: "Bannerlar",
-      description: "Bannerları yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      title: "Kayan Yazı ve Alt İmageler",
+      description: "Kayan yazı ve alt resimleri düzenleyin.",
+      href: "/admin/ayarlar/edit-homepage-section",
     },
     {
       icon: <CiCircleChevDown className="h-6 w-6 text-primary-600" />,

@@ -116,11 +116,18 @@ export async function GET(req: NextRequest) {
     if (url.includes("..") || url.includes("/")) {
       return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
     }
-    const fileName = `${url}`;
-    const filePath = path.join(ASSET_DIR, fileName);
+    const fileName = url;
+    const actualFileName = og
+      ? fileName.replace(/\.(jpg|jpeg|png|webp)$/, "-og.jpeg")
+      : favicon
+        ? fileName.replace(/\.(jpg|jpeg|png|webp)$/, ".ico")
+        : fileName;
+
+    const filePath = path.join(ASSET_DIR, actualFileName);
     if (!existsSync(filePath)) {
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
+    
     const processedImage = await processImage(filePath, {
       width,
       quality,

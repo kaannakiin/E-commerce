@@ -40,6 +40,7 @@ const Charts = () => {
               "&[data-active]": {
                 background: "#228be6",
                 color: "white",
+
                 "&:hover": {
                   background: "#1c7ed6",
                 },

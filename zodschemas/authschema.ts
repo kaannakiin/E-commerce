@@ -1242,3 +1242,43 @@ export const CategoryEditableSchema = z.object({
   googleCategories: z.string({ message: "Bu alan zorunludur" }).trim(),
 });
 export type CategoryEditableFormValues = z.infer<typeof CategoryEditableSchema>;
+
+export const marquueFormSchema = z.object({
+  text: z
+    .string()
+    .max(100, { message: "En fazla 100 karakter olabilir" })
+    .optional(),
+  textColor: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, { message: "Bir renk seçmelisiniz" })
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
+      message: "Geçerli bir HEX renk kodu girilmelidir (örn: #FF0000)",
+    })
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  textPadding: z.number().optional(),
+  bgColor: z.string().optional(),
+  fontSize: z.number().optional(),
+  slidingSpeed: z.number().optional(),
+  isActive: z.boolean().default(true),
+  url: z
+    .string()
+    .optional()
+    .refine(
+      (url) => {
+        // Eğer url undefined veya boş string ise geçerli
+        if (!url) return false;
+
+        // Eğer sadece # ise geçerli (boş yönlendirme)
+        if (url === "#") return true;
+
+        // Bunun dışındaki tüm değerler / ile başlamalı
+        return url.startsWith("/");
+      },
+      {
+        message:
+          "URL ya boş yönlendirme için '#' olmalı ya da diğer tüm durumlar için '/' ile başlamalıdır",
+      },
+    ),
+});
+export type MarqueeFormValues = z.infer<typeof marquueFormSchema>;

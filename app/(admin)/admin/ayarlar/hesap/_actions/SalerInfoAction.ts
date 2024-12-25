@@ -54,7 +54,7 @@ export async function AddInfo(data: SalerInfoFormValues): Promise<{
       if (data.logo && data.logo.length > 0) {
         const processedImages = await processImages(data.logo, {
           isLogo: true,
-        });
+        },);
         if (processedImages && processedImages.length > 0) {
           logoData = {
             url: processedImages[0].url,

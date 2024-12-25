@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge"; // className'leri daha iyi yönetmek için
 
 type CustomImageProps = {
@@ -29,8 +29,6 @@ const CustomImage = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [imgSrc, setImgSrc] = useState(src);
-
-  // src değiştiğinde state'i resetle
   useEffect(() => {
     setLoading(true);
     setError(false);

@@ -68,7 +68,13 @@ export default {
       return "/";
     },
   },
+
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
+  },
+  basePath: "/api/auth",
   secret: process.env.AUTH_SECRET,
 } satisfies NextAuthConfig;
