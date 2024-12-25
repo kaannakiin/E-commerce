@@ -20,12 +20,21 @@ async function main() {
 
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash("2401Kaan.!", 10);
+      const hashedPassword2 = await bcrypt.hash("Deneme.!", 10);
       await prisma.user.create({
         data: {
-          email: "admin@example.com",
+          email: "akinkaan49@gmail.com",
           name: "Admin User",
           password: hashedPassword,
           role: "SUPERADMIN",
+          emailVerified: new Date(),
+        },
+      });
+      await prisma.user.create({
+        data: {
+          email: "deneme@terravivashop.com",
+          name: "Deneme User",
+          password: hashedPassword2,
           emailVerified: new Date(),
         },
       });
