@@ -27,6 +27,7 @@ const feedCat = cache(async () => {
 });
 const FeedCategoryCarousels = async () => {
   const feedCategory = await feedCat();
+  if (feedCategory.length === 0) return null;
   return (
     <div className="my-10 h-[500px] px-5">
       <CategoryCarousels categories={feedCategory} />

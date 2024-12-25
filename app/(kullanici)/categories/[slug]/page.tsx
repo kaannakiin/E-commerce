@@ -75,25 +75,7 @@ interface FeedCatResponse {
   childCategories: ChildCategory[];
 }
 
-// generateCategoryJsonLd için tip tanımı
-interface CategoryJsonLdProps {
-  category: CategoryType;
-  products: Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    slug: string;
-    Image: { url: string }[];
-    variants: Array<{
-      price: number;
-      discount: number;
-      stock: number;
-    }>;
-    taxRate: number;
-  }>;
-  parentCategories: ParentCategory[];
-  childCategories: ChildCategory[];
-}
+
 
 export async function generateMetadata(props: {
   params: Params;

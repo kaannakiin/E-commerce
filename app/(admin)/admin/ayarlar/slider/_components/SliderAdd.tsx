@@ -88,7 +88,6 @@ const SliderAdd = () => {
             required
             isNotMultiple
           />
-          ;
           <Controller
             name="alt"
             control={control}

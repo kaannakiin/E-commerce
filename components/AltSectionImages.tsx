@@ -4,7 +4,7 @@ import { FaTruckMoving } from "react-icons/fa";
 import { FaTurkishLiraSign } from "react-icons/fa6";
 import CustomImage from "./CustomImage";
 import { prisma } from "@/lib/prisma";
-
+//TODO
 const feedPage = cache(async () => {
   try {
     const data = await prisma.altSectionImage.findMany({
@@ -52,7 +52,7 @@ const AltSectionImages = async () => {
   ];
 
   return (
-    <div className="container px-2 py-8 md:px-4 md:py-16">
+    <div className="container mx-auto px-2 py-8 md:px-4 md:py-16">
       <div className="grid grid-cols-3 gap-2 md:gap-4">
         {defaultFeatures.map((defaultFeature, idx) => {
           const feature = data?.[idx];

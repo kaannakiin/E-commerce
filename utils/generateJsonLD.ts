@@ -383,12 +383,15 @@ export function generateCategoryJsonLd({
     };
     jsonLdArray.push(collectionJsonLd);
   }
-
-  return jsonLdArray;
+  const wrappedJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": jsonLdArray,
+  };
+  return wrappedJsonLd;
 }
 
 // Yardımcı fonksiyonlar
-function calculateLowestPrice(variants: any[], taxRate: number): number {
+function calculateLowestPrice(variants, taxRate: number): number {
   if (!variants?.length) return 0;
 
   return (
@@ -399,7 +402,7 @@ function calculateLowestPrice(variants: any[], taxRate: number): number {
   );
 }
 
-function calculateHighestPrice(variants: any[], taxRate: number): number {
+function calculateHighestPrice(variants, taxRate: number): number {
   if (!variants?.length) return 0;
 
   return (
@@ -451,25 +454,107 @@ const validateJsonLdStructure = (jsonLd): boolean => {
 };
 
 // JSON-LD sanitize ve doğrulama fonksiyonu
-export const sanitizeAndValidateJsonLd = (jsonLd): string => {
+export function sanitizeAndValidateJsonLd(jsonLd) {
+  if (!jsonLd) return "{}";
+
   try {
-    // Önce yapısal doğrulama yap
-    if (!validateJsonLdStructure(jsonLd)) {
-      return "";
+    if (Array.isArray(jsonLd)) {
+      const wrappedJsonLd = {
+        "@context": "https://schema.org",
+        "@graph": jsonLd,
+      };
+      return JSON.stringify(wrappedJsonLd);
     }
-
-    // JSON'ı string'e çevir
-    const jsonString = JSON.stringify(jsonLd);
-
-    // String'i sanitize et
-    const sanitized = DOMPurify.sanitize(jsonString, {
-      ALLOWED_TAGS: [], // HTML tag'lerine izin verme
-      ALLOWED_ATTR: [], // HTML attribute'lerine izin verme
-    });
-
-    return sanitized;
+    return JSON.stringify(jsonLd);
   } catch (error) {
-    console.error("Error processing JSON-LD:", error);
-    return "";
+    console.error("Error sanitizing JSON-LD:", error);
+    return "{}";
   }
-};
+}
+export function generateProductListJsonLd(variants, totalProducts: number) {
+  if (!variants || !Array.isArray(variants)) {
+    return []; // Boş array dön
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  // ItemList JSON-LD
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "@id": `${baseUrl}/tum-urunler#itemlist`,
+    name: "Tüm Ürünler",
+    numberOfItems: totalProducts,
+    itemListElement: variants
+      .filter(
+        (variant) => variant?.id && variant?.product?.name && variant?.slug,
+      )
+      .map((variant, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "Product",
+          "@id": `${baseUrl}/${variant.slug}`,
+          name: variant.product.name,
+          description: variant.product.shortDescription || undefined,
+          sku: variant.id,
+          ...(variant.Image?.[0]?.url && {
+            image: `${baseUrl}/api/user/asset/get-image?url=${encodeURIComponent(
+              variant.Image[0].url,
+            )}`,
+          }),
+          url: `${baseUrl}/${variant.slug}`,
+          offers: {
+            "@type": "Offer",
+            priceCurrency: "TRY",
+            price: variant.price * (1 - (variant.discount || 0) / 100),
+            availability:
+              variant.stock > 0
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+            itemCondition: "https://schema.org/NewCondition",
+          },
+          ...(variant.product?.GoogleCategory?.id && {
+            googleProductCategory: variant.product.GoogleCategory.id,
+            category: variant.product.GoogleCategory.fullPath,
+          }),
+          weight: {
+            "@type": "QuantitativeValue",
+            value: variant.value,
+            unitCode: variant.unit,
+          },
+        },
+      })),
+  };
+
+  // Breadcrumb JSON-LD
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "@id": `${baseUrl}/tum-urunler#breadcrumb`,
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        item: {
+          "@id": baseUrl,
+          name: "Ana Sayfa",
+        },
+      },
+      ...(variants[0]?.product?.GoogleCategory?.breadcrumbs?.map(
+        (crumb, index) => ({
+          "@type": "ListItem",
+          position: index + 2,
+          item: {
+            "@id": `${baseUrl}/${encodeURIComponent(
+              crumb.toLowerCase().replace(/\s+/g, "-"),
+            )}`,
+            name: crumb,
+          },
+        }),
+      ) || []),
+    ],
+  };
+
+  return [itemListJsonLd, breadcrumbJsonLd];
+}

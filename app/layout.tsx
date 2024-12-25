@@ -56,34 +56,29 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { data, salerInfo } = await feedLayout();
+  const { data } = await feedLayout();
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_SETTINGS.baseUrl;
 
-  // Create image URL with proper error handling
   const createImageUrl = (
     imageUrl: string | undefined,
     fallbackPath: string,
-    queryParam: string,
+    queryParam: string, // og veya favicon için parametre
   ) => {
-    if (!imageUrl) return new URL(fallbackPath, baseUrl).toString();
+    if (!imageUrl) return `${baseUrl}${fallbackPath}`;
     try {
-      // URL'in geçerli olduğundan emin olalım
       if (imageUrl.includes("..") || imageUrl.includes("/")) {
-        return new URL(fallbackPath, baseUrl).toString();
+        return `${baseUrl}${fallbackPath}`;
       }
 
-      return new URL(
-        `/api/user/asset/get-image?url=${encodeURIComponent(imageUrl)}&${queryParam}=true`,
-        baseUrl,
-      ).toString();
+      return `${baseUrl}/api/user/asset/get-image?url=${imageUrl}&${queryParam}=true`;
     } catch {
-      return new URL(fallbackPath, baseUrl).toString();
+      return `${baseUrl}${fallbackPath}`;
     }
   };
 
   const ogImageUrl = createImageUrl(data?.image?.url, "/default-og.jpg", "og");
-  const faviconUrl = salerInfo?.logo?.url
-    ? createImageUrl(salerInfo.logo.url, "/favicon.ico", "favicon")
+  const faviconUrl = data?.favicon?.url
+    ? createImageUrl(data.favicon.url, "/favicon.ico", "favicon")
     : undefined;
 
   return {
@@ -93,7 +88,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${data?.title ?? DEFAULT_SETTINGS.title}`,
     },
     alternates: {
-      canonical: new URL("/", baseUrl).toString(),
+      canonical: `${baseUrl}/`,
     },
     icons: faviconUrl
       ? {
@@ -119,21 +114,19 @@ export async function generateMetadata(): Promise<Metadata> {
           width: 1200,
           height: 630,
           alt: data?.title ?? DEFAULT_SETTINGS.title,
+          type: "image/jpeg",
         },
       ],
       siteName: data?.title ?? DEFAULT_SETTINGS.title,
       locale: "tr_TR",
       type: "website",
+      url: baseUrl,
     },
     twitter: {
       card: "summary_large_image",
       title: data?.title ?? DEFAULT_SETTINGS.title,
       description: data?.description ?? DEFAULT_SETTINGS.description,
-      images: [ogImageUrl],
-    },
-    robots: {
-      index: true,
-      follow: true,
+      images: ogImageUrl,
     },
   };
 }
@@ -205,7 +198,7 @@ export default async function RootLayout({
         </SessionProvider>
       </body>
 
-{data?.googleId && <GoogleAnalytics gaId={data.googleId} />}
+      {data?.googleId && <GoogleAnalytics gaId={data.googleId} />}
     </html>
   );
 }

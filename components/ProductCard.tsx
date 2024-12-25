@@ -6,7 +6,7 @@ import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { ActionIcon, ColorSwatch } from "@mantine/core";
+import { ActionIcon } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -93,22 +93,21 @@ const ProductCard = ({
         {!isInHomePage && (
           <ActionIcon
             onClick={() => {
-              const categorySlug = product.product.categories?.[0]?.slug;
               const productSlug = product.slug;
-              const path =
-                categorySlug && productSlug
-                  ? `/${categorySlug}/${productSlug}`
-                  : "/";
+              const path = productSlug ? `/${productSlug}` : "/";
               onClickHeart(path);
             }}
-            className="absolute right-3 top-3 z-20 h-8 w-8 rounded-full bg-white/90 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md"
+            size={"input-sm"}
+            radius={"xl"}
+            variant="transparent"
+            className="absolute right-3 top-3 z-20 h-8 w-8 bg-white"
           >
             {isInFavoritesPage ? (
               <LiaTimesSolid className="h-4 w-4 text-secondary-700 hover:text-primary-500" />
             ) : isFave ? (
-              <FaHeart className="text-sm text-primary-500" />
+              <FaHeart className="text-2xl text-primary-500" />
             ) : (
-              <FaRegHeart className="text-sm text-secondary-600 group-hover:text-primary-500" />
+              <FaRegHeart className="text-2xl text-secondary-600 group-hover:text-primary-500" />
             )}
           </ActionIcon>
         )}

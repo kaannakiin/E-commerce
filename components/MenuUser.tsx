@@ -41,87 +41,87 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
           <div className="my-2 flex w-full flex-col gap-2">
             <Button
               size="xs"
-              variant="subtle"
-              classNames={{
-                inner: "p-0",
-                label: "w-full flex items-center gap-2",
-              }}
-              className="transition-all duration-200 hover:text-black"
               component={Link}
+              variant="subtle"
+              color="black"
               href={"/hesabim"}
+              leftSection={<RiUserLine size={18} />}
+              classNames={{
+                inner:
+                  "flex flex-row items-center pl-1  justify-start gap-1 w-full",
+              }}
             >
-              <RiUserLine size={18} />
               Hesabım
             </Button>
 
             <Button
               size="xs"
-              variant="subtle"
-              className="transition-all duration-200 hover:text-black"
-              classNames={{
-                inner: "p-0",
-                label: "w-full flex items-center gap-2",
-              }}
               component={Link}
+              variant="subtle"
+              color="black"
               href="/hesabim/favoriler"
+              classNames={{
+                inner:
+                  "flex flex-row items-center  pl-1  justify-start gap-1 w-full",
+              }}
+              leftSection={<RiHeartLine size={18} />}
             >
-              <RiHeartLine size={18} />
               Favorilerim
             </Button>
 
             <Button
               size="xs"
-              variant="subtle"
-              className="transition-all duration-200 hover:text-black"
-              classNames={{
-                inner: "p-0",
-                label: "w-full flex items-center gap-2",
-              }}
               component={Link}
+              variant="subtle"
+              color="black"
               href="/hesabim/siparislerim"
+              classNames={{
+                inner:
+                  "flex flex-row items-center pl-1 justify-start gap-1 w-full",
+              }}
+              leftSection={<RiFileListLine size={18} />}
             >
-              <RiFileListLine size={18} />
               Siparişlerim
             </Button>
 
             <Button
               size="xs"
               variant="subtle"
-              className="transition-all duration-200 hover:text-red-500"
+              color="black"
               classNames={{
-                inner: "p-0",
-                label: "w-full flex items-center gap-2 ",
+                inner:
+                  "flex flex-row items-center pl-1 justify-start gap-1 w-full",
               }}
               onClick={async () => await signOutUser().then(() => refresh())}
+              leftSection={<RiLogoutBoxLine size={18} />}
             >
-              <RiLogoutBoxLine size={18} />
               Çıkış yap
             </Button>
           </div>
         ) : (
           <div className="my-2 flex w-full flex-col gap-2">
             <Button
-              radius={"sm"}
+              size="xs"
               variant="subtle"
-              fullWidth
-              leftSection={<RiLoginBoxLine size={18} />}
+              color="black"
               classNames={{
-                inner: "p-0",
-                label: "w-full flex items-center gap-2 ",
+                inner:
+                  "flex flex-row items-center pl-1 justify-start gap-1 w-full",
               }}
+              leftSection={<RiLoginBoxLine size={18} />}
               onClick={() => handleAuth("giris")}
             >
               Giriş Yap
             </Button>
             <Button
-              radius={"sm"}
-              fullWidth
+              size="xs"
               variant="subtle"
-              leftSection={<RiUserAddLine size={18} />}
+              color="black"
               classNames={{
-                inner: "p-0",
-                label: "w-full flex items-center gap-2 ",
+                inner:
+                  "flex flex-row items-center pl-1 justify-start gap-1 w-full",
               }}
+              leftSection={<RiUserAddLine size={18} />}
               onClick={() => handleAuth("kayit")}
             >
               Kayıt Ol

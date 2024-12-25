@@ -23,12 +23,14 @@ const FavHeart = ({ isFavorited, productId }) => {
   return (
     <ActionIcon
       onClick={onClickHeart}
-      className={`absolute right-0 top-0 z-20 h-11 w-11 rounded-full bg-white/80 shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white`}
+      className={`absolute right-0 top-0 z-20 h-11 w-11`}
+      variant="transparent"
+      size={"input-xl"}
     >
       {isFave ? (
-        <FaHeart className="h-7 w-7 text-xl text-red-500" />
+        <FaHeart className="text-4xl font-bold text-primary-500" />
       ) : (
-        <FaRegHeart className="h-7 w-7 text-xl text-gray-700 transition-colors duration-300 group-hover:text-red-500" />
+        <FaRegHeart className="text-4xl font-bold text-secondary-600 group-hover:text-primary-500" />
       )}
     </ActionIcon>
   );

@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { Carousel } from "@mantine/carousel";
-import { Container, Title, Text, Button } from "@mantine/core";
-import Image from "next/image";
+import { Button, Container, Text, Title } from "@mantine/core";
+import Autoplay from "embla-carousel-autoplay";
 import Link from "next/link";
-
+import { useRef } from "react";
+import CustomImage from "./CustomImage";
+import { useMediaQuery } from "@mantine/hooks";
+import { match } from "assert";
+import styles from "./modules/HeroHeader.module.css";
 interface HeroItem {
   alt: string;
   isPublished: boolean;
@@ -25,19 +28,32 @@ interface HeroCarouselProps {
 }
 
 export function HeroCarousel({ items }: HeroCarouselProps) {
+  const autoplay = useRef(Autoplay({ delay: 1000, active: true }));
+  const matches = useMediaQuery("(min-width: 56.25em)");
+
   return (
     <Carousel
       withIndicators
-      height={600}
+      withControls={false}
+      height={matches ? 600 : 400} // 64px: Navbar height, 56px: Mobile Navbar height
       loop
+      plugins={[autoplay.current as never]}
+      onMouseEnter={autoplay.current.stop}
+      onMouseLeave={autoplay.current.reset}
+      classNames={{ indicator: styles.indicator }}
       styles={{
+        indicators: {
+          width: "100%",
+          gap: 0,
+          marginTop: 0,
+          bottom: 0,
+        },
         indicator: {
-          width: 12,
-          height: 4,
-          transition: "width 250ms ease",
-          "&[dataActive]": {
-            width: 40,
-          },
+          width: `${100 / items.length}%`,
+          height: 8,
+          transition: "all 250ms ease",
+          borderRadius: 0,
+          backgroundColor: "#E5E7EB ",
         },
       }}
     >
@@ -60,20 +76,16 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
                   />
                 </video>
               ) : (
-                <Image
-                  src={`/api/user/asset/get-image?url=${encodeURIComponent(item.image.url)}`}
+                <CustomImage
+                  src={`${encodeURIComponent(item.image.url)}`}
                   alt={item.alt}
-                  fill
-                  className="object-cover"
+                  objectFit={matches ? "cover" : "contain"}
                   priority
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 100vw"
                 />
               )}
             </div>
 
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black/40" />
-
-            {/* Content */}
             {item.isFunctionality && (
               <Container size="lg" className="relative h-full">
                 <div className="flex h-full flex-col justify-center">
