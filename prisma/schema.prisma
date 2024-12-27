@@ -416,3 +416,38 @@ model FavoriteVariants {
   @@index([userId])
   @@index([variantId])
 }
+
+model NoReplyEmailSetting {
+  id        String   @id @default(cuid())
+  email     String
+  host      String
+  port      Int
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmailTemplate {
+  id         String            @id @default(cuid())
+  type       EmailTemplateType @unique
+  title      String?
+  altText    String?
+  showButton Boolean           @default(false)
+  buttonText String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+}
+
+enum EmailTemplateType {
+  ORDER_CANCELLED // Sipariş İptali: Müşterinin siparişi iptal edildiğinde gönderilir
+  ORDER_CREATED // Sipariş Oluşturuldu: Yeni bir sipariş verildiğinde gönderilir
+  ORDER_INVOICE // Sipariş Faturası: Sipariş faturası oluşturulduğunda gönderilir
+  ORDER_DELIVERED // Sipariş Teslim Edildi: Sipariş müşteriye ulaştığında gönderilir
+  SHIPPING_CREATED // Kargo Oluşturuldu: Sipariş kargoya verildiğinde gönderilir
+  SHIPPING_DELIVERED // Kargo Teslim Edildi: Kargo teslim edildiğinde gönderilir
+  ORDER_REFUNDED // Sipariş İade Edildi: Sipariş bedeli iade edildiğinde gönderilir
+  REFUND_REQUESTED // İade Talebi: Müşteri iade talebinde bulunduğunda gönderilir
+  REFUND_REJECTED // İade Reddedildi: İade talebi reddedildiğinde gönderilir
+  PASSWORD_RESET // Şifre Sıfırlama: Kullanıcı şifre sıfırlama talep ettiğinde gönderilir
+  WELCOME_MESSAGE // Hoş Geldiniz Mesajı: Yeni üye olan kullanıcılara gönderilir
+}

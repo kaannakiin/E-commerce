@@ -91,7 +91,8 @@ const FilterDrawer = ({ count }) => {
         {hasFilters && (
           <UnstyledButton
             onClick={handleClearAll}
-            className="flex items-center gap-1 text-primary-600 transition-colors duration-200 hover:text-primary-700"
+            c={"primary.6"}
+            className="flex items-center gap-1"
           >
             <VscClearAll className="h-4 w-4" />
             <span className="text-xs font-medium">Filtreleri Temizle</span>

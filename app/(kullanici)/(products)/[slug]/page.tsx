@@ -7,17 +7,17 @@ import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
-import { ColorSwatch, Divider } from "@mantine/core";
+import {
+  generateProductJsonLd,
+  sanitizeAndValidateJsonLd,
+} from "@/utils/generateJsonLD";
+import { ColorSwatch, Divider, Text } from "@mantine/core";
 import { Prisma, VariantType } from "@prisma/client";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache, Fragment } from "react";
 import { FaClockRotateLeft } from "react-icons/fa6";
 import CategoryCarousel from "../_components/CategoryCarouselForProductPage";
-import {
-  generateProductJsonLd,
-  sanitizeAndValidateJsonLd,
-} from "@/utils/generateJsonLD";
 
 export type ProductTypeForCarousel = Prisma.VariantGetPayload<{
   select: {
@@ -268,27 +268,29 @@ const ProductsPage = async (params: { params: Params }) => {
                   <div className="flex items-center gap-2">
                     {variant.discount ? (
                       <Fragment>
-                        <span className="text-2xl font-semibold text-primary-500">
+                        <Text size="xl" c={"black"} fw={500}>
                           {formattedPrice(calculatedPrice.finalPrice)}
-                        </span>
-                        <span className="text-xl text-gray-500 line-through">
+                        </Text>
+                        <Text size="lg" td={"line-through"} c={"gray"}>
                           {formattedPrice(calculatedPrice.originalPrice)}
-                        </span>
+                        </Text>
                         <span className="rounded bg-green-50 px-2 py-1 text-sm font-medium text-green-600">
                           %{calculatedPrice.discount} İndirim
                         </span>
                       </Fragment>
                     ) : (
-                      <span className="text-2xl font-semibold text-primary-500">
+                      <Text size="xl" c={"black"} fw={500}>
                         {formattedPrice(calculatedPrice.finalPrice)}
-                      </span>
+                      </Text>
                     )}
                   </div>
                 </div>
               </div>
 
               <div className="prose prose-sm text-gray-600">
-                <p>{variant.product.description}</p>
+                <Text size="md" lineClamp={8}>
+                  {variant.product.description}
+                </Text>
               </div>
 
               <div className="space-y-4">
@@ -329,7 +331,7 @@ const ProductsPage = async (params: { params: Params }) => {
               <AddToCartButton variant={variant} />
               <div className="flex flex-col gap-3 border-t pt-4 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <FaClockRotateLeft className="text-primary-500" />
+                  <FaClockRotateLeft />
                   <span>2-3 İş Günü İçinde Kargo</span>
                 </div>
               </div>

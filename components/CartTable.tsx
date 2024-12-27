@@ -1,7 +1,7 @@
 "use client";
 import { formattedPrice } from "@/lib/format";
 import { useStore } from "@/store/store";
-import { Button, Card, ScrollArea, useMantineTheme } from "@mantine/core";
+import { Button, Card, ScrollArea, Text, useMantineTheme } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -23,7 +23,6 @@ const CartPage = () => {
   return (
     <div className="flex min-h-screen w-full items-start justify-center bg-gray-50 px-2 py-4 sm:px-4 sm:py-6 md:py-8">
       <div className="relative w-full max-w-6xl">
-        <MainLoader />
         <Card
           className="w-full bg-white shadow-xl"
           style={{
@@ -36,10 +35,7 @@ const CartPage = () => {
 
             {items.length === 0 ? (
               <div className="flex h-40 flex-col items-center justify-center text-gray-500">
-                <HiOutlineShoppingBag
-                  size={48}
-                  className="mb-4 text-primary-500"
-                />
+                <HiOutlineShoppingBag size={48} className="mb-4" />
                 <p className="text-lg font-light">Sepetiniz boş</p>
                 <Button
                   variant="outline"
@@ -81,9 +77,9 @@ const CartPage = () => {
 
                       <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                         <span className="text-base font-semibold">Toplam</span>
-                        <span className="text-xl font-bold text-primary-600">
+                        <Text c={"primary.6"} className="text-xl font-bold">
                           {formattedPrice(totalFinalPrice)}
-                        </span>
+                        </Text>
                       </div>
                     </Fragment>
                   )}
@@ -91,9 +87,9 @@ const CartPage = () => {
                   {!hasDiscount && (
                     <div className="flex items-center justify-between border-t border-gray-200 pt-3">
                       <span className="text-base font-semibold">Toplam</span>
-                      <span className="text-xl font-bold text-primary-600">
+                      <Text c={"primary.6"} className="text-xl font-bold">
                         {formattedPrice(totalOriginalPrice)}
-                      </span>
+                      </Text>
                     </div>
                   )}
                   <Button

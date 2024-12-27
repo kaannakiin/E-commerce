@@ -1,8 +1,7 @@
 "use client";
 import FeedbackDialog from "@/components/FeedbackDialog";
 import { useStore } from "@/store/store";
-import { UnstyledButton } from "@mantine/core";
-import { is } from "date-fns/locale";
+import { Paper, Stack, Text, UnstyledButton } from "@mantine/core";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -27,10 +26,10 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     message: "",
     type: "success",
   });
+
   const handleAddToCart = () => {
-    if (!variant) {
-      return;
-    }
+    if (!variant) return;
+
     try {
       addItem(variant);
       if (repeatBuy) {
@@ -45,48 +44,171 @@ const AddToCartButton: React.FC<AddToCartButtonProps> = ({
     }
   };
 
-  if (repeatBuy) {
-    return (
-      <div className="space-y-1">
-        <UnstyledButton
-          className={
-            "group w-full" +
-            (variant.isPublished === false
-              ? " cursor-not-allowed opacity-50"
-              : "")
-          }
-          disabled={variant.isPublished === false}
-          onClick={handleAddToCart}
-        >
-          <span className="relative flex h-8 w-full items-center justify-center overflow-hidden rounded-md border border-primary-500 text-primary-500 transition-shadow duration-300 hover:shadow-sm">
-            <span className="relative z-10 text-sm font-medium tracking-wide transition-colors duration-300 group-hover:text-white">
-              {variant.isPublished === false ? "Tükendi" : "Tekrar Satın Al"}
-            </span>
-            <div
-              className={`absolute inset-0 translate-y-full transform transition-transform duration-300 ease-out group-hover:translate-y-0 ${variant.isPublished === false ? "bg-red-500" : "bg-primary-500"}`}
-            />
-          </span>
-        </UnstyledButton>
-        <FeedbackDialog
-          isOpen={dialogState.isOpen}
-          onClose={() => setDialogState((prev) => ({ ...prev, isOpen: false }))}
-          message={dialogState.message}
-          type={dialogState.type}
-        />
-      </div>
-    );
-  }
+ if (repeatBuy) {
+   return (
+     <Stack gap="xs">
+       <UnstyledButton
+         classNames={{ root: "group" }} // Burayı ekledik
+         styles={{
+           root: {
+             width: "100%",
+             ...(variant.isPublished === false && {
+               cursor: "not-allowed",
+               opacity: 0.5,
+             }),
+           },
+         }}
+         disabled={variant.isPublished === false}
+         onClick={handleAddToCart}
+       >
+         <Paper
+           component="span"
+           styles={{
+             root: {
+               position: "relative",
+               display: "flex",
+               height: "2rem",
+               width: "100%",
+               alignItems: "center",
+               justifyContent: "center",
+               overflow: "hidden",
+               borderRadius: "var(--mantine-radius-md)",
+               border: "1px solid var(--mantine-color-secondary-5)",
+               color: "var(--mantine-color-secondary-5)",
+               transition: "box-shadow 300ms",
+               backgroundColor: "transparent", // Bunu ekledik
+               "&:hover": {
+                 boxShadow: "var(--mantine-shadow-sm)",
+               },
+             },
+           }}
+         >
+           <Text
+             component="span"
+             styles={{
+               root: {
+                 position: "relative",
+                 zIndex: 10,
+                 fontSize: "0.875rem",
+                 fontWeight: 500,
+                 letterSpacing: "0.025em",
+                 transition: "color 300ms",
+                 ".group:hover &": {
+                   // Selector'ı değiştirdik
+                   color: "white",
+                 },
+               },
+             }}
+           >
+             {variant.isPublished === false ? "Tükendi" : "Tekrar Satın Al"}
+           </Text>
+           <Paper
+             styles={{
+               root: {
+                 position: "absolute",
+                 inset: 0,
+                 transform: "translateY(100%)",
+                 transition: "transform 300ms ease-out",
+                 backgroundColor:
+                   variant.isPublished === false
+                     ? "var(--mantine-color-red-5)"
+                     : "var(--mantine-color-secondary-5)",
+                 ".group:hover &": {
+                   // Selector'ı değiştirdik
+                   transform: "translateY(0)",
+                 },
+               },
+             }}
+           />
+         </Paper>
+       </UnstyledButton>
+       <FeedbackDialog
+         isOpen={dialogState.isOpen}
+         onClose={() => setDialogState((prev) => ({ ...prev, isOpen: false }))}
+         message={dialogState.message}
+         type={dialogState.type}
+       />
+     </Stack>
+   );
+ }
   return (
-    <div className="space-y-4 border-t pt-4">
-      <UnstyledButton className="group w-full" onClick={handleAddToCart}>
-        <span className="relative flex h-14 w-full items-center justify-center overflow-hidden rounded-lg border-2 border-primary-500 text-primary-500 transition-shadow duration-300 hover:shadow-lg">
-          <span className="relative z-10 text-lg font-medium tracking-wide transition-colors duration-300 group-hover:text-white">
+    <Paper
+      styles={{
+        root: {
+          borderTop: "1px solid var(--mantine-color-gray-3)",
+          paddingTop: "var(--mantine-spacing-md)",
+          backgroundColor: "transparent",
+        },
+      }}
+    >
+      <UnstyledButton
+        classNames={{ root: "group" }} // group class'ını ekledik
+        styles={{
+          root: {
+            width: "100%",
+          },
+        }}
+        onClick={handleAddToCart}
+      >
+        <Paper
+          component="span"
+          styles={{
+            root: {
+              position: "relative",
+              display: "flex",
+              height: "3.5rem",
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+              borderRadius: "var(--mantine-radius-lg)",
+              border: "2px solid var(--mantine-color-primary-5)",
+              color: "var(--mantine-color-primary-5)",
+              transition: "box-shadow 300ms",
+              backgroundColor: "transparent",
+              "&:hover": {
+                boxShadow: "var(--mantine-shadow-lg)",
+              },
+            },
+          }}
+        >
+          <Text
+            component="span"
+            styles={{
+              root: {
+                position: "relative",
+                zIndex: 10,
+                fontSize: "1.125rem",
+                fontWeight: 500,
+                letterSpacing: "0.025em",
+                transition: "color 300ms",
+                ".group:hover &": {
+                  // selector'ı değiştirdik
+                  color: "white",
+                },
+              },
+            }}
+          >
             {isSiparisPage ? "Tekrar Sipariş Ver" : "Sepete Ekle"}
-          </span>
-          <div className="absolute inset-0 translate-y-full transform bg-primary-500 transition-transform duration-300 ease-out group-hover:translate-y-0" />
-        </span>
+          </Text>
+          <Paper
+            styles={{
+              root: {
+                position: "absolute",
+                inset: 0,
+                transform: "translateY(100%)",
+                transition: "transform 300ms ease-out",
+                backgroundColor: "var(--mantine-color-primary-5)",
+                ".group:hover &": {
+                  // selector'ı değiştirdik
+                  transform: "translateY(0)",
+                },
+              },
+            }}
+          />
+        </Paper>
       </UnstyledButton>
-    </div>
+    </Paper>
   );
 };
 

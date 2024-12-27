@@ -2,7 +2,13 @@ import React, { Fragment } from "react";
 import CustomImage from "./CustomImage";
 import { CartVariant } from "@/store/useCartStore";
 import { VariantType } from "@prisma/client";
-import { ColorSwatch, ActionIcon, Group, Indicator } from "@mantine/core";
+import {
+  ColorSwatch,
+  ActionIcon,
+  Group,
+  Indicator,
+  Title,
+} from "@mantine/core";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import { useStore } from "@/store/store";
@@ -105,9 +111,13 @@ const ShoppingProduct = ({ item }: { item: CartVariant }) => {
                 )}
               </div>
             )}
-            <h6 className="font-manrope text-2xl font-bold leading-9 text-primary-600">
+            <Title
+              order={6}
+              c="primary.6"
+              className="font-manrope text-2xl font-bold leading-9"
+            >
               {formattedPrice(item.priceCalculation.finalPrice * item.quantity)}
-            </h6>
+            </Title>
           </div>
         </div>
       </div>

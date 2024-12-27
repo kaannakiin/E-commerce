@@ -77,10 +77,9 @@ const SettingsPage = () => {
     },
     {
       icon: <CiCircleChevDown className="h-6 w-6 text-primary-600" />,
-      title: "Aşağı Açılır Menü",
-      description: "Aşağı açılır menüleri yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      title: "Email Ayarları",
+      description: "Email Ayarları düzenleyin.",
+      href: "/admin/ayarlar/e-mail",
     },
     {
       icon: <CiViewBoard className="h-6 w-6 text-primary-600" />,
