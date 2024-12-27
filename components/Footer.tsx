@@ -13,6 +13,8 @@ import CustomImage from "./CustomImage";
 import { FooterType } from "./FooterServer";
 import classes from "./modules/Footer.module.css";
 
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+
 export function Footer({
   salerInfo,
   isVisible,
@@ -20,6 +22,17 @@ export function Footer({
   salerInfo: FooterType;
   isVisible: boolean;
 }) {
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const { push, refresh } = useRouter();
+
+  const handleAuth = (tab: "giris" | "kayit") => {
+    const currentQuery = params.toString();
+    const fullPath = `${pathname}${currentQuery ? `?${currentQuery}` : ""}`;
+    const encodedCallbackUrl = encodeURIComponent(fullPath);
+    push(`/giris?tab=${tab}&callbackUrl=${encodedCallbackUrl}`);
+  };
+
   const contracts = [
     { link: "/", label: "Mesafeli Satış Sözleşmesi", shortLabel: "M.S.S" },
     { link: "/", label: "Üyelik Sözleşmesi", shortLabel: "Üyelik" },
@@ -62,14 +75,14 @@ export function Footer({
               <Anchor<"button">
                 c="dimmed"
                 className={classes.link}
-                onClick={() => signIn(undefined, { callbackUrl: "/" })}
+                onClick={() => handleAuth("giris")}
               >
                 Giriş
               </Anchor>
               <Anchor<"button">
                 c="dimmed"
                 className={classes.link}
-                onClick={() => signIn(undefined, { callbackUrl: "/" })}
+                onClick={() => handleAuth("kayit")}
               >
                 Üye Ol
               </Anchor>

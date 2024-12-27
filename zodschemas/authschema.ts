@@ -1282,3 +1282,30 @@ export const marquueFormSchema = z.object({
     ),
 });
 export type MarqueeFormValues = z.infer<typeof marquueFormSchema>;
+export const NoReplyEmailSettingsSchema = z.object({
+  email: z
+    .string({ message: "Bu alan zorunludur." })
+    .trim()
+    .email({ message: "Geçerli bir e-posta adresi giriniz" }),
+  password: z
+    .string({ message: "Bu alan zorunludur." })
+    .trim()
+    .min(1, { message: "Bu alan zorunludur." }),
+  port: z
+    .number({ message: "Bu alan zorunludur." })
+    .min(1, { message: "Port numarası 1'den küçük olamaz" }),
+  host: z
+    .string({ message: "Bu alan zorunludur." })
+    .trim()
+    .min(1, { message: "Bu alan zorunludur." }),
+});
+export type NoReplyEmailSettingsType = z.infer<
+  typeof NoReplyEmailSettingsSchema
+>;
+export const EmailTemplateSchema = z.object({
+  title: z.string().optional(),
+  altText: z.string().optional(),
+  showButton: z.boolean().default(false),
+  buttonText: z.string().optional(),
+});
+export type EmailTemplateSchemaType = z.infer<typeof EmailTemplateSchema>;

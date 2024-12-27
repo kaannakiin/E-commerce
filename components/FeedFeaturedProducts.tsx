@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 import ProductCard from "./ProductCard";
+import { Paper } from "@mantine/core";
 
 // Cache'lenmiş veri çekme fonksiyonu
 const feedFeaturedProduct = cache(async () => {
@@ -51,7 +52,7 @@ const feedFeaturedProduct = cache(async () => {
     });
 
     if (!products.length) {
-      return { error: "Gösterilecek ürün bulunamadı." };
+      return null;
     }
     return { products };
   } catch (error) {
@@ -64,20 +65,16 @@ const feedFeaturedProduct = cache(async () => {
 
 const FeedFeaturedProducts = async () => {
   const result = await feedFeaturedProduct();
+  if (!result) return null;
   return (
-    <section className="w-full bg-primary-200 px-5 py-8">
+    <Paper bg={"secondary.2"} className="w-full px-5 py-8">
       <h2 className="mb-6 text-center text-2xl font-bold">En Çok Satanlar</h2>
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {result.products &&
-          result.products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              isFavorited={false}
-            />
-          ))}
+        {result.products.map((product) => (
+          <ProductCard key={product.id} product={product} isFavorited={false} />
+        ))}
       </div>
-    </section>
+    </Paper>
   );
 };
 

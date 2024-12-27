@@ -7,6 +7,7 @@ import {
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Anchor,
   Button,
   Checkbox,
   Grid,
@@ -96,7 +97,7 @@ const PaymentForm = ({ address }) => {
     }
   };
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
       <Grid>
         <Paper shadow="xs" p="md" withBorder>
           <Title order={3} mb="md">
@@ -256,23 +257,29 @@ const PaymentForm = ({ address }) => {
                     onChange={(event) => onChange(event.currentTarget.checked)}
                     label={
                       <div className="my-auto flex flex-wrap items-center gap-1 p-0 text-xs font-bold">
-                        <a
+                        <Anchor
                           href="/gizlilik-sozlesmesi"
-                          className="font-medium text-primary-900 underline decoration-1 transition-colors hover:text-primary-700"
+                          c={"primary.9"}
+                          fw={500}
+                          td={"underline"}
+                          className="underline decoration-1 transition-colors hover:text-gray-950"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
                           Gizlilik Sözleşmesi
-                        </a>
+                        </Anchor>
                         <span>ve</span>
-                        <a
+                        <Anchor
                           href="/satis-politikasi"
-                          className="font-medium text-primary-900 underline decoration-1 transition-colors hover:text-primary-700"
+                          c={"primary.9"}
+                          fw={500}
+                          td={"underline"}
+                          className="underline decoration-1 transition-colors hover:text-gray-950"
                           target="_blank"
                           rel="noopener noreferrer"
                         >
                           Satış Politikası
-                        </a>
+                        </Anchor>
                         <span>&#39;nı okudum ve kabul ediyorum</span>
                       </div>
                     }

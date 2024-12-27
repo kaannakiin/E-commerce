@@ -28,9 +28,21 @@ const FavHeart = ({ isFavorited, productId }) => {
       size={"input-xl"}
     >
       {isFave ? (
-        <FaHeart className="text-4xl font-bold text-primary-500" />
+        <FaHeart
+          style={{
+            fontSize: "2rem", // text-4xl
+            fontWeight: 700, // font-bold
+          }}
+        />
       ) : (
-        <FaRegHeart className="text-4xl font-bold text-secondary-600 group-hover:text-primary-500" />
+        <FaRegHeart
+          style={{
+            fontSize: "2rem",
+            fontWeight: 700,
+            color: "var(--mantine-color-secondary-6)",
+          }}
+          className="group-hover:text-red-500"
+        />
       )}
     </ActionIcon>
   );

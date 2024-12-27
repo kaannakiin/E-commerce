@@ -56,7 +56,15 @@ const Navbar = ({ session }) => {
       <Paper shadow="sm" p="md" radius="md" className="border border-gray-100">
         <Title
           order={4}
-          className="mb-4 border-b border-primary-200 pb-2 text-center text-primary-700"
+          c={"primary.7"}
+          styles={{
+            root: {
+              marginBottom: "1rem", // mb-4
+              borderBottom: "1px solid var(--mantine-color-primary-2)", // border-primary-200
+              paddingBottom: "0.5rem", // pb-2
+              textAlign: "center",
+            },
+          }}
         >
           Hesap Ayarları
         </Title>

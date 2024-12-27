@@ -199,14 +199,14 @@ const page = async (params: { params: Params }) => {
 
             <Stack gap="sm">
               <Group gap="sm">
-                <FaCreditCard size={16} className="text-primary-400" />
+                <FaCreditCard size={16} />
                 <Stack gap={4}>
                   <Text>{data.maskedCardNumber}</Text>
                 </Stack>
               </Group>
 
               <Group gap="sm">
-                <FaMoneyBill size={16} className="text-primary-400" />
+                <FaMoneyBill size={16} />
                 <Stack gap={4}>
                   <Text size="sm" c="dimmed">
                     Toplam Tutar
@@ -215,7 +215,7 @@ const page = async (params: { params: Params }) => {
                 </Stack>
               </Group>
               <Group gap="sm">
-                <FaMoneyBill size={16} className="text-primary-400" />
+                <FaMoneyBill size={16} />
                 <Stack gap={4}>
                   <Text size="sm" c="dimmed">
                     Ödeme durumu{" "}
@@ -263,9 +263,9 @@ const page = async (params: { params: Params }) => {
                 </div>
                 <div className="mt-2 flex w-full flex-col justify-between gap-2 lg:flex-row lg:items-center lg:gap-0">
                   <div className="flex flex-row items-center gap-4">
-                    <p className="font-bold text-primary-900">
+                    <Text c={"primary.9"} fw={700}>
                       {formattedPrice(item.price)}
-                    </p>
+                    </Text>
                   </div>
                   <div className="flex flex-1 flex-row justify-between gap-2 lg:justify-end">
                     {!data.isCancelled &&
@@ -361,7 +361,7 @@ const DeliveryAddressCard = ({ address }) => (
 
       <Stack gap="sm">
         <Group gap="sm">
-          <FaUser size={16} className="text-primary-400" />
+          <FaUser size={16} />
           <Text>
             {address.name.charAt(0).toLocaleUpperCase() + address.name.slice(1)}{" "}
             {address.surname.charAt(0).toLocaleUpperCase() +
@@ -370,12 +370,12 @@ const DeliveryAddressCard = ({ address }) => (
         </Group>
 
         <Group gap="sm">
-          <FaPhone size={16} className="text-primary-400" />
+          <FaPhone size={16} />
           <Text>{address.phone}</Text>
         </Group>
 
         <Group gap="sm" align="flex-start">
-          <FaMapMarkerAlt size={16} className="text-primary-400" />
+          <FaMapMarkerAlt size={16} />
           <Stack gap={4}>
             <Text>{address.addressDetail}</Text>
             <Text size="sm" c="dimmed">

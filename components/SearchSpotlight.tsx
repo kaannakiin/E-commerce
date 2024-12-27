@@ -2,13 +2,7 @@
 import { SearchProductForSpotlight } from "@/actions/user/search-product-for-spotlight";
 import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
-import {
-  Badge,
-  ColorSwatch,
-  Group,
-  Stack,
-  Text
-} from "@mantine/core";
+import { Badge, ColorSwatch, Group, Paper, Stack, Text } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { Spotlight, spotlight } from "@mantine/spotlight";
 import "@mantine/spotlight/styles.css";
@@ -138,10 +132,14 @@ const SearchSpotlight = ({ featuredProducts }) => {
                 </Group>
               )}
               {item.type !== "COLOR" && (
-                <span className="text-secondary-950 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium">
+                <Paper
+                  component="span"
+                  c={"secondary.8"}
+                  className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                >
                   {item.type === "WEIGHT" && `${item.value}${item.unit}`}
                   {item.type === "SIZE" && `${item.value}`}
-                </span>
+                </Paper>
               )}
             </Stack>
           </Group>

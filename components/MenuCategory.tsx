@@ -6,7 +6,6 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import Link from "next/link";
-import { FaArrowDown } from "react-icons/fa6";
 
 const MenuCategory = ({
   categories,
@@ -34,7 +33,7 @@ const MenuCategory = ({
             key={index}
             component={Link}
             href={"/categories/" + category.slug}
-            className="relative overflow-hidden px-5 py-2 transition-colors duration-500 before:absolute before:bottom-0 before:left-1/2 before:h-0.5 before:w-0 before:bg-primary-400 before:transition-all before:duration-500 after:absolute after:bottom-0 after:right-1/2 after:h-0.5 after:w-0 after:bg-primary-400 after:transition-all after:duration-500 hover:text-primary-600 hover:before:left-0 hover:before:w-1/2 hover:after:right-0 hover:after:w-1/2"
+            className="relative overflow-hidden px-5 py-2 transition-colors duration-500 before:absolute before:bottom-0 before:left-1/2 before:h-0.5 before:w-0 before:bg-current before:transition-all before:duration-500 after:absolute after:bottom-0 after:right-1/2 after:h-0.5 after:w-0 after:bg-current after:transition-all after:duration-500 hover:opacity-80 hover:before:left-0 hover:before:w-1/2 hover:after:right-0 hover:after:w-1/2"
           >
             {category.name}
           </MenuItem>

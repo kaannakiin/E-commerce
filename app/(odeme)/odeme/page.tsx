@@ -60,7 +60,9 @@ export default async function CheckoutPage() {
                 <CheckoutForm />
               </div>
             )}
-            {session?.user && <AuthUser addresses={userAddresses} />}{" "}
+            {session?.user && (
+              <AuthUser addresses={userAddresses} email={session.user.email} />
+            )}
           </div>
         </div>
       </div>

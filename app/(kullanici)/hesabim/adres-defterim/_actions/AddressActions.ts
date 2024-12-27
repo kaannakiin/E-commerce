@@ -14,13 +14,14 @@ export async function SaveAddressUser(
   data: AddUserServerType,
 ): Promise<{ success: boolean; message: string }> {
   try {
+    console.log(data);
     addUserServer.parse(data);
     const user = await prisma.user.findUnique({
       where: {
         email: data.email,
       },
     });
-
+    console.log(user);
     if (!user) {
       return {
         success: false,

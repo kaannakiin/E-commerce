@@ -24,10 +24,10 @@ function Card({ image, title, category, slug }: CardProps) {
       className={classes.card}
     >
       <div>
-        <Text className={classes.category} size="xs">
+        <Text c={"secondary.9"} className={classes.category} size="xs">
           {category}
         </Text>
-        <Title order={3} className={classes.title}>
+        <Title order={3} c={"secondary.9"} className={classes.title}>
           {title}
         </Title>
       </div>
