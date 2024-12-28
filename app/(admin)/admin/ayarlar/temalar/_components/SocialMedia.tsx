@@ -13,7 +13,7 @@ import {
   ColorInput,
   Text,
   TextInput,
-  Textarea
+  Textarea,
 } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -27,7 +27,6 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<SocialMediaPreviewType>({
     resolver: zodResolver(SocialMediaPreviewSchema),
     defaultValues: {
@@ -309,7 +308,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               • Ana sayfa açıklaması giriniz. Buraya girdiğiniz başlık ve
               açıklama sosyal medya paylaşımlarında görünecektir.
             </p>
-            <p>• Önerilen görsel boyutu: 512x512px</p>{" "}
+            <p>• Önerilen görsel boyutu: 512x512px</p>
             <p>• Önerilen favicon boyutu: 32x32px</p>
           </div>
         </div>

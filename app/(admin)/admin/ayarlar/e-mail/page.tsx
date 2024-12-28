@@ -26,7 +26,7 @@ const EmailPageTable = () => {
         >
           E-Posta Ayarları Düzenle
         </Button>
-      </Card>{" "}
+      </Card>
       <Card withBorder shadow="md" padding={"xl"}>
         <h2 className="font-bold">Bildirimler</h2>
         <p className="text-sm text-gray-500">
@@ -34,7 +34,7 @@ const EmailPageTable = () => {
           özelleştirin
         </p>
         <Divider size={"xs"} my={"md"} />
-        <TabList />{" "}
+        <TabList />
       </Card>
     </div>
   );

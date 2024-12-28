@@ -38,7 +38,7 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
         <Group justify="space-between">
           <Text size="sm">Ödenen Tutar:</Text>
           <Text size="sm">{formattedPrice(order.total)}</Text>
-        </Group>{" "}
+        </Group>
         <Group justify="space-between">
           <Text size="sm">Kart:</Text>
           <Text size="sm">{order.maskedCardNumber}</Text>
@@ -81,7 +81,7 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
         <div>
           <Text fw={500}>
             {order.user.name.charAt(0).toLocaleUpperCase() +
-              order.user.name.slice(1)}{" "}
+              order.user.name.slice(1)}
             {order.user.surname.charAt(0).toLocaleUpperCase() +
               order.user.surname.slice(1)}
           </Text>
@@ -92,13 +92,13 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
             {order.user.phone}
           </Text>
         </div>
-      )}{" "}
+      )}
       {!order.user && (
         <Stack gap="xs">
           <div>
             <Text fw={500}>
               {order.address.name.charAt(0).toLocaleUpperCase() +
-                order.address.name.slice(1)}{" "}
+                order.address.name.slice(1)}
               {order.address.surname.charAt(0).toLocaleUpperCase() +
                 order.address.surname.slice(1)}
             </Text>
@@ -118,10 +118,10 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
     <Card withBorder shadow="sm" radius="md" p="md">
       <Text fw={600} size="lg" mb="xs">
         Kargo Adresi
-      </Text>{" "}
+      </Text>
       <Text size="sm">
         {order.address.name.charAt(0).toLocaleUpperCase() +
-          order.address.name.slice(1)}{" "}
+          order.address.name.slice(1)}
         {order.address.surname.charAt(0).toLocaleUpperCase() +
           order.address.surname.slice(1)}
       </Text>

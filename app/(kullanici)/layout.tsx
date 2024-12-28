@@ -56,7 +56,7 @@ export default async function UserLayout({
           href={`https://wa.me/+90${whatsapp.replace(/\D/g, "")}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed bottom-[70px] right-6 z-50 rounded-full bg-green-500 p-3 text-white shadow-lg transition-all duration-300 hover:bg-green-600"
+          className="fixed bottom-[10px] right-4 z-50 rounded-full bg-green-500 p-3 text-white shadow-lg transition-all duration-300 hover:bg-green-600 lg:bottom-[70px]"
           aria-label="WhatsApp ile iletişime geçin"
         >
           <FaWhatsapp size={24} />

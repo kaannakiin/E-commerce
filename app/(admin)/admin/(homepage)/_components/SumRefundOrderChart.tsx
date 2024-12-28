@@ -37,16 +37,16 @@ const CustomTooltip = ({
     <div className="rounded border border-gray-200 bg-white p-4 shadow-lg">
       <p className="mb-2 text-sm font-medium">{label}</p>
       <p className="text-sm text-gray-600">
-        İade Tutarı:{" "}
+        İade Tutarı:
         <span className="font-medium">
           {amount !== undefined
             ? amount.toLocaleString("tr-TR")
-            : "Yükleniyor..."}{" "}
+            : "Yükleniyor..."}
           ₺
         </span>
       </p>
       <p className="text-sm text-gray-600">
-        İade Adedi:{" "}
+        İade Adedi:
         <span className="font-medium">
           {count !== undefined ? count : "Yükleniyor..."}
         </span>

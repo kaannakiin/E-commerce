@@ -118,7 +118,7 @@ const RefundModalForm = ({
         <div>
           <Group mb="xs">
             <Text fw={500} size="sm">
-              Admin Açıklaması{" "}
+              Admin Açıklaması
             </Text>
           </Group>
           <Controller

@@ -251,7 +251,6 @@ export async function POST(req: NextRequest) {
           discount.discountAmount = res.discountAmount;
         });
       }
-
       if (binCheck.status !== "success") {
         return NextResponse.json(
           {

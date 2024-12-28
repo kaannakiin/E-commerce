@@ -218,7 +218,7 @@ const page = async (params: { params: Params }) => {
                 <FaMoneyBill size={16} />
                 <Stack gap={4}>
                   <Text size="sm" c="dimmed">
-                    Ödeme durumu{" "}
+                    Ödeme durumu
                   </Text>
                   <Text fw={500}>
                     {formatPaymentStatus(data.paymentStatus)}
@@ -299,7 +299,7 @@ const page = async (params: { params: Params }) => {
                       }}
                     />
                   </div>
-                </div>{" "}
+                </div>
                 <div>
                   {item.refundReason && (
                     <Text
@@ -363,7 +363,7 @@ const DeliveryAddressCard = ({ address }) => (
         <Group gap="sm">
           <FaUser size={16} />
           <Text>
-            {address.name.charAt(0).toLocaleUpperCase() + address.name.slice(1)}{" "}
+            {address.name.charAt(0).toLocaleUpperCase() + address.name.slice(1)}
             {address.surname.charAt(0).toLocaleUpperCase() +
               address.surname.slice(1)}
           </Text>

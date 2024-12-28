@@ -1,21 +1,31 @@
 "use client";
+import FeedbackDialog from "@/components/FeedbackDialog";
 import {
   EmailTemplateSchema,
   EmailTemplateSchemaType,
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Switch, Textarea, TextInput } from "@mantine/core";
-import { EmailTemplateType, VariantType } from "@prisma/client";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { formValues, SalerInfoType, SeoType } from "../[slug]/page";
-import PreviewTemplate from "./PreviewWithDevice";
-import { getHtmlTemplate } from "../utils/CustomHtmlTemplate";
-import { useMemo, useState } from "react";
-import { EmailTemplateAction } from "../_actions/EmailAction";
-import FeedbackDialog from "@/components/FeedbackDialog";
+import {
+  Button,
+  ColorInput,
+  rem,
+  Textarea,
+  TextInput,
+  DEFAULT_THEME,
+} from "@mantine/core";
+import { render } from "@react-email/render";
 import { useRouter } from "next/navigation";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import { GiEyedropper } from "react-icons/gi";
+import { formValues, SalerInfoType, SeoType } from "../[slug]/page";
+import { EmailTemplateTypeForUI } from "../types/type";
+import { defaultValuesForEmailTemplate } from "../utils/EmailDefaultValues";
+import { EmailLayout } from "./HtmlTemplate";
+import PreviewTemplate from "./PreviewWithDevice";
+import { EmailTemplateAction } from "../_actions/EmailAction";
 interface EmailTemplateFormProps {
-  slug: EmailTemplateType;
+  slug: EmailTemplateTypeForUI;
   seo: SeoType;
   salerInfo: SalerInfoType;
   formValues: formValues;
@@ -28,27 +38,41 @@ const EmailTemplateForm = ({
   formValues,
 }: EmailTemplateFormProps) => {
   const defaultValueTemplate = defaultValuesForEmailTemplate(slug);
+  const showButtonControls =
+    slug === EmailTemplateTypeForUI.PASSWORD_RESET ||
+    slug === EmailTemplateTypeForUI.WELCOME_MESSAGE;
   const {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<EmailTemplateSchemaType>({
     resolver: zodResolver(EmailTemplateSchema),
-    defaultValues: formValues
-      ? {
-          altText: formValues.altText,
-          buttonText: formValues.buttonText,
-          showButton: formValues.showButton,
-          title: formValues.title,
-        }
-      : {
-          altText: defaultValueTemplate.altText,
-          buttonText: defaultValueTemplate.buttonText,
-          showButton: defaultValueTemplate.showButton,
-          title: defaultValueTemplate.title,
-        },
+    defaultValues: {
+      title: formValues?.title || defaultValueTemplate.title,
+      altText: formValues?.altText || defaultValueTemplate.altText,
+      buttonColor: formValues?.buttonColor || "#000000",
+      buttonText: formValues?.buttonText || "Buton Metni",
+    },
   });
+  const themeColors = [
+    "#2e2e2e",
+    "#868e96",
+    "#fa5252",
+    "#e64980",
+    "#be4bdb",
+    "#7950f2",
+    "#4c6ef5",
+    "#228be6",
+    "#15aabf",
+    "#12b886",
+    "#40c057",
+    "#82c91e",
+    "#fab005",
+    "#fd7e14",
+  ];
+  const [html, setHtml] = useState<string>("");
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     message: string;
@@ -59,6 +83,60 @@ const EmailTemplateForm = ({
     type: "success",
   });
   const { refresh } = useRouter();
+  const watchedTitle = watch("title");
+  const watchedAltText = watch("altText");
+  const watchedButtonColor = watch("buttonColor");
+  const watchedButtonText = watch("buttonText");
+  const templateProps = useMemo(
+    () => ({
+      title: watchedTitle || defaultValueTemplate.title,
+      altText: watchedAltText || defaultValueTemplate.altText,
+      salerInfo,
+      products: defaultValueTemplate.product,
+      button: showButtonControls
+        ? {
+            text: watchedButtonText || "Buton Metni",
+            color: watchedButtonColor || "#000000",
+            link: "#",
+          }
+        : undefined,
+    }),
+    [
+      watchedTitle,
+      watchedAltText,
+      watchedButtonText,
+      watchedButtonColor,
+      defaultValueTemplate,
+      salerInfo,
+      showButtonControls,
+    ],
+  );
+  const renderTemplate = useCallback(async () => {
+    try {
+      const renderedHtml = await render(<EmailLayout {...templateProps} />, {
+        pretty: true,
+      });
+      setHtml(renderedHtml);
+    } catch (error) {
+      console.error("Error rendering email template:", error);
+    }
+  }, [templateProps]);
+
+  useEffect(() => {
+    renderTemplate();
+  }, [renderTemplate]);
+
+  // Update form values when slug changes
+  useEffect(() => {
+    const newDefaults = defaultValuesForEmailTemplate(slug);
+    setValue("title", newDefaults.title);
+    setValue("altText", newDefaults.altText);
+    if (showButtonControls) {
+      setValue("buttonColor", newDefaults.button?.color || "#000000");
+      setValue("buttonText", newDefaults.button?.text || "Buton Metni");
+    }
+  }, [slug, setValue, showButtonControls]);
+
   const onSubmit: SubmitHandler<EmailTemplateSchemaType> = async (data) => {
     const res = await EmailTemplateAction(data, slug);
     if (res.success) {
@@ -78,22 +156,12 @@ const EmailTemplateForm = ({
     }
     refresh();
   };
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="flex flex-col rounded-xl bg-white shadow-md transition-shadow hover:shadow-lg">
         <div className="flex-1 p-6">
-          <PreviewTemplate
-            htmlContent={getHtmlTemplate({
-              type: slug,
-              salerInfo,
-              seo,
-              title: watch("title"),
-              altText: watch("altText"),
-              buttonText: watch("buttonText"),
-              showButton: watch("showButton"),
-              product: defaultValueTemplate.product || null,
-            })}
-          />
+          <PreviewTemplate htmlContent={html} />
         </div>
       </div>
       <div className="flex flex-col rounded-xl bg-white shadow-md">
@@ -119,42 +187,61 @@ const EmailTemplateForm = ({
             render={({ field }) => (
               <Textarea
                 label="Açıklama"
+                description="orderNumber başına eklenecektir."
                 classNames={{ label: "font-bold" }}
                 {...field}
                 error={errors.altText?.message}
               />
             )}
           />
-          <Controller
-            control={control}
-            name="showButton"
-            render={({ field: { value, onChange } }) => (
-              <Switch
-                label="Buton Göster"
-                checked={value}
-                onChange={(event) => onChange(event.currentTarget.checked)}
-                className="w-fit"
-                error={errors.showButton?.message}
+          {showButtonControls && (
+            <Fragment>
+              <Controller
+                control={control}
+                name="buttonColor"
+                render={({ field }) => (
+                  <ColorInput
+                    format="hex"
+                    value={field.value}
+                    label="Buton Rengi"
+                    onChange={field.onChange}
+                    swatches={[
+                      ...DEFAULT_THEME.colors.red,
+                      ...DEFAULT_THEME.colors.green,
+                      ...DEFAULT_THEME.colors.blue,
+                      ...DEFAULT_THEME.colors.yellow,
+                    ]}
+                    withPicker={false}
+                    eyeDropperIcon={
+                      <GiEyedropper
+                        style={{ width: rem(18), height: rem(18) }}
+                        fontWeight={500}
+                      />
+                    }
+                    className="w-full"
+                    size="sm"
+                  />
+                )}
               />
-            )}
-          />
-          <Controller
-            control={control}
-            name="buttonText"
-            render={({ field }) => (
-              <TextInput
-                label="Buton Metni"
-                classNames={{ label: "font-bold" }}
-                {...field}
-                error={errors.buttonText?.message}
+              <Controller
+                control={control}
+                name="buttonText"
+                render={({ field }) => (
+                  <TextInput
+                    label="Buton Metni"
+                    classNames={{ label: "font-bold" }}
+                    {...field}
+                    error={errors.buttonText?.message}
+                  />
+                )}
               />
-            )}
-          />
+            </Fragment>
+          )}
           <Button type="submit" loading={isSubmitting}>
             Kaydet
           </Button>
         </form>
-      </div>{" "}
+      </div>
       <FeedbackDialog
         isOpen={dialogState.isOpen}
         onClose={() => setDialogState((prev) => ({ ...prev, isOpen: false }))}
@@ -166,173 +253,3 @@ const EmailTemplateForm = ({
 };
 
 export default EmailTemplateForm;
-
-export const defaultValuesForEmailTemplate = (type: EmailTemplateType) => {
-  switch (type) {
-    case "ORDER_CANCELLED":
-      return {
-        title: "Siparişiniz iptal edildi",
-        altText:
-          "{{orderNumber}} numaralı siparişiniz talebiniz doğrultusunda iade edilmiştir.",
-        showButton: false,
-        buttonText: "Deneme",
-        product: [
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-        ],
-      };
-    case "ORDER_CREATED":
-      return {
-        title: "Siparişiniz oluşturuldu",
-        altText:
-          "Siparişiniz başarıyla oluşturuldu, siparişinizi kargoya hazırlıyoruz. Siparişiniz kargoya verildiğinde sizi e-posta ve SMS ile bilgilendireceğiz.",
-        showButton: true,
-        buttonText: "Sipariş Detayları",
-        product: [
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-        ],
-      };
-    case "ORDER_DELIVERED":
-      return {
-        title: "Siparişiniz Teslim Edildi",
-        altText: "Siparişiniz başarıyla teslim edildi.",
-        showButton: false,
-        buttonText: "Deneme",
-        product: [
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-        ],
-      };
-    case "ORDER_INVOICE":
-      return {
-        title: "Faturanız Hazır",
-        altText:
-          "Faturanız hazır, faturanızı görüntülemek için butona tıklayın.",
-        showButton: true,
-        buttonText: "Faturayı Görüntüle",
-      };
-    case "ORDER_REFUNDED":
-      return {
-        title: "Sipariş iade talebiniz onaylandı.",
-        altText:
-          "{{orderNumber}} numaralı siparişiniz için talebiniz doğrultusunda para iadesi yapılmıştır.",
-        showButton: false,
-        buttonText: "Deneme",
-        product: [
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-          {
-            url: "/images/image-3.png",
-            name: "Deneme",
-            price: 100,
-            quantity: 1,
-            type: VariantType.COLOR,
-            value: "#ff0000",
-            description: "Deneme",
-          },
-        ],
-      };
-    case "PASSWORD_RESET":
-      return {
-        title: "Şifre Sıfırlama",
-        altText: "Şifrenizi sıfırlamak için butona tıklayın.",
-        showButton: true,
-        buttonText: "Şifre Sıfırla",
-      };
-
-    case "REFUND_REJECTED":
-      return {
-        title: "Siparişiniz için para iadesi reddedildi",
-        altText:
-          "{{orderNumber}} numaralı siparişiniz için talebiniz doğrultusunda para iadesi reddedilmiştir.",
-        showButton: false,
-        buttonText: "Deneme",
-      };
-    case "REFUND_REQUESTED":
-      return {
-        title: "Siparişiniz için para iadesi talebiniz alındı",
-        altText:
-          "{{orderNumber}} numaralı siparişiniz için para iadesi talebiniz alınmıştır.",
-        showButton: false,
-        buttonText: "Deneme",
-      };
-    case "SHIPPING_CREATED":
-      return {
-        title: "Kargo Takip Numaranız",
-        altText:
-          "Siparişiniz kargoya verildi. Kargo takip numaranız: {{trackingNumber}}",
-        showButton: false,
-        buttonText: "Deneme",
-      };
-    case "SHIPPING_DELIVERED":
-      return {
-        title: "Siparişiniz Teslim Edildi",
-        altText: "Siparişiniz başarıyla teslim edildi.",
-        showButton: false,
-        buttonText: "Deneme",
-      };
-    case "WELCOME_MESSAGE":
-      return {
-        title: "Hoşgeldiniz",
-        altText: "{{companyName}} ailesine hoşgeldiniz.",
-        showButton: false,
-        buttonText: "Deneme",
-      };
-  }
-};

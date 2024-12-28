@@ -52,6 +52,8 @@ export default {
         role: user.role,
         emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
         sub: user.id,
+        email: user.email,
+        
       };
     },
     async redirect({ url, baseUrl }) {
