@@ -131,7 +131,7 @@ export function Footer({
             >
               <RiTwitterXFill size={18} className="hover:text-black" />
             </ActionIcon>
-          )}{" "}
+          )}
           {salerInfo?.pinterest && (
             <ActionIcon
               component="a"

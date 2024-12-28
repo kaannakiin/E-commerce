@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
-import { EmailTemplateType, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import EmailTemplateForm from "../_components/EmailTemplateForm";
+import { EmailTemplateTypeForUI } from "../types/type";
 export type SalerInfoType = Prisma.SalerInfoGetPayload<{
   select: {
     logo: {
@@ -19,6 +20,7 @@ export type SalerInfoType = Prisma.SalerInfoGetPayload<{
     facebook: true;
     storeName: true;
     whatsapp: true;
+    address: true;
   };
 } | null>;
 export type SeoType = Prisma.MainSeoSettingsGetPayload<{
@@ -30,11 +32,11 @@ export type formValues = Prisma.EmailTemplateGetPayload<{
   select: {
     altText: true;
     buttonText: true;
-    showButton: true;
+    buttonColor: true;
     title: true;
   };
 } | null>;
-const feedPage = cache(async (slug: EmailTemplateType) => {
+const feedPage = cache(async (slug: EmailTemplateTypeForUI) => {
   try {
     const salerInfo = await prisma.salerInfo.findFirst({
       select: {
@@ -51,6 +53,7 @@ const feedPage = cache(async (slug: EmailTemplateType) => {
         facebook: true,
         storeName: true,
         whatsapp: true,
+        address: true,
       },
     });
     const seo = await prisma.mainSeoSettings.findFirst({
@@ -65,7 +68,7 @@ const feedPage = cache(async (slug: EmailTemplateType) => {
       select: {
         altText: true,
         buttonText: true,
-        showButton: true,
+        buttonColor: true,
         title: true,
       },
     });
@@ -77,7 +80,7 @@ const feedPage = cache(async (slug: EmailTemplateType) => {
 });
 
 const SlugPage = async ({ params }: { params: Params }) => {
-  const slug = (await params).slug as EmailTemplateType;
+  const slug = (await params).slug as EmailTemplateTypeForUI;
 
   const { salerInfo, seo, formValues } = await feedPage(slug);
 

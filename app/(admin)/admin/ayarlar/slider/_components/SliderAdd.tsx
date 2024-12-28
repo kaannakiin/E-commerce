@@ -191,7 +191,7 @@ const SliderAdd = () => {
             Slider Ekle
           </Button>
         </Stack>
-      </form>{" "}
+      </form>
       <FeedbackDialog
         isOpen={feedbackState.isOpen}
         onClose={() => setFeedbackState((prev) => ({ ...prev, isOpen: false }))}

@@ -70,7 +70,7 @@ const CartSection = () => {
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-300">Ara Toplam</span>
             <span>{formattedPrice(totalOriginalPrice)}</span>
-          </div>{" "}
+          </div>
           <DiscountCodeInput
             success={discount.success}
             message={discountMessage}

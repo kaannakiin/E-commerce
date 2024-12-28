@@ -1,5 +1,4 @@
 "use server";
-
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,8 +6,7 @@ import {
   NoReplyEmailSettingsSchema,
   NoReplyEmailSettingsType,
 } from "@/zodschemas/authschema";
-import { EmailTemplateType } from "@prisma/client";
-
+import { EmailTemplateTypeForUI } from "../types/type";
 export async function EmailSettingsAction(
   data: NoReplyEmailSettingsType,
 ): Promise<{
@@ -64,24 +62,35 @@ export async function EmailSettingsAction(
 }
 export async function EmailTemplateAction(
   data: EmailTemplateSchemaType,
-  type: EmailTemplateType,
+  type: EmailTemplateTypeForUI,
 ): Promise<{
   success: boolean;
   message: string;
 }> {
   try {
-    const order = await prisma.emailTemplate.findFirst({
+    const session = await isAuthorized();
+    if (!session) {
+      return { success: false, message: "Yetkisiz erişim." };
+    }
+    const order = await prisma.emailTemplate.findMany({
       where: {
         type,
       },
     });
-    if (order) {
+    console.log(order);
+    if (order.length > 1) {
+      return {
+        success: false,
+        message: "E-posta şablonu birden fazla bulundu.",
+      };
+    }
+    if (order.length !== 0) {
       await prisma.emailTemplate.update({
         where: { type },
         data: {
           altText: data.altText,
           buttonText: data.buttonText,
-          showButton: data.showButton,
+          buttonColor: data.buttonColor,
           title: data.title,
         },
       });
@@ -94,7 +103,7 @@ export async function EmailTemplateAction(
         data: {
           altText: data.altText,
           buttonText: data.buttonText,
-          showButton: data.showButton,
+          buttonColor: data.buttonColor,
           title: data.title,
           type,
         },

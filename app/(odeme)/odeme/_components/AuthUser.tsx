@@ -134,7 +134,7 @@ const AuthUser = ({
                     <FaUser size={16} className="flex-shrink-0" />
                     <Text size="sm" className="truncate font-extrabold">
                       {address.name.charAt(0).toUpperCase() +
-                        address.name.slice(1).toLowerCase()}{" "}
+                        address.name.slice(1).toLowerCase()}
                       {address.surname.charAt(0).toUpperCase() +
                         address.surname.slice(1).toLowerCase()}
                     </Text>
@@ -150,7 +150,7 @@ const AuthUser = ({
                   <div className="flex flex-1 gap-2">
                     <FaMapMarkerAlt size={16} className="mt-1 flex-shrink-0" />
                     <p className="line-clamp-2 text-sm font-extrabold text-gray-500">
-                      {address.addressDetail}, {address.district} /{" "}
+                      {address.addressDetail}, {address.district} /
                       {address.city}
                     </p>
                   </div>
@@ -194,8 +194,8 @@ const AuthUser = ({
           size="md"
           centered
         >
-          <AddressForm email={email} onClose={close} />       {" "}
-        </Modal>{" "}
+          <AddressForm email={email} onClose={close} />       
+        </Modal>
       </Tabs.Panel>
 
       <Tabs.Panel value="payment">

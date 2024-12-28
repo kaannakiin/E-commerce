@@ -428,14 +428,14 @@ model NoReplyEmailSetting {
 }
 
 model EmailTemplate {
-  id         String            @id @default(cuid())
-  type       EmailTemplateType @unique
-  title      String?
-  altText    String?
-  showButton Boolean           @default(false)
-  buttonText String?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  id          String            @id @default(cuid())
+  type        EmailTemplateType @unique
+  title       String?
+  altText     String?
+  buttonColor String?
+  buttonText  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 }
 
 enum EmailTemplateType {

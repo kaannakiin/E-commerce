@@ -54,7 +54,7 @@ const ForgotCheckForm = (props: props) => {
                 error={errors?.password?.message}
               />
             )}
-          />{" "}
+          />
           <Controller
             control={control}
             name="confirmPassword"

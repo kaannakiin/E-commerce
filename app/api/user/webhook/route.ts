@@ -1,5 +1,6 @@
+import { SendOrder } from "@/actions/order/SendOrder";
+import { EmailTemplateTypeForUI } from "@/app/(admin)/admin/ayarlar/e-mail/types/type";
 import { findByPaymentIdAndUpdate } from "@/lib/İyzico/helper/helper";
-import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -20,7 +21,11 @@ export async function POST(req: NextRequest) {
           message: updateOrder.message,
         });
       }
-
+      await SendOrder({
+        type: EmailTemplateTypeForUI.ORDER_CREATED,
+        email: updateOrder.email,
+        products: updateOrder.product,
+      });
       return NextResponse.json({
         status: "success",
         message: "Sipariş başarıyla güncellendi",

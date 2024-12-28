@@ -348,7 +348,7 @@ const ProductForm = ({
                   />
                 </div>
                 <CategoryAddModal extraCategory />
-              </Card>{" "}
+              </Card>
               <Card withBorder shadow="sm" className="p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <h1 className="text-lg font-bold">Varyantlar</h1>

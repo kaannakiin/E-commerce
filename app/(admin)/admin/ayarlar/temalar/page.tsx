@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { Card, Divider } from "@mantine/core";
+import { Prisma } from "@prisma/client";
 import { cache } from "react";
 import SocialMedia from "./_components/SocialMedia";
-import { Prisma } from "@prisma/client";
 export type SocialMediaProps = Prisma.MainSeoSettingsGetPayload<{
   select: {
     id: true;
