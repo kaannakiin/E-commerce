@@ -66,6 +66,7 @@ const ProductRenderer = memo(({ products }: { products: ProductInfo[] }) => {
                 {product.description}
               </Text>
               <table style={{ marginTop: "4px", width: "100%" }}>
+                <tbody>
                 <tr
                   style={{ display: "flex", alignItems: "center", gap: "8px" }}
                 >
@@ -84,6 +85,7 @@ const ProductRenderer = memo(({ products }: { products: ProductInfo[] }) => {
                   {product.type === "COLOR" && (
                     <td>
                       <table>
+                        <tbody>
                         <tr>
                           <td
                             style={{
@@ -97,6 +99,7 @@ const ProductRenderer = memo(({ products }: { products: ProductInfo[] }) => {
                             &nbsp;
                           </td>
                         </tr>
+                        </tbody>
                       </table>
                     </td>
                   )}
@@ -129,6 +132,7 @@ const ProductRenderer = memo(({ products }: { products: ProductInfo[] }) => {
                     </td>
                   )}
                 </tr>
+                </tbody>
               </table>
             </td>
           </tr>
@@ -138,7 +142,7 @@ const ProductRenderer = memo(({ products }: { products: ProductInfo[] }) => {
     </Section>
   ));
 });
-
+ProductRenderer.displayName = 'ProductRenderer';
 const TitleTextRenderer = memo(
   ({ title, text }: { title: string; text: string }) => {
     return (
@@ -164,6 +168,7 @@ const TitleTextRenderer = memo(
     );
   },
 );
+TitleTextRenderer.displayName = 'TitleTextRenderer';
 
 const ButtonRenderer = memo(({ button }: { button: EmailButton }) => {
   const buttonStyle = useMemo(
@@ -186,7 +191,7 @@ const ButtonRenderer = memo(({ button }: { button: EmailButton }) => {
     }),
     [button.color],
   );
-
+  ButtonRenderer.displayName = 'ButtonRenderer';
   return (
     <Section className="text-center">
       <Button href={button.link} style={buttonStyle}>
@@ -266,6 +271,7 @@ export function EmailLayout({
           {button && <ButtonRenderer button={button} />}
           <Section className="text-center">
             <table className="w-full">
+              <tbody>
               <tr className="w-full">
                 <td align="center">
                   {storeName && (
@@ -275,6 +281,8 @@ export function EmailLayout({
                   )}
                 </td>
               </tr>
+              </tbody>
+              <tbody>
               <tr>
                 <td align="center">
                   <Row className="table-cell h-[40px] w-full align-bottom">
@@ -298,6 +306,8 @@ export function EmailLayout({
                   </Row>
                 </td>
               </tr>
+              </tbody>
+              <tbody>
               <tr>
                 <td align="center">
                   {address && (
@@ -317,6 +327,7 @@ export function EmailLayout({
                   )}
                 </td>
               </tr>
+              </tbody>
             </table>
           </Section>
         </Body>
