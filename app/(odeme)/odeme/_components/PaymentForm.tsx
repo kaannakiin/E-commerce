@@ -63,7 +63,7 @@ const PaymentForm = ({ address }) => {
         status: number;
         message: string;
         htmlContent?: string;
-      }>("/user/payment/auth-user", {
+      }>("/user/payment/iyzico/auth-user", {
         data,
         address,
         discountCode,

@@ -1,45 +1,23 @@
-import CustomImage from "@/components/CustomImage";
-import {
-  formatOrderStatus,
-  formatPaymentStatus,
-  formatRefundStatus,
-  formattedDate,
-  formattedPrice,
-} from "@/lib/format";
+import OrderItemsCard from "@/app/(kullanici)/siparis/[slug]/_components/OrderItemsCard";
+import PaymentInfoCard from "@/app/(kullanici)/siparis/[slug]/_components/PaymentInfoCard";
+import UserInfoCard from "@/app/(kullanici)/siparis/[slug]/_components/UserInfoCard";
+import { formatOrderStatus, formattedPrice } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
-import {
-  Card,
-  ColorSwatch,
-  Group,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { Prisma, VariantType } from "@prisma/client";
+import { Badge, Card, Divider, Group, Stack, Text, Title } from "@mantine/core";
+import { OrderStatus } from "@prisma/client";
+import { format, isSameDay } from "date-fns";
+import { tr } from "date-fns/locale";
 import { notFound } from "next/navigation";
-import { cache } from "react";
+import { cache, Fragment } from "react";
 import {
-  FaCreditCard,
-  FaMapMarkerAlt,
-  FaMoneyBill,
-  FaPhone,
-  FaUser,
-} from "react-icons/fa";
-import CancelButton from "../_components/CancelButton";
-import ReBuyButton from "../_components/ReBuyButton";
-import { isSameDay } from "date-fns";
-import RefundButton from "../_components/RefundButton";
-import { isWithinRefundPeriod } from "@/lib/İyzico/helper/helper";
-export type CancelButtonProps = Prisma.OrderGetPayload<{
-  select: {
-    paymentDate: true;
-    createdAt: true;
-    status: true;
-    paymentStatus: true;
-    paymentId: true;
-  };
-}>;
+  TbCalendar,
+  TbCreditCard,
+  TbDiscount,
+  TbPackage,
+} from "react-icons/tb";
+import CancelOrderButton from "../_components/CancelOrderButton";
+
 const feedPage = cache(async (slug: string) => {
   try {
     const order = await prisma.order.findUnique({
@@ -47,343 +25,208 @@ const feedPage = cache(async (slug: string) => {
         orderNumber: slug,
       },
       select: {
-        address: {
-          select: {
-            addressDetail: true,
-            city: true,
-            district: true,
-            phone: true,
-            name: true,
-            surname: true,
-          },
-        },
-        maskedCardNumber: true,
-        discountCode: true,
-        paymentStatus: true,
         orderNumber: true,
-        status: true,
+        userId: true,
+        address: true,
         cardAssociation: true,
+        maskedCardNumber: true,
         cardFamily: true,
-        paymentDate: true,
         cardType: true,
+        discountCode: true,
         createdAt: true,
-        paymentId: true,
         isCancelled: true,
+        paymentDate: true,
+        ip: true,
+        paymentId: true,
+        paymentStatus: true,
         total: true,
+        status: true,
+        cancelProcessDate: true,
+        cancelReason: true,
         OrderItems: {
           select: {
             id: true,
-            quantity: true,
             price: true,
-            isRefunded: true,
-            refundReason: true,
-            refundRequestDate: true,
-            refundStatus: true,
+            quantity: true,
             variant: {
               select: {
+                id: true,
+                type: true,
+                value: true,
+                price: true,
+                slug: true,
+                discount: true,
+                stock: true,
+                createdAt: true,
+                isPublished: true,
+                softDelete: true,
                 unit: true,
                 product: {
                   select: {
-                    shortDescription: true,
-                    name: true,
                     id: true,
+                    name: true,
                     taxRate: true,
+                    description: true,
                   },
                 },
-                id: true,
-                value: true,
-                type: true,
-                discount: true,
                 Image: {
                   select: {
                     url: true,
                     alt: true,
                   },
                 },
-                price: true,
               },
             },
+            isRefunded: true,
+            refundAmount: true,
+            refundStatus: true,
+            refundRequestDate: true,
+            refundReason: true,
           },
         },
       },
     });
-    if (!order) return null;
+    if (!order) return notFound();
     return order;
-  } catch (error) {}
+  } catch (error) {
+    return notFound();
+  }
 });
 const page = async (params: { params: Params }) => {
   const slug = (await params.params).slug;
-  const data = await feedPage(slug);
-  if (!data) {
-    notFound();
-  }
-  const summaryItems = [
-    {
-      label: "Sipariş Tarihi",
-      value: formattedDate(data.createdAt.toISOString()),
-    },
-    {
-      label: "Sipariş No",
-      value: data.orderNumber,
-    },
-    {
-      label: "Sipariş Özeti",
-      value: `${data.OrderItems.length} adet ürün`,
-    },
-    { label: "Sipariş Durumu", value: formatOrderStatus(data.status) },
-  ];
+  const order = await feedPage(slug);
+  const OrderSameDay = isSameDay(new Date(order.createdAt), new Date());
   return (
-    <div className="flex w-full flex-col gap-4">
-      <Card withBorder shadow="sm" p="md">
-        <Stack gap="md">
-          <Text fw={700} size="xl" className="md:hidden">
-            Sipariş Özeti
-          </Text>
-
-          <Group
-            justify="space-between"
-            align="center"
-            className="hidden md:flex"
-          >
-            <Text fw={700} size="xl">
-              Sipariş Özeti
-            </Text>
-            {summaryItems.map((item, index) => (
-              <Stack key={index} gap={4}>
-                <Text size="sm" c="dimmed">
-                  {item.label}
-                </Text>
-                <Text size="sm">{item.value}</Text>
-              </Stack>
-            ))}
-          </Group>
-
-          {/* Mobile görünüm için grid */}
-          <SimpleGrid cols={2} className="md:hidden">
-            {summaryItems.map((item, index) => (
-              <Stack key={index} gap={4}>
-                <Text size="sm" c={"dimmed"}>
-                  {item.label}
-                </Text>
-                <Text size="sm">{item.value}</Text>
-              </Stack>
-            ))}
-          </SimpleGrid>
-        </Stack>
-      </Card>
-      <div className="flex flex-row justify-end">
-        {data.status === "CANCELLED" && (
-          <Text c="red">Sipariş iptal edildi</Text>
-        )}
-        {isSameDay(data.paymentDate, new Date()) &&
-          data.status === "PROCESSING" &&
-          data.paymentStatus === "SUCCESS" && (
-            <CancelButton
-              props={{
-                createdAt: data.createdAt,
-                paymentDate: data.paymentDate,
-                paymentId: data.paymentId,
-                paymentStatus: data.paymentStatus,
-                status: data.status,
-              }}
-            />
+    <div className="flex flex-col gap-5 p-5 lg:p-10">
+      <div className="flex flex-row items-center justify-between">
+        <Title c={"secondary.9"} order={3}>
+          Sipariş Detayları
+        </Title>
+        {OrderSameDay &&
+          order.paymentStatus === "SUCCESS" &&
+          order.status !== "COMPLETED" &&
+          order.status !== "CANCELLED" &&
+          order.status !== "SHIPPED" &&
+          !order.isCancelled && (
+            <CancelOrderButton ip={order.ip} paymentId={order.paymentId} />
           )}
       </div>
-      <div className="flex flex-col justify-between gap-4 lg:flex-row">
-        <DeliveryAddressCard address={data.address} />
-        <Card withBorder shadow="sm" p="md" className="sm:w-full md:w-1/2">
+      <div className="grid gap-2 lg:grid-cols-3 lg:gap-4">
+        <Card withBorder padding="lg" shadow="lg">
           <Stack gap="md">
-            <Text fw={700} c="blue.9">
-              Ödeme Bilgileri
-            </Text>
+            <Group justify="space-between">
+              <Group gap="xs">
+                <TbPackage size={20} color="#666666" />
+                <Text fw={500}>Sipariş No: {order.orderNumber}</Text>
+              </Group>
+              <Badge
+                color={getStatusColor(order.status).text}
+                c={getStatusColor(order.status).bg}
+              >
+                {formatOrderStatus(order.status)}
+              </Badge>
+            </Group>
 
-            <Stack gap="sm">
-              <Group gap="sm">
-                <FaCreditCard size={16} />
-                <Stack gap={4}>
-                  <Text>{data.maskedCardNumber}</Text>
-                </Stack>
-              </Group>
+            <Divider />
 
-              <Group gap="sm">
-                <FaMoneyBill size={16} />
-                <Stack gap={4}>
-                  <Text size="sm" c="dimmed">
-                    Toplam Tutar
-                  </Text>
-                  <Text fw={500}>{formattedPrice(data.total)}</Text>
-                </Stack>
+            <Group gap="xs">
+              <TbCalendar size={20} color="#666666" />
+              <Text>
+                {format(new Date(order.createdAt), "dd MMMM yyyy EEEE", {
+                  locale: tr,
+                })}
+              </Text>
+            </Group>
+            {order.discountCode && (
+              <Fragment>
+                <Group gap="xs">
+                  <TbDiscount size={20} color="#666666" />
+                  <Stack gap={4}>
+                    <Text fw={500}>
+                      İndirim Kodu: {order.discountCode.code}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      İndirim Tutarı:{" "}
+                      <Text span fw={500} c="green">
+                        {order.discountCode.discountType === "PERCENTAGE"
+                          ? formattedPrice(
+                              (order.total * 100) /
+                                (100 - order.discountCode.discountAmount) -
+                                order.total,
+                            )
+                          : formattedPrice(order.discountCode.discountAmount)}
+                      </Text>
+                    </Text>
+                  </Stack>
+                </Group>
+              </Fragment>
+            )}
+            <Divider />
+            <Group justify="space-between" wrap="nowrap">
+              <Group gap="xs">
+                <TbCreditCard size={20} color="#666666" />
+                <Text>Sepet Tutarı</Text>
               </Group>
-              <Group gap="sm">
-                <FaMoneyBill size={16} />
-                <Stack gap={4}>
-                  <Text size="sm" c="dimmed">
-                    Ödeme durumu
-                  </Text>
-                  <Text fw={500}>
-                    {formatPaymentStatus(data.paymentStatus)}
-                  </Text>
-                </Stack>
-              </Group>
-            </Stack>
+              <Text size="xl" fw={700}>
+                {formattedPrice(order.total)}
+              </Text>
+            </Group>
           </Stack>
         </Card>
+        <UserInfoCard
+          addressDetail={order.address.addressDetail}
+          addressTitle={order.address.addressTitle}
+          city={order.address.city}
+          distirct={order.address.district}
+          email={order.address.email}
+          name={order.address.name}
+          phone={order.address.phone}
+          surname={order.address.surname}
+        />
+        <PaymentInfoCard
+          cancelProcessDate={order.cancelProcessDate}
+          cancelReason={order.cancelReason}
+          isCancelled={order.isCancelled}
+          maskedCardNumber={order.maskedCardNumber}
+          paymentDate={order.paymentDate}
+          paymentStatus={order.paymentStatus}
+        />
       </div>
-      <div className="mt-4 grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
-        {data.OrderItems &&
-          data.OrderItems.map((item, index) => (
-            <div
-              className="flex flex-row gap-2 rounded-md border p-4 shadow-sm"
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+        {order.OrderItems.map((item, index) => {
+          return (
+            <OrderItemsCard
               key={index}
-            >
-              {item.variant.Image && (
-                <div className="relative h-24 w-24">
-                  <CustomImage
-                    src={item.variant.Image[0].url}
-                    quality={20}
-                    objectFit="cover"
-                  />
-                </div>
-              )}
-              <div className="flex flex-1 flex-col">
-                <div>
-                  <span className="flex flex-row items-center gap-2">
-                    <p className="line-clamp-1 text-sm font-medium">
-                      {item.variant.product.name}
-                    </p>
-                    {getVariantLabel({
-                      type: item.variant.type,
-                      value: item.variant.value,
-                      unit: item.variant.unit,
-                    })}
-                  </span>
-                  <p className="line-clamp-1 text-sm text-gray-600">
-                    {item.variant.product.shortDescription}
-                  </p>
-                </div>
-                <div className="mt-2 flex w-full flex-col justify-between gap-2 lg:flex-row lg:items-center lg:gap-0">
-                  <div className="flex flex-row items-center gap-4">
-                    <Text c={"primary.9"} fw={700}>
-                      {formattedPrice(item.price)}
-                    </Text>
-                  </div>
-                  <div className="flex flex-1 flex-row justify-between gap-2 lg:justify-end">
-                    {!data.isCancelled &&
-                      !isSameDay(data.paymentDate, new Date()) &&
-                      !item.isRefunded &&
-                      isWithinRefundPeriod(data.paymentDate) &&
-                      data.status === "COMPLETED" &&
-                      data.paymentStatus === "SUCCESS" &&
-                      !item.refundReason && (
-                        <RefundButton orderItemsId={item.id} />
-                      )}
-                    <ReBuyButton
-                      variant={{
-                        id: item.variant.id,
-                        price: item.variant.price,
-                        type: item.variant.type,
-                        value: item.variant.value,
-                        unit: item.variant.unit,
-                        discount: item.variant.discount,
-                        stock: 1,
-                        product: {
-                          id: item.variant.product.id,
-                          name: item.variant.product.name,
-                          description: item.variant.product.shortDescription,
-                          taxRate: item.variant.product.taxRate,
-                        },
-                        Image: item.variant.Image.map((image) => ({
-                          url: image.url,
-                          alt: image.alt,
-                        })),
-                      }}
-                    />
-                  </div>
-                </div>
-                <div>
-                  {item.refundReason && (
-                    <Text
-                      size="xs"
-                      className="font-bold"
-                      c={formatRefundStatus(item.refundStatus).color}
-                    >
-                      {formatRefundStatus(item.refundStatus).text}
-                    </Text>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+              isCancelled={order.isCancelled}
+              paymentStatus={order.paymentStatus}
+              price={item.price}
+              id={item.id}
+              quantity={item.quantity}
+              variant={item.variant}
+              refundAmount={item.refundAmount}
+              refundReason={item.refundReason}
+              refundRequestDate={item.refundRequestDate}
+              refundStatus={item.refundStatus}
+              isRefunded={item.isRefunded}
+              isSameDay={OrderSameDay}
+              orderStatus={order.status}
+              paymentId={order.paymentId}
+            />
+          );
+        })}
       </div>
     </div>
   );
 };
 
 export default page;
-interface VariantItem {
-  type: VariantType;
-  value: string;
-  unit?: string;
-}
-const getVariantLabel = ({ type, value, unit }: VariantItem) => {
-  switch (type) {
-    case VariantType.COLOR:
-      return (
-        <div className="flex items-center gap-2">
-          <ColorSwatch color={value} size={16} className="shadow-sm" />
-        </div>
-      );
-
-    case VariantType.SIZE:
-      return (
-        <span className="rounded-md bg-gray-50 px-2 py-0.5 text-sm font-medium">
-          {value}
-        </span>
-      );
-
-    case VariantType.WEIGHT:
-      return (
-        <span className="rounded-md bg-gray-50 px-2 py-0.5 text-sm font-medium">
-          {value} {unit}
-        </span>
-      );
-
-    default:
-      return null;
-  }
+const getStatusColor = (status: OrderStatus) => {
+  const colors = {
+    PENDING: { bg: "#FEF3C7", text: "#92400E" }, // Amber
+    PROCESSING: { bg: "#DBEAFE", text: "#1E40AF" }, // Blue
+    SHIPPED: { bg: "#E0F2FE", text: "#075985" }, // Light Blue
+    COMPLETED: { bg: "#DCFCE7", text: "#166534" }, // Green
+    CANCELLED: { bg: "#FEE2E2", text: "#991B1B" }, // Red
+  };
+  return colors[status] || { bg: "#F3F4F6", text: "#374151" }; // Default gray
 };
-const DeliveryAddressCard = ({ address }) => (
-  <Card withBorder shadow="sm" p="md" className="sm:w-full md:w-1/2">
-    <Stack gap="md">
-      <Text fw={700} c="blue.9">
-        Teslimat Adresi
-      </Text>
-
-      <Stack gap="sm">
-        <Group gap="sm">
-          <FaUser size={16} />
-          <Text>
-            {address.name.charAt(0).toLocaleUpperCase() + address.name.slice(1)}
-            {address.surname.charAt(0).toLocaleUpperCase() +
-              address.surname.slice(1)}
-          </Text>
-        </Group>
-
-        <Group gap="sm">
-          <FaPhone size={16} />
-          <Text>{address.phone}</Text>
-        </Group>
-
-        <Group gap="sm" align="flex-start">
-          <FaMapMarkerAlt size={16} />
-          <Stack gap={4}>
-            <Text>{address.addressDetail}</Text>
-            <Text size="sm" c="dimmed">
-              {address.city} / {address.district}
-            </Text>
-          </Stack>
-        </Group>
-      </Stack>
-    </Stack>
-  </Card>
-);

@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
           surname: UserInfo.lastName,
           phone: UserInfo.phone,
         });
-        paymentRequest.callbackUrl = `http:localhost:3000/api/user/payment/callback?nai=${addressId}&ip=${ip}`;
+        paymentRequest.callbackUrl = `http:localhost:3000/api/user/payment/iyzico/callback?nai=${addressId}&ip=${ip}`;
         if (discountCode) {
           paymentRequest.callbackUrl += `&di=${discountCode}`;
         }
@@ -315,7 +315,7 @@ export async function POST(req: NextRequest) {
         },
       };
       if (binCheck.cardType === "DEBIT_CARD" || cardInfo.threeDsecure) {
-        paymentRequest.callbackUrl = `http:localhost:3000/api/user/payment/callback?ai=${addressId}&uid=${session.user.id}&ip=${ip}`;
+        paymentRequest.callbackUrl = `http:localhost:3000/api/user/payment/iyzico/callback?ai=${addressId}&uid=${session.user.id}&ip=${ip}`;
         if (discountCode) {
           paymentRequest.callbackUrl += `&di=${discountCode}`;
         }

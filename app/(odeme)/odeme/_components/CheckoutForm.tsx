@@ -124,7 +124,7 @@ const CheckoutForm = () => {
       }));
       const params = searchParams.get("discountCode") || null;
       await fetchWrapper
-        .post("/user/payment/auth-user", {
+        .post("/user/payment/iyzico/auth-user", {
           data,
           params,
           variantIdQty,
@@ -169,13 +169,11 @@ const CheckoutForm = () => {
       });
     }
   };
-
+  if (isSubmitting) return <MainLoader />;
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      {<MainLoader />}
       <Stack>
         <Title order={2}>Siparişi Tamamla</Title>
-
         <Paper shadow="xs" p="md" withBorder>
           <Title order={3} mb="md">
             Kişisel Bilgiler

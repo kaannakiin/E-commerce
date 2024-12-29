@@ -83,7 +83,7 @@ const DiscountCodeInput = ({
         <Button
           type="submit"
           variant="filled"
-          color={success ? "green" : "blue"}
+          color="primary.4"
           loading={isSubmitting}
           className="whitespace-nowrap"
           disabled={
