@@ -5,28 +5,28 @@ import { rateLimiter } from "@/lib/rateLimitRedis";
 
 export async function POST(req: NextRequest) {
   try {
-    // const ip =
-    //   req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for");
-    // const rateLimit = await rateLimiter(ip, {
-    //   limit: 50,
-    //   windowInMinutes: 30,
-    // });
-    // if (!rateLimit.success) {
-    //   return NextResponse.json(
-    //     {
-    //       error: "Too many requests",
-    //       reset: rateLimit.reset,
-    //     },
-    //     {
-    //       status: 429,
-    //       headers: {
-    //         "X-RateLimit-Limit": rateLimit.limit.toString(),
-    //         "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-    //         "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
-    //       },
-    //     },
-    //   );
-    // }
+    const ip =
+      req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for");
+    const rateLimit = await rateLimiter(ip, {
+      limit: 50,
+      windowInMinutes: 30,
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          reset: rateLimit.reset,
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
+          },
+        },
+      );
+    }
     const data = await req.json();
     if (!data.paymentId || !data.orderItemId || !data.reason) {
       return NextResponse.json(
