@@ -81,7 +81,6 @@ const OrderSearchHeader = () => {
             { value: OrderStatus.PENDING, label: "Beklemede" },
             { value: OrderStatus.PROCESSING, label: "İşleniyor" },
             { value: OrderStatus.SHIPPED, label: "Kargoya Verildi" },
-            { value: OrderStatus.DELIVERED, label: "Teslim Edildi" },
             { value: OrderStatus.CANCELLED, label: "İptal Edildi" },
             { value: OrderStatus.COMPLETED, label: "Tamamlandı" },
           ].map((option) => ({
