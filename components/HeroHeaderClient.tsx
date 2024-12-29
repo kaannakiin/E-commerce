@@ -77,7 +77,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
                 </video>
               ) : (
                 <CustomImage
-                  src={`${encodeURIComponent(item.image.url)}`}
+                  src={`${item.image.url}`}
                   alt={item.alt}
                   objectFit={matches ? "cover" : "contain"}
                   priority

@@ -151,7 +151,7 @@ const UserInfoForm = ({
           >
             E-posta onayla
           </Button>
-        )}{" "}
+        )}
       </Card>
       <div className="flex flex-col gap-2 md:flex-row md:gap-0">
         <Card
@@ -340,7 +340,7 @@ const UserInfoForm = ({
 
             <div className="space-y-4 text-center">
               <p className="text-sm text-gray-500">
-                Kod gelmedi mi?{" "}
+                Kod gelmedi mi?
                 <Button
                   variant="subtle"
                   disabled={countdown > 0}

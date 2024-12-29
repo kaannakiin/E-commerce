@@ -1266,13 +1266,8 @@ export const marquueFormSchema = z.object({
     .optional()
     .refine(
       (url) => {
-        // Eğer url undefined veya boş string ise geçerli
         if (!url) return false;
-
-        // Eğer sadece # ise geçerli (boş yönlendirme)
         if (url === "#") return true;
-
-        // Bunun dışındaki tüm değerler / ile başlamalı
         return url.startsWith("/");
       },
       {

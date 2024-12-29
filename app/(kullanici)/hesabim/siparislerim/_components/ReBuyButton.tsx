@@ -47,8 +47,9 @@ const ReBuyButton = ({ variant }: ReBuyButtonProps) => {
       size="xs"
       variant="outline"
       onClick={handleAddToCart}
+      className="w-full lg:w-fit"
       disabled={variant.isPublished === false}
-      color={variant.isPublished === false ? "red" : "blue"}
+      color={variant.isPublished === false ? "red" : "primary"}
     >
       {variant.isPublished === false ? "Tükendi" : "Tekrar Satın Al"}
     </Button>

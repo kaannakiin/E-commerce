@@ -53,7 +53,6 @@ export default {
         emailVerified: user.emailVerified ? new Date(user.emailVerified) : null,
         sub: user.id,
         email: user.email,
-        
       };
     },
     async redirect({ url, baseUrl }) {
