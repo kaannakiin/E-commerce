@@ -1,5 +1,5 @@
 import {
-  CancelReason,
+  UserCancelReason,
   OrderStatus,
   PaymentStatus,
   RefundStatus,
@@ -28,12 +28,10 @@ export const formatOrderStatus = (status: OrderStatus) => {
   switch (status) {
     case "CANCELLED":
       return "İptal Edildi";
-    case "DELIVERED":
-      return "Teslim Edildi";
     case "PROCESSING":
       return "Hazırlanıyor";
     case "PENDING":
-      return "Ödeme bekleniyor";
+      return "Sipariş Alındı";
     case "SHIPPED":
       return "Kargoya verildi";
     case "COMPLETED":
@@ -58,6 +56,8 @@ export const formatPaymentStatusWithColor = (status: PaymentStatus) => {
       return { text: "Ödeme bekleniyor", color: "blue" };
     case "SUCCESS":
       return { text: "Ödendi", color: "green" };
+    case "REFUND":
+      return { text: "İade Edildi", color: "  " };
   }
 };
 export const isPaymentSameDay = (paymentDate: string) => {
@@ -99,10 +99,6 @@ const ORDER_STATUS_CONFIGS: Record<OrderStatus, OrderStatusConfig> = {
     text: "Kargoya verildi",
     color: "indigo",
   },
-  DELIVERED: {
-    text: "Teslim Edildi",
-    color: "teal",
-  },
   CANCELLED: {
     text: "İptal Edildi",
     color: "red",
@@ -121,29 +117,29 @@ export const getOrderStatusConfig = (
 ): OrderStatusConfig => {
   return ORDER_STATUS_CONFIGS[status];
 };
-export const formatCancelReason = (reason: CancelReason) => {
+export const formatCancelReason = (reason: UserCancelReason) => {
   switch (reason) {
-    case "CUSTOMER_REQUEST":
-      return { text: "Müşteri İsteği", color: "blue" };
-    case "STOCK_PROBLEM":
-      return { text: "Stok Problemi", color: "red" };
-    case "PRICE_ERROR":
-      return { text: "Fiyat Hatası", color: "orange" };
-    case "DUPLICATE_ORDER":
-      return { text: "Mükerrer Sipariş", color: "yellow" };
-    case "DELIVERY_AREA":
-      return { text: "Teslimat Bölgesi Dışında", color: "grape" };
-    case "PAYMENT_ISSUE":
-      return { text: "Ödeme Sorunu", color: "red" };
-    case "VARIANT_UNAVAILABLE":
-      return { text: "Varyant Mevcut Değil", color: "orange" };
-    case "SYSTEM_ERROR":
-      return { text: "Sistem Hatası", color: "red" };
-    case "SELLER_REQUEST":
-      return { text: "Satıcı İsteği", color: "indigo" };
-    case "OTHER":
-      return { text: "Diğer Nedenler", color: "gray" };
+    case UserCancelReason.WRONG_ADDRESS:
+      return { text: "Teslimat adresi hatalı", color: "orange" };
+    case UserCancelReason.CHANGED_MIND:
+      return { text: "Fikir değişikliği", color: "blue" };
+    case UserCancelReason.FOUND_BETTER_PRICE:
+      return { text: "Daha uygun fiyat buldum", color: "cyan" };
+    case UserCancelReason.ACCIDENTAL_ORDER:
+      return { text: "Yanlışlıkla sipariş verildi", color: "yellow" };
+    case UserCancelReason.DELIVERY_TIME_LONG:
+      return { text: "Teslimat süresi çok uzun", color: "grape" };
+    case UserCancelReason.PAYMENT_CHANGE:
+      return { text: "Ödeme yöntemini değiştirmek istiyorum", color: "indigo" };
+    case UserCancelReason.ITEM_FEATURES:
+      return { text: "Ürün özellikleri beklediğim gibi değil", color: "red" };
+    case UserCancelReason.QUANTITY_CHANGE:
+      return { text: "Adet değişikliği yapmak istiyorum", color: "teal" };
+    case UserCancelReason.PERSONAL_REASON:
+      return { text: "Kişisel nedenler", color: "violet" };
+    case UserCancelReason.OTHER:
+      return { text: "Diğer", color: "gray" };
     default:
-      return { text: "Bilinmeyen Neden", color: "gray" };
+      return { text: "Bilinmeyen Neden", color: "dark" };
   }
 };

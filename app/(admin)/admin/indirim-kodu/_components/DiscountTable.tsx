@@ -111,7 +111,7 @@ const DiscountTable = ({ type, coupons }: DiscountTableProps) => {
             ? "Süresi dolmuş ve limiti bitmiş"
             : type === "unexpired"
               ? "Aktif"
-              : "Tüm"}{" "}
+              : "Tüm"}
           indirim kodlarının listesi
         </Text>
       </div>

@@ -6,7 +6,7 @@ import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { ActionIcon, ColorSwatch } from "@mantine/core";
+import { ActionIcon, Paper, Text, Title } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -48,7 +48,12 @@ const ProductCard = ({
   };
   return (
     <div className="group relative flex h-[450px] w-full flex-col overflow-hidden rounded-lg bg-white transition-all duration-300 hover:shadow-lg sm:h-[500px] lg:h-[550px]">
-      <div className="relative h-[60%] w-full bg-secondary-50">
+      <div
+        style={{
+          backgroundColor: "var(--mantine-color-secondary-1)",
+        }}
+        className="relative h-[60%] w-full"
+      >
         <Carousel
           withControls={product.Image.length > 1}
           align="start"
@@ -93,22 +98,40 @@ const ProductCard = ({
         {!isInHomePage && (
           <ActionIcon
             onClick={() => {
-              const categorySlug = product.product.categories?.[0]?.slug;
               const productSlug = product.slug;
-              const path =
-                categorySlug && productSlug
-                  ? `/${categorySlug}/${productSlug}`
-                  : "/";
+              const path = productSlug ? `/${productSlug}` : "/";
               onClickHeart(path);
             }}
-            className="absolute right-3 top-3 z-20 h-8 w-8 rounded-full bg-white/90 shadow-sm transition-all duration-300 hover:bg-white hover:shadow-md"
+            size={"input-sm"}
+            radius={"xl"}
+            variant="transparent"
+            className="absolute right-3 top-3 z-20 h-8 w-8 bg-white"
           >
             {isInFavoritesPage ? (
-              <LiaTimesSolid className="h-4 w-4 text-secondary-700 hover:text-primary-500" />
+              <LiaTimesSolid
+                style={{
+                  height: "1rem",
+                  width: "1rem",
+                  color: "var(--mantine-color-gray-7)",
+                }}
+                className="transition-colors duration-200 hover:text-[var(--mantine-color-blue-5)]"
+              />
             ) : isFave ? (
-              <FaHeart className="text-sm text-primary-500" />
+              <FaHeart
+                style={{
+                  fontSize: "1.5rem",
+                  color: "var(--mantine-color-primary-5)",
+                }}
+              />
             ) : (
-              <FaRegHeart className="text-sm text-secondary-600 group-hover:text-primary-500" />
+              <FaRegHeart
+                style={{
+                  fontSize: "1.5rem",
+                  color: "var(--mantine-color-secondary-6)",
+                  transition: "color 200ms",
+                }}
+                className="hover:text-[var(--mantine-color-primary-5)]" // hover için className kullanmak daha uygun
+              />
             )}
           </ActionIcon>
         )}
@@ -119,11 +142,15 @@ const ProductCard = ({
         className="flex h-[40%] w-full flex-col p-4 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <h3 className="text-secondary-950 group-hover:text-primary-950 line-clamp-1 flex-1 text-base font-semibold">
+          <Title
+            order={3}
+            c={"secondary.8"}
+            className="line-clamp-1 flex-1 text-base font-semibold"
+          >
             {product.product.name.length > 20
               ? product.product.name.slice(0, 20) + "..."
               : product.product.name}
-          </h3>
+          </Title>
           {product.type === "COLOR" && (
             <span
               className="h-6 w-6 rounded-full"
@@ -131,10 +158,15 @@ const ProductCard = ({
             />
           )}
           {product.type !== "COLOR" && (
-            <span className="text-secondary-950 inline-flex shrink-0 items-center rounded-full bg-secondary-100 px-2 py-0.5 text-xs font-medium">
+            <Paper
+              component={"span"}
+              bg={"secondary.1"}
+              c={"secondary.8"}
+              className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium"
+            >
               {product.type === "WEIGHT" && `${product.value}${product.unit}`}
               {product.type === "SIZE" && `${product.value}`}
-            </span>
+            </Paper>
           )}
         </div>
 
@@ -143,9 +175,9 @@ const ProductCard = ({
         </p>
         <div className="mt-auto flex items-center justify-between">
           <div className="flex flex-row items-center gap-2">
-            <span className="text-secondary-950 text-lg font-semibold">
+            <Text c={"secondary-.8"} className="text-lg font-semibold">
               {formattedPrice(calculateTaxedPrice.finalPrice)}
-            </span>
+            </Text>
             {product.discount > 0 && (
               <span className="-mt-1 text-xs font-medium text-red-500 line-through">
                 {formattedPrice(calculateTaxedPrice.originalPrice)}

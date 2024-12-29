@@ -9,9 +9,7 @@ const ASSET_DIR = path.join(process.cwd(), "assets");
 const DEFAULT_QUALITY = 75; // CustomImage'deki varsayılan değerle eşleştirdik
 const MAX_WIDTH = 2000;
 const BLUR_THUMBNAIL = 1; // Thumbnail için blur değeri
-// Thumbnail boyutları
 const THUMBNAIL_WIDTH = 10; // CustomImage'de belirtilen sizes="10px" ile uyumlu
-// OG Image boyutları
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
 
@@ -116,11 +114,18 @@ export async function GET(req: NextRequest) {
     if (url.includes("..") || url.includes("/")) {
       return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
     }
-    const fileName = `${url}`;
-    const filePath = path.join(ASSET_DIR, fileName);
+    const fileName = url;
+    const actualFileName = og
+      ? fileName.replace(/\.(jpg|jpeg|png|webp)$/, "-og.jpeg")
+      : favicon
+        ? fileName.replace(/\.(jpg|jpeg|png|webp)$/, ".ico")
+        : fileName;
+
+    const filePath = path.join(ASSET_DIR, actualFileName);
     if (!existsSync(filePath)) {
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
+
     const processedImage = await processImage(filePath, {
       width,
       quality,

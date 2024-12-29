@@ -159,7 +159,7 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
             <Text size="sm" c="dimmed" inline mt={7}>
               {videosEnabled
                 ? `Görseller (PNG, JPG, JPEG) ve videolar (MP4, MOV, AVI) kabul edilir.`
-                : `Görseller (PNG, JPG, JPEG) kabul edilir.`}{" "}
+                : `Görseller (PNG, JPG, JPEG) kabul edilir.`}
               Maksimum 50MB. En fazla {maxFiles} dosya yüklenebilir
             </Text>
           </div>

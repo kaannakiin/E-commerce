@@ -1,13 +1,26 @@
 "use client";
-import { Burger, Drawer, UnstyledButton, useDrawersStack } from "@mantine/core";
+import {
+  Burger,
+  Drawer,
+  Text,
+  UnstyledButton,
+  useDrawersStack,
+} from "@mantine/core";
 import { signIn } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AiOutlineRight, AiOutlineShop } from "react-icons/ai";
 import { FaHome } from "react-icons/fa";
 const BurgerMenu = ({ isUser, categories }) => {
   const stack = useDrawersStack(["routes", "other-routes"]);
   const router = useRouter();
   const pathname = usePathname();
+  const params = useSearchParams();
+  const handleAuth = (tab: "giris" | "kayit") => {
+    const currentQuery = params.toString();
+    const fullPath = `${pathname}${currentQuery ? `?${currentQuery}` : ""}`;
+    const encodedCallbackUrl = encodeURIComponent(fullPath);
+    router.push(`/giris?tab=${tab}&callbackUrl=${encodedCallbackUrl}`);
+  };
 
   return (
     <div className="block lg:hidden">
@@ -22,30 +35,30 @@ const BurgerMenu = ({ isUser, categories }) => {
                     <UnstyledButton
                       onClick={() => {
                         if (pathname !== "/giris") {
-                          signIn(undefined, { redirect: true });
+                          handleAuth("kayit");
                         }
                         stack.closeAll();
                       }}
-                      className="py-2 text-lg font-medium text-primary-700 underline"
+                      c={"primary.7"}
+                      className="py-2 text-lg font-medium underline"
                     >
                       Kayıt ol
                     </UnstyledButton>
                     <UnstyledButton
                       onClick={() => {
                         if (pathname !== "/giris") {
-                          signIn(undefined, { redirect: true });
+                          handleAuth("giris");
                         }
                         stack.closeAll();
                       }}
-                      className="py-2 text-lg font-medium text-primary-700 underline"
+                      c={"primary.7"}
+                      className="py-2 text-lg font-medium underline"
                     >
                       Giriş Yap
                     </UnstyledButton>
                   </div>
                 )}
-                {isUser && (
-                  <p className="text-2xl font-bold text-primary-700">Menü</p>
-                )}
+                {isUser && <p className="font- text-2xl">Menü</p>}
               </Drawer.Title>
               <Drawer.CloseButton size={40} c={"primary.7"} />
             </Drawer.Header>
@@ -59,7 +72,7 @@ const BurgerMenu = ({ isUser, categories }) => {
                   className="flex items-center justify-between rounded-lg p-4"
                 >
                   <div className="flex items-center space-x-3">
-                    <FaHome className="text-primary-700" size={24} />
+                    <FaHome size={24} />
                     <span className="text-lg font-medium">Anasayfa</span>
                   </div>
                 </UnstyledButton>
@@ -68,7 +81,7 @@ const BurgerMenu = ({ isUser, categories }) => {
                   className="flex items-center justify-between rounded-lg p-4"
                 >
                   <div className="flex items-center space-x-3">
-                    <AiOutlineShop className="text-primary-700" size={24} />
+                    <AiOutlineShop size={24} />
                     <span className="text-lg font-medium">Kategoriler</span>
                   </div>
                   <AiOutlineRight className="text-gray-400" size={20} />
@@ -86,10 +99,10 @@ const BurgerMenu = ({ isUser, categories }) => {
             <Drawer.Header>
               <Drawer.Title>
                 <div className="flex items-center space-x-2">
-                  <AiOutlineShop className="text-primary-700" size={24} />
-                  <span className="text-2xl font-bold text-primary-700">
+                  <AiOutlineShop size={24} />
+                  <Text c={"primary.7"} className="text-2xl font-bold">
                     Kategoriler
-                  </span>
+                  </Text>
                 </div>
               </Drawer.Title>
               <Drawer.CloseButton size={40} c={"primary.7"} />

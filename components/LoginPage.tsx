@@ -302,15 +302,15 @@ export function AuthenticationImage() {
                                   target="_blank"
                                 >
                                   Kullanıcı sözleşmesini
-                                </Link>{" "}
-                                ve{" "}
+                                </Link>
+                                ve
                                 <Link
                                   href="/kvkk"
                                   className="text-blue-600 hover:underline"
                                   target="_blank"
                                 >
                                   KVKK metnini
-                                </Link>{" "}
+                                </Link>
                                 okudum ve kabul ediyorum
                               </Text>
                             }

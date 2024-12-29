@@ -14,7 +14,6 @@ export default auth(async (req) => {
     req.auth?.user?.role === Role.ADMIN;
   const pathname = nextUrl.pathname;
   if (login) {
-    // Ana sifremi-unuttum sayfası veya token ile gelen sayfa kontrolü
     if (
       pathname === "/sifremi-unuttum" ||
       pathname.startsWith("/sifremi-unuttum/")

@@ -158,7 +158,6 @@ const Header = async () => {
           </div>
         </div>
       </div>
-      <Divider size="sm" />
     </header>
   );
 };

@@ -1,5 +1,7 @@
 "use client";
 
+import CustomImage from "@/components/CustomImage";
+import FeedbackDialog from "@/components/FeedbackDialog";
 import {
   SocialMediaPreviewSchema,
   SocialMediaPreviewType,
@@ -8,26 +10,23 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
   CloseButton,
-  ColorPicker,
+  ColorInput,
   Text,
   TextInput,
   Textarea,
 } from "@mantine/core";
 import { useRouter } from "next/navigation";
-import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { DeteleSeoImage, EditTheme } from "../_actions/ThemeAction";
-import FeedbackDialog from "@/components/FeedbackDialog";
 import { useState } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import CustomDropzone from "../../../urunler/_components/CustomDropzone";
+import { DeteleSeoImage, EditTheme } from "../_actions/ThemeAction";
 import { SocialMediaProps } from "../page";
-import CustomImage from "@/components/CustomImage";
 
 const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitting },
-    reset,
   } = useForm<SocialMediaPreviewType>({
     resolver: zodResolver(SocialMediaPreviewSchema),
     defaultValues: {
@@ -226,7 +225,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <ColorPicker
+                    <ColorInput
                       format="hex"
                       value={field.value}
                       onChange={field.onChange}
@@ -253,7 +252,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <ColorPicker
+                    <ColorInput
                       format="hex"
                       value={field.value}
                       onChange={field.onChange}
@@ -295,7 +294,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               name="googleVerification"
               render={(field) => (
                 <TextInput
-                  label="Google Analytics ID"
+                  label="Google"
                   description='Google"dan alacağınız kod'
                   error={errors?.googleVerification?.message}
                 />
@@ -309,7 +308,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               • Ana sayfa açıklaması giriniz. Buraya girdiğiniz başlık ve
               açıklama sosyal medya paylaşımlarında görünecektir.
             </p>
-            <p>• Önerilen görsel boyutu: 512x512px</p>{" "}
+            <p>• Önerilen görsel boyutu: 512x512px</p>
             <p>• Önerilen favicon boyutu: 32x32px</p>
           </div>
         </div>

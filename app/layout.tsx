@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS = {
   description:
     "Sertifikalı organik gıdadan doğal kozmetiğe, ev bakım ürünlerinden süper gıdalara kadar tüm doğal yaşam ürünlerini uygun fiyatlarla keşfedin",
   themeColor: "#4C6EF5",
+  secondColor: "#4C6EF5",
   baseUrl: "https://8495-31-223-89-243.ngrok-free.app",
 } as const;
 
@@ -56,34 +57,29 @@ export const viewport: Viewport = {
 };
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { data, salerInfo } = await feedLayout();
+  const { data } = await feedLayout();
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_SETTINGS.baseUrl;
 
-  // Create image URL with proper error handling
   const createImageUrl = (
     imageUrl: string | undefined,
     fallbackPath: string,
-    queryParam: string,
+    queryParam: string, // og veya favicon için parametre
   ) => {
-    if (!imageUrl) return new URL(fallbackPath, baseUrl).toString();
+    if (!imageUrl) return `${baseUrl}${fallbackPath}`;
     try {
-      // URL'in geçerli olduğundan emin olalım
       if (imageUrl.includes("..") || imageUrl.includes("/")) {
-        return new URL(fallbackPath, baseUrl).toString();
+        return `${baseUrl}${fallbackPath}`;
       }
 
-      return new URL(
-        `/api/user/asset/get-image?url=${encodeURIComponent(imageUrl)}&${queryParam}=true`,
-        baseUrl,
-      ).toString();
+      return `${baseUrl}/api/user/asset/get-image?url=${imageUrl}&${queryParam}=true`;
     } catch {
-      return new URL(fallbackPath, baseUrl).toString();
+      return `${baseUrl}${fallbackPath}`;
     }
   };
 
   const ogImageUrl = createImageUrl(data?.image?.url, "/default-og.jpg", "og");
-  const faviconUrl = salerInfo?.logo?.url
-    ? createImageUrl(salerInfo.logo.url, "/favicon.ico", "favicon")
+  const faviconUrl = data?.favicon?.url
+    ? createImageUrl(data.favicon.url, "/favicon.ico", "favicon")
     : undefined;
 
   return {
@@ -93,7 +89,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${data?.title ?? DEFAULT_SETTINGS.title}`,
     },
     alternates: {
-      canonical: new URL("/", baseUrl).toString(),
+      canonical: `${baseUrl}/`,
     },
     icons: faviconUrl
       ? {
@@ -119,44 +115,32 @@ export async function generateMetadata(): Promise<Metadata> {
           width: 1200,
           height: 630,
           alt: data?.title ?? DEFAULT_SETTINGS.title,
+          type: "image/jpeg",
         },
       ],
       siteName: data?.title ?? DEFAULT_SETTINGS.title,
       locale: "tr_TR",
       type: "website",
+      url: baseUrl,
     },
     twitter: {
       card: "summary_large_image",
       title: data?.title ?? DEFAULT_SETTINGS.title,
       description: data?.description ?? DEFAULT_SETTINGS.description,
-      images: [ogImageUrl],
-    },
-    robots: {
-      index: true,
-      follow: true,
+      images: ogImageUrl,
     },
   };
 }
 
-const secondaryColor = [
-  "#fcf9e9",
-  "#f6f0d9",
-  "#ebe0b2",
-  "#dfce88",
-  "#d6c064",
-  "#d0b64d",
-  "#cdb240",
-  "#b59c31",
-  "#a18a28",
-  "#8b771b",
-] as MantineColorsTuple;
-
-const createAppTheme = (primaryColor: MantineColorsTuple) => {
+const createAppTheme = (
+  primaryColor: MantineColorsTuple,
+  secondaryColors: MantineColorsTuple,
+) => {
   return createTheme({
     fontFamily: "Open Sans, sans-serif",
     colors: {
       primary: primaryColor,
-      secondary: secondaryColor,
+      secondary: secondaryColors,
     },
     primaryColor: "primary",
     cursorType: "pointer",
@@ -172,7 +156,7 @@ export default async function RootLayout({
 
   // Use default theme color if not provided
   const baseColor = data?.themeColor ?? DEFAULT_SETTINGS.themeColor;
-
+  const secondColor = data?.themeColorSecondary ?? DEFAULT_SETTINGS.themeColor;
   const primaryColors = [
     generateShades(baseColor, 0.95),
     generateShades(baseColor, 0.85),
@@ -185,8 +169,19 @@ export default async function RootLayout({
     generateShades(baseColor, 0.15),
     generateShades(baseColor, 0.05),
   ] as MantineColorsTuple;
-
-  const theme = createAppTheme(primaryColors);
+  const secondaryColor = [
+    generateShades(secondColor, 0.95),
+    generateShades(secondColor, 0.85),
+    generateShades(secondColor, 0.75),
+    generateShades(secondColor, 0.65),
+    generateShades(secondColor, 0.55),
+    generateShades(secondColor, 0.45),
+    generateShades(secondColor, 0.35),
+    generateShades(secondColor, 0.25),
+    generateShades(secondColor, 0.15),
+    generateShades(secondColor, 0.05),
+  ] as MantineColorsTuple;
+  const theme = createAppTheme(primaryColors, secondaryColor);
 
   return (
     <html lang="tr" suppressHydrationWarning className="bg-white">
@@ -205,7 +200,7 @@ export default async function RootLayout({
         </SessionProvider>
       </body>
 
-{data?.googleId && <GoogleAnalytics gaId={data.googleId} />}
+      {data?.googleId && <GoogleAnalytics gaId={data.googleId} />}
     </html>
   );
 }

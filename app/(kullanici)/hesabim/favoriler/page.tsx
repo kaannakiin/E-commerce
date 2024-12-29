@@ -69,7 +69,6 @@ const EmptyFavorites = () => (
         justify="center"
         className="gap-6"
       >
-        {" "}
         <AiOutlineHeart size={64} className="text-gray-300" />
         <Text size="xl" fw={600} className="text-center">
           Favori Ürününüz Bulunmuyor

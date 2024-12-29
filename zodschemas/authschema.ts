@@ -1242,3 +1242,122 @@ export const CategoryEditableSchema = z.object({
   googleCategories: z.string({ message: "Bu alan zorunludur" }).trim(),
 });
 export type CategoryEditableFormValues = z.infer<typeof CategoryEditableSchema>;
+
+export const marquueFormSchema = z.object({
+  text: z
+    .string()
+    .max(100, { message: "En fazla 100 karakter olabilir" })
+    .optional(),
+  textColor: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, { message: "Bir renk seçmelisiniz" })
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
+      message: "Geçerli bir HEX renk kodu girilmelidir (örn: #FF0000)",
+    })
+    .transform((val) => val.toUpperCase())
+    .optional(),
+  textPadding: z.number().optional(),
+  bgColor: z.string().optional(),
+  fontSize: z.number().optional(),
+  slidingSpeed: z.number().optional(),
+  isActive: z.boolean().default(true),
+  url: z
+    .string()
+    .optional()
+    .refine(
+      (url) => {
+        if (!url) return false;
+        if (url === "#") return true;
+        return url.startsWith("/");
+      },
+      {
+        message:
+          "URL ya boş yönlendirme için '#' olmalı ya da diğer tüm durumlar için '/' ile başlamalıdır",
+      },
+    ),
+});
+export type MarqueeFormValues = z.infer<typeof marquueFormSchema>;
+export const NoReplyEmailSettingsSchema = z.object({
+  email: z
+    .string({ message: "Bu alan zorunludur." })
+    .trim()
+    .email({ message: "Geçerli bir e-posta adresi giriniz" }),
+  password: z
+    .string({ message: "Bu alan zorunludur." })
+    .trim()
+    .min(1, { message: "Bu alan zorunludur." }),
+  port: z
+    .number({ message: "Bu alan zorunludur." })
+    .min(1, { message: "Port numarası 1'den küçük olamaz" }),
+  host: z
+    .string({ message: "Bu alan zorunludur." })
+    .trim()
+    .min(1, { message: "Bu alan zorunludur." }),
+});
+export type NoReplyEmailSettingsType = z.infer<
+  typeof NoReplyEmailSettingsSchema
+>;
+export const EmailTemplateSchema = z.object({
+  title: z.string().optional(),
+  altText: z.string().optional(),
+  buttonColor: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(1, { message: "Bir renk seçmelisiniz" })
+    .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
+      message: "Geçerli bir HEX renk kodu girilmelidir (örn: #FF0000)",
+    })
+    .transform((val) => val.toUpperCase()),
+  buttonText: z.string().optional(),
+});
+export type EmailTemplateSchemaType = z.infer<typeof EmailTemplateSchema>;
+
+export const updateUserInfo = z.object({
+  name: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Ad en az 1 karakter olmalıdır" })
+    .max(30, { message: "Ad en fazla 30 karakter olabilir" }),
+  surname: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Soyad en az 1 karakter olmalıdır" })
+    .max(30, { message: "Soyad en fazla 30 karakter olabilir" }),
+  phone: z
+    .string({ message: "Bu alan zorunludur" })
+    .optional()
+    .refine(
+      (val) =>
+        !val ||
+        /^\(5([0345])([0-9]|(5[567])|([345])[0-9])\) ([0-9]{3}) ([0-9]{2}) ([0-9]{2})$/.test(
+          val,
+        ),
+      {
+        message: "Geçerli bir cep telefon numarası giriniz",
+      },
+    ),
+  email: z
+    .string({ message: "Bu alan zorunludur." })
+    .email({ message: "Geçerli bir e-posta adresi giriniz" }),
+});
+export type UpdateUserInfoType = z.infer<typeof updateUserInfo>;
+
+export const UpdatePasswordSchema = z
+  .object({
+    oldPassword: z
+      .string({ message: "Mevcut şifrenizi girmelisiniz" })
+      .min(1, { message: "Mevcut şifrenizi girmelisiniz" }),
+    newPassword: z
+      .string({ message: "Yeni şifre girmelisiniz" })
+      .min(6, { message: "Şifre en az 6 karakter olmalıdır" })
+      .max(30, { message: "Şifre en fazla 30 karakter olabilir" }),
+    newPasswordConfirm: z
+      .string({ message: "Şifrenizi tekrar girmelisiniz" })
+      .min(1, { message: "Şifrenizi tekrar girmelisiniz" }),
+  })
+  .refine((data) => data.newPassword === data.newPasswordConfirm, {
+    message: "Şifreler eşleşmiyor",
+    path: ["newPasswordConfirm"], // Hatanın hangi alanda gösterileceğini belirtir
+  })
+  .refine((data) => data.oldPassword !== data.newPassword, {
+    message: "Yeni şifreniz eski şifrenizle aynı olamaz",
+    path: ["newPassword"],
+  });
+export type UpdatePasswordType = z.infer<typeof UpdatePasswordSchema>;

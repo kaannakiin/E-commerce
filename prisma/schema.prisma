@@ -64,6 +64,20 @@ model AltSectionImage {
   updatedAt DateTime @updatedAt
 }
 
+model CustomMarquee {
+  id           String   @id @default(cuid())
+  text         String?
+  textColor    String?
+  textPadding  String?
+  bgColor      String?
+  fontSize     String?
+  SlidingSpeed String?
+  isActive     Boolean  @default(true)
+  url          String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model PasswordReset {
   id        String   @id @default(cuid())
   userId    String   @unique
@@ -299,10 +313,23 @@ enum PaymentStatus {
   PENDING
   SUCCESS
   FAILED
+  REFUND
 }
 
-enum CancelReason {
-  CUSTOMER_REQUEST // Müşteri isteği ile iptal
+enum UserCancelReason {
+  WRONG_ADDRESS // Teslimat adresi hatalı
+  CHANGED_MIND // Fikir değişikliği
+  FOUND_BETTER_PRICE // Daha uygun fiyat buldum
+  ACCIDENTAL_ORDER // Yanlışlıkla sipariş verildi
+  DELIVERY_TIME_LONG // Teslimat süresi çok uzun
+  PAYMENT_CHANGE // Ödeme yöntemini değiştirmek istiyorum
+  ITEM_FEATURES // Ürün özellikleri beklediğim gibi değil
+  QUANTITY_CHANGE // Adet değişikliği yapmak istiyorum
+  PERSONAL_REASON // Kişisel nedenler
+  OTHER // Diğer
+}
+
+enum AdminCancelReason {
   STOCK_PROBLEM // Stok problemi nedeniyle iptal
   PRICE_ERROR // Fiyat hatası nedeniyle iptal
   DUPLICATE_ORDER // Mükerrer sipariş nedeniyle iptal
@@ -311,6 +338,10 @@ enum CancelReason {
   VARIANT_UNAVAILABLE // Seçilen varyant artık mevcut değil
   SYSTEM_ERROR // Sistem hatası nedeniyle iptal
   SELLER_REQUEST // Satıcı tarafından iptal talebi
+  FRAUD_SUSPICION // Şüpheli işlem nedeniyle iptal
+  ADDRESS_VERIFICATION // Adres doğrulaması yapılamadı
+  CUSTOMER_VERIFICATION // Müşteri doğrulaması yapılamadı
+  LOGISTICS_ISSUE // Lojistik sorunlar
   OTHER // Diğer nedenler
 }
 
@@ -338,8 +369,8 @@ model Order {
   cardAssociation  String?
 
   // Cancellation Fields
-  isCancelled       Boolean       @default(false) // Siparişin iptal edilip edilmediği
-  cancelReason      CancelReason? // İptal nedeni
+  isCancelled       Boolean           @default(false) // Siparişin iptal edilip edilmediği
+  cancelReason      UserCancelReason? // İptal nedeni
   cancelProcessDate DateTime? // İptalin işleme alındığı tarih
   cancelPaymentId   String? // İyzico iptal işlem ID'si
 
@@ -349,19 +380,19 @@ model Order {
 }
 
 model OrderItems {
-  id                   String        @id @default(cuid())
-  order                Order         @relation(fields: [orderId], references: [id])
+  id                   String            @id @default(cuid())
+  order                Order             @relation(fields: [orderId], references: [id])
   orderId              String
-  variant              Variant       @relation(fields: [variantId], references: [id])
+  variant              Variant           @relation(fields: [variantId], references: [id])
   variantId            String
   quantity             Int
   price                Float
   iyzicoPrice          Float
   paymentTransactionId String?
   // Refund Fields
-  isRefunded           Boolean       @default(false) // Ürünün iade edilip edilmediği
-  refundReason         CancelReason? // Ürün bazında iade nedeni
-  refundStatus         RefundStatus? @default(NONE) // Ürün bazında iade durumu
+  isRefunded           Boolean           @default(false) // Ürünün iade edilip edilmediği
+  refundReason         UserCancelReason? // Ürün bazında iade nedeni
+  refundStatus         RefundStatus?     @default(NONE) // Ürün bazında iade durumu
   refundRequestDate    DateTime? // Ürün iade talep tarihi
   refundPaymentId      String? // İyzico ürün iade işlem ID'si
   refundAmount         Float? // İade edilen tutar
@@ -374,9 +405,8 @@ model OrderItems {
 
 enum OrderStatus {
   PENDING // Sipariş beklemede
-  PROCESSING // İşleniyor
+  PROCESSING // HAZIRLANIYOR
   SHIPPED // Kargoya verildi
-  DELIVERED // Teslim edildi
   CANCELLED // İptal edildi
   COMPLETED // Tamamlandı
 }
@@ -401,4 +431,39 @@ model FavoriteVariants {
   @@unique([userId, variantId])
   @@index([userId])
   @@index([variantId])
+}
+
+model NoReplyEmailSetting {
+  id        String   @id @default(cuid())
+  email     String
+  host      String
+  port      Int
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EmailTemplate {
+  id          String            @id @default(cuid())
+  type        EmailTemplateType @unique
+  title       String?
+  altText     String?
+  buttonColor String?
+  buttonText  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+enum EmailTemplateType {
+  ORDER_CANCELLED // Sipariş İptali: Müşterinin siparişi iptal edildiğinde gönderilir
+  ORDER_CREATED // Sipariş Oluşturuldu: Yeni bir sipariş verildiğinde gönderilir
+  ORDER_INVOICE // Sipariş Faturası: Sipariş faturası oluşturulduğunda gönderilir
+  ORDER_DELIVERED // Sipariş Teslim Edildi: Sipariş müşteriye ulaştığında gönderilir
+  SHIPPING_CREATED // Kargo Oluşturuldu: Sipariş kargoya verildiğinde gönderilir
+  SHIPPING_DELIVERED // Kargo Teslim Edildi: Kargo teslim edildiğinde gönderilir
+  ORDER_REFUNDED // Sipariş İade Edildi: Sipariş bedeli iade edildiğinde gönderilir
+  REFUND_REQUESTED // İade Talebi: Müşteri iade talebinde bulunduğunda gönderilir
+  REFUND_REJECTED // İade Reddedildi: İade talebi reddedildiğinde gönderilir
+  PASSWORD_RESET // Şifre Sıfırlama: Kullanıcı şifre sıfırlama talep ettiğinde gönderilir
+  WELCOME_MESSAGE // Hoş Geldiniz Mesajı: Yeni üye olan kullanıcılara gönderilir
 }

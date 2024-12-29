@@ -111,7 +111,7 @@ const RefundRequestModal = ({
                 {format(new Date(item.refundRequestDate), "d MMMM yyyy hh:mm", {
                   locale: tr,
                 })}
-              </Text>{" "}
+              </Text>
             </Group>
             <Group justify="space-between" align="center">
               <Text fw={500}>Durum:</Text>

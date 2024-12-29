@@ -1,17 +1,10 @@
 import { signOut } from "@/auth";
-import {
-  Button,
-  UnstyledButton,
-  Paper,
-  Title,
-  Stack,
-  Group,
-} from "@mantine/core";
+import { Avatar, Button, Group, Paper, Stack, Title } from "@mantine/core";
 import Link from "next/link";
-import React from "react";
-import { FaSignOutAlt, FaAddressCard, FaUserCircle } from "react-icons/fa";
-import { MdPersonalInjury } from "react-icons/md";
 import { CiHeart } from "react-icons/ci";
+import { FaAddressCard, FaSignOutAlt } from "react-icons/fa";
+import { MdPersonalInjury } from "react-icons/md";
+import { FaRegHeart } from "react-icons/fa";
 
 function capitalizeWords(name) {
   return name
@@ -23,15 +16,9 @@ function capitalizeWords(name) {
 const Navbar = ({ session }) => {
   return (
     <Stack className="h-full w-full lg:w-1/4 2xl:w-1/6" gap="md">
-      {/* Profil Kartı */}
-      <Paper
-        shadow="sm"
-        p="md"
-        radius="md"
-        className="border border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50"
-      >
+      <Paper shadow="sm" p="md" radius="md">
         <Group align="center" mb="xs">
-          <FaUserCircle size={24} className="text-gray-600" />
+          <Avatar radius="xl" />
           <Title order={3} className="font-light text-gray-700">
             {capitalizeWords(session.name.trim())}
           </Title>
@@ -42,21 +29,30 @@ const Navbar = ({ session }) => {
             await signOut();
           }}
         >
-          <UnstyledButton
+          <Button
             type="submit"
-            className="flex items-center gap-2 text-sm text-red-500 transition-colors duration-200 hover:text-red-600"
+            fullWidth
+            leftSection={<FaSignOutAlt />}
+            variant="transparent"
+            c="red"
           >
-            <FaSignOutAlt />
             Çıkış Yap
-          </UnstyledButton>
+          </Button>
         </form>
       </Paper>
 
-      {/* Hesap Ayarları */}
       <Paper shadow="sm" p="md" radius="md" className="border border-gray-100">
         <Title
           order={4}
-          className="mb-4 border-b border-primary-200 pb-2 text-center text-primary-700"
+          c={"primary.7"}
+          styles={{
+            root: {
+              marginBottom: "1rem", // mb-4
+              borderBottom: "1px solid var(--mantine-color-primary-2)", // border-primary-200
+              paddingBottom: "0.5rem", // pb-2
+              textAlign: "center",
+            },
+          }}
         >
           Hesap Ayarları
         </Title>
@@ -64,35 +60,42 @@ const Navbar = ({ session }) => {
         <Stack gap="sm">
           <Button
             component={Link}
+            variant="filled"
             href={"/hesabim/adres-defterim"}
-            variant="light"
-            leftSection={<FaAddressCard />}
-            className="transition-colors duration-200 hover:bg-blue-50"
+            leftSection={<FaAddressCard className="font-bold" size={20} />}
             fullWidth
+            classNames={{
+              inner:
+                "flex flex-row items-center  pl-1  justify-start gap-4 w-full",
+            }}
           >
             Adres Defterim
           </Button>
 
           <Button
-            variant="light"
             component={Link}
             href={"/hesabim/siparislerim"}
-            leftSection={<MdPersonalInjury />}
-            className="transition-colors duration-200 hover:bg-purple-50"
+            leftSection={<MdPersonalInjury className="font-bold" size={20} />}
             fullWidth
+            classNames={{
+              inner:
+                "flex flex-row items-center  pl-1  justify-start gap-4 w-full",
+            }}
           >
             Siparişlerim
           </Button>
 
           <Button
-            variant="light"
             component={Link}
             href={"/hesabim/favoriler"}
-            leftSection={<CiHeart />}
-            className="transition-colors duration-200 hover:bg-pink-50"
+            leftSection={<FaRegHeart className="font-bold" size={20} />}
             fullWidth
+            classNames={{
+              inner:
+                "flex flex-row items-center  pl-1  justify-start gap-4 w-full",
+            }}
           >
-            Favorilerim{" "}
+            Favorilerim
           </Button>
         </Stack>
       </Paper>

@@ -48,6 +48,7 @@ class PaymentClient {
   }
 
   private async generateSecurityHash(payload) {
+    // JWK oluşturma
     const jwk = {
       kty: "oct",
       use: "sig",
@@ -56,16 +57,22 @@ class PaymentClient {
       alg: "HS512",
     };
 
+    // Header
     const header = {
       kid: jwk.kid,
       typ: "JWT",
       alg: "HS512",
     };
 
+    // Sadece binNumber ile hash oluştur
+    const payloadForHash = {
+      binNumber: payload.binNumber,
+    };
+
     const encodedHeader = Buffer.from(JSON.stringify(header)).toString(
       "base64url",
     );
-    const encodedPayload = Buffer.from(JSON.stringify(payload)).toString(
+    const encodedPayload = Buffer.from(JSON.stringify(payloadForHash)).toString(
       "base64url",
     );
 
@@ -77,40 +84,53 @@ class PaymentClient {
     return `${encodedHeader}.${encodedPayload}.${signature}`;
   }
 
+  private generateAuthToken() {
+    const input = `${this.merchantNumber}${this.terminalNumber}${this.secretKey}`;
+    const hash = crypto.createHash("sha256").update(input).digest("base64");
+    return `${this.merchantNumber}:${this.terminalNumber}:${hash}`;
+  }
   private async request(endpoint, method, body) {
-    const payloadWithoutHash = { ...body };
-    delete payloadWithoutHash.securityHash;
+    // Sadece binNumber içeren payload
+    const payload = {
+      binNumber: body.binNumber,
+    };
 
-    const securityHash = await this.generateSecurityHash(payloadWithoutHash);
-    const finalRequest = { ...body, securityHash };
+    const securityHash = await this.generateSecurityHash(payload);
+
+    // Final request - sadece gerekli alanlar
+    const finalRequest = {
+      binNumber: body.binNumber,
+      securityHash,
+    };
 
     const correlationId = crypto.randomUUID();
-    const authToken = `${this.merchantNumber}:${this.terminalNumber}:${crypto
-      .createHash("sha256")
-      .update(correlationId)
-      .digest("base64")}`;
-    console.log(JSON.stringify(finalRequest));
     const headers = {
       "Accept-Language": "tr",
       correlationId: "correlation" + correlationId,
-      "PG-Auth-Token": authToken,
+      "PG-Auth-Token": this.generateAuthToken(),
       "PG-Api-Version": "v2",
       "Content-Type": "application/json",
     };
-    console.log(headers);
+
+    console.log("Final Request:", JSON.stringify(finalRequest, null, 2));
+    console.log("Headers:", headers);
+
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       method,
-      headers: {
-        "Accept-Language": "tr",
-        correlationId: "correlation" + correlationId,
-        "PG-Auth-Token": authToken,
-        "PG-Api-Version": "v2",
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(finalRequest),
     });
 
-    return response.json();
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error("Response Error:", responseData);
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${JSON.stringify(responseData)}`,
+      );
+    }
+
+    return responseData;
   }
   async binCheck(binNumber: string) {
     return this.request("/installment/bin-info", "POST", { binNumber });

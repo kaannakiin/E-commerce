@@ -22,6 +22,8 @@ const SpecialPagination = ({
         total={totalPages}
         value={currentPage}
         onChange={onPaginationChange}
+        autoContrast
+        size={"lg"}
       />
     </div>
   );

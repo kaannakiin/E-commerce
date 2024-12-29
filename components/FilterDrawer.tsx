@@ -1,6 +1,7 @@
 "use client";
 import {
   Button,
+  Chip,
   Divider,
   Drawer,
   Group,
@@ -12,7 +13,6 @@ import {
 import { useMediaQuery } from "@mantine/hooks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaCheck } from "react-icons/fa";
 import { IoMdAdd } from "react-icons/io";
 import { VscClearAll, VscSettings } from "react-icons/vsc";
 
@@ -36,26 +36,21 @@ const FilterDrawer = ({ count }) => {
 
   const handleApply = () => {
     const searchParams = new URLSearchParams(params);
-
-    // Sıralama parametresi
     if (selectedSort) {
       searchParams.set("orderBy", selectedSort);
     } else {
       searchParams.delete("orderBy");
     }
-
     if (minPrice > 0) {
       searchParams.set("minPrice", minPrice.toString());
     } else {
       searchParams.delete("minPrice");
     }
-
     if (maxPrice < 10000) {
       searchParams.set("maxPrice", maxPrice.toString());
     } else {
       searchParams.delete("maxPrice");
     }
-
     searchParams.delete("page");
 
     const queryString = searchParams.toString();
@@ -64,7 +59,6 @@ const FilterDrawer = ({ count }) => {
     router.push(newUrl);
     setOpen(false);
   };
-
   const handleReset = () => {
     setMinPrice(0);
     setMaxPrice(10000);
@@ -72,7 +66,6 @@ const FilterDrawer = ({ count }) => {
 
     router.push(pathname);
   };
-
   const sortOptions = [
     { label: "En Düşük Fiyat", value: "price-asc" },
     { label: "En Yüksek Fiyat", value: "price-desc" },
@@ -98,7 +91,8 @@ const FilterDrawer = ({ count }) => {
         {hasFilters && (
           <UnstyledButton
             onClick={handleClearAll}
-            className="flex items-center gap-1 text-primary-600 transition-colors duration-200 hover:text-primary-700"
+            c={"primary.6"}
+            className="flex items-center gap-1"
           >
             <VscClearAll className="h-4 w-4" />
             <span className="text-xs font-medium">Filtreleri Temizle</span>
@@ -122,7 +116,6 @@ const FilterDrawer = ({ count }) => {
           </Drawer.Header>
           <Divider mb={30} />
           <Drawer.Body className="space-y-6">
-            {/* Fiyat Filtresi */}
             <div>
               <UnstyledButton
                 onClick={() => setPriceCollapsed((prev) => !prev)}
@@ -193,7 +186,6 @@ const FilterDrawer = ({ count }) => {
 
             <Divider />
 
-            {/* Sıralama */}
             <div>
               <UnstyledButton
                 onClick={() => setSortCollapsed((prev) => !prev)}
@@ -211,50 +203,30 @@ const FilterDrawer = ({ count }) => {
 
               {sortCollapsed && (
                 <div className="mt-4 space-y-2">
-                  {sortOptions.map((option) => (
-                    <UnstyledButton
-                      key={option.value}
-                      onClick={() => setSelectedSort(option.value)}
-                      className={`group relative flex w-full items-center px-4 py-3 transition-all duration-200 ${
-                        selectedSort === option.value
-                          ? "bg-primary-50/50 font-medium text-primary-900"
-                          : "text-secondary-600 hover:bg-primary-50/30"
-                      }`}
-                    >
-                      {/* Sol kenar çizgisi */}
-                      <span
-                        className={`absolute left-0 top-0 h-full w-[3px] bg-primary-600 transition-all duration-200 ${
-                          selectedSort === option.value
-                            ? "scale-y-100"
-                            : "scale-y-0"
-                        }`}
-                      ></span>
-
-                      <span className="relative ml-2">{option.label}</span>
-
-                      {/* Sağ taraftaki check işareti */}
-                      {selectedSort === option.value && (
-                        <FaCheck className="absolute right-2 text-primary-600" />
-                      )}
-                    </UnstyledButton>
-                  ))}
+                  <Chip.Group onChange={setSelectedSort} value={selectedSort}>
+                    <div className="flex flex-wrap gap-2">
+                      {sortOptions.map((option, index) => (
+                        <Chip
+                          key={index}
+                          value={option.value}
+                          variant="outline"
+                          autoContrast
+                        >
+                          {option.label}
+                        </Chip>
+                      ))}
+                    </div>
+                  </Chip.Group>
                 </div>
               )}
             </div>
 
             <Divider className="mt-auto" />
             <Group justify="space-between">
-              <Button
-                variant="light"
-                onClick={handleReset}
-                className="text-secondary-600 hover:text-secondary-800"
-              >
+              <Button variant="outline" onClick={handleReset}>
                 Sıfırla
               </Button>
-              <Button
-                onClick={handleApply}
-                className="bg-primary-600 text-white hover:bg-primary-700"
-              >
+              <Button variant="filled" onClick={handleApply}>
                 Uygula
               </Button>
             </Group>

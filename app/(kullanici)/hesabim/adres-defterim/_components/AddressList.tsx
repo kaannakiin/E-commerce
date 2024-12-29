@@ -158,7 +158,7 @@ const AddressList = ({
                   <FaUser size={16} className="flex-shrink-0" />
                   <Text size="sm" className="truncate">
                     {address.name.charAt(0).toUpperCase() +
-                      address.name.slice(1).toLowerCase()}{" "}
+                      address.name.slice(1).toLowerCase()}
                     {address.surname.charAt(0).toUpperCase() +
                       address.surname.slice(1).toLowerCase()}
                   </Text>
@@ -275,7 +275,7 @@ const AddressList = ({
         centered
       >
         <AddressForm email={"akinkaan49@gmail.com"} onClose={close} />
-      </Modal>{" "}
+      </Modal>
       <FeedbackDialog
         isOpen={dialogState.isOpen}
         onClose={() => setDialogState((prev) => ({ ...prev, isOpen: false }))}

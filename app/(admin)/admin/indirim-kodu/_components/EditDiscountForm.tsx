@@ -216,12 +216,12 @@ const EditDiscountForm = ({
                 title="Kupon Süresi Dolmuş!"
                 icon={<FiAlertCircle size={20} />}
               >
-                Bu kuponun kullanım süresi{" "}
+                Bu kuponun kullanım süresi
                 {new Date(discountCode.expiresAt).toLocaleDateString("tr-TR", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
-                })}{" "}
+                })}
                 tarihinde dolmuştur.
               </Alert>
             )}
@@ -280,7 +280,7 @@ const EditDiscountForm = ({
                     )}
                   </Text>
                 </div>
-              </Group>{" "}
+              </Group>
               <Group gap="xs">
                 <FiClock className="text-gray-500" size={20} />
                 <div>

@@ -56,7 +56,7 @@ const SliderTable = ({ slider }: { slider: HeroTable }) => {
                   <Badge color={item.isPublished ? "green" : "red"}>
                     {item.isPublished ? "Yayında" : "Taslak"}
                   </Badge>
-                </Table.Td>{" "}
+                </Table.Td>
                 <Table.Td>
                   <ActionMenu isActive={item.isPublished} id={item.id} />
                 </Table.Td>

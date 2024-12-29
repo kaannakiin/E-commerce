@@ -9,6 +9,7 @@ import {
   Text,
   Modal,
   Checkbox,
+  Paper,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -24,7 +25,13 @@ import AddressForm from "@/app/(kullanici)/hesabim/adres-defterim/_components/Ad
 import PaymentForm from "./PaymentForm";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const AuthUser = ({ addresses }: { addresses: Address[] }) => {
+const AuthUser = ({
+  addresses,
+  email,
+}: {
+  addresses: Address[];
+  email: string;
+}) => {
   const [opened, { open, close }] = useDisclosure(false);
   const [openedEdit, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
@@ -52,16 +59,8 @@ const AuthUser = ({ addresses }: { addresses: Address[] }) => {
   };
 
   return (
-    <Tabs
-      value={activeTab}
-      onChange={updateTabInURL}
-      classNames={{
-        list: "grid h-14 grid-cols-2 gap-2 p-1 rounded-xl bg-gray-100/50",
-        tab: "relative rounded-lg font-medium transition-all data-[active]:bg-primary-900 data-[active]:text-white hover:bg-gray-200/50 data-[active]:hover:bg-primary-800",
-        panel: "mt-4",
-      }}
-    >
-      <Tabs.List>
+    <Tabs value={activeTab} onChange={updateTabInURL}>
+      <Tabs.List grow>
         <Tabs.Tab
           value="address"
           className="text-xl"
@@ -83,12 +82,16 @@ const AuthUser = ({ addresses }: { addresses: Address[] }) => {
           onClick={open}
           className="mb-4 flex w-full items-center justify-center gap-3 rounded-lg bg-primary-900/5 px-4 py-3.5 active:bg-primary-900/15 sm:hover:bg-primary-900/10"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-900 text-white active:scale-95 sm:group-hover:scale-110">
+          <Paper
+            radius={"xl"}
+            bg={"primary.9"}
+            className="flex h-8 w-8 items-center justify-center text-white active:scale-95 sm:group-hover:scale-110"
+          >
             <MdAdd size={20} />
-          </div>
-          <span className="text-lg font-medium text-primary-900">
+          </Paper>
+          <Text size="lg" fw={400} c={"primary.9"}>
             Yeni Adres Ekle
-          </span>
+          </Text>
         </UnstyledButton>
         <Grid>
           {addresses.map((address) => (
@@ -131,7 +134,7 @@ const AuthUser = ({ addresses }: { addresses: Address[] }) => {
                     <FaUser size={16} className="flex-shrink-0" />
                     <Text size="sm" className="truncate font-extrabold">
                       {address.name.charAt(0).toUpperCase() +
-                        address.name.slice(1).toLowerCase()}{" "}
+                        address.name.slice(1).toLowerCase()}
                       {address.surname.charAt(0).toUpperCase() +
                         address.surname.slice(1).toLowerCase()}
                     </Text>
@@ -147,7 +150,7 @@ const AuthUser = ({ addresses }: { addresses: Address[] }) => {
                   <div className="flex flex-1 gap-2">
                     <FaMapMarkerAlt size={16} className="mt-1 flex-shrink-0" />
                     <p className="line-clamp-2 text-sm font-extrabold text-gray-500">
-                      {address.addressDetail}, {address.district} /{" "}
+                      {address.addressDetail}, {address.district} /
                       {address.city}
                     </p>
                   </div>
@@ -191,8 +194,8 @@ const AuthUser = ({ addresses }: { addresses: Address[] }) => {
           size="md"
           centered
         >
-          <AddressForm email={"akinkaan49@gmail.com"} onClose={close} />       {" "}
-        </Modal>{" "}
+          <AddressForm email={email} onClose={close} />       
+        </Modal>
       </Tabs.Panel>
 
       <Tabs.Panel value="payment">

@@ -1,6 +1,6 @@
 "use client";
 import { useStore } from "@/store/store";
-import { Button, Drawer, Indicator, ScrollArea } from "@mantine/core";
+import { Button, Drawer, Indicator, ScrollArea, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { usePathname, useRouter } from "next/navigation";
 import React, { Fragment } from "react";
@@ -51,7 +51,7 @@ const CartDrawer = () => {
               <IoMdClose
                 size={24}
                 onClick={() => setOpen(false)}
-                className="cursor-pointer hover:text-primary-900"
+                className="cursor-pointer"
               />
             </div>
             <ScrollArea
@@ -99,9 +99,9 @@ const CartDrawer = () => {
 
               <div className="flex items-center justify-between">
                 <span className="text-lg font-medium">Ödenecek Tutar</span>
-                <span className="text-2xl font-bold text-primary-600">
+                <Text c={"primary.6"} className="text-2xl font-bold">
                   {formattedPrice(totalFinalPrice)}
-                </span>
+                </Text>
               </div>
 
               <Button

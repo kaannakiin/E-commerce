@@ -11,7 +11,7 @@ import {
   GroupedItems,
   itemTransactions,
 } from "../types";
-import { CancelReason } from "@prisma/client";
+import { CancelReason, VariantType } from "@prisma/client";
 import { differenceInDays } from "date-fns";
 export const isWithinRefundPeriod = (paymentDate: Date) => {
   const REFUND_PERIOD_DAYS = 14; // or whatever your refund policy states
@@ -336,7 +336,21 @@ export function generateOrderNumber(): string {
   return `${prefix}${hash}`;
 }
 
-export async function findByPaymentIdAndUpdate(paymentId: string) {
+export async function findByPaymentIdAndUpdate(paymentId: string): Promise<{
+  success: boolean;
+  message: string;
+  email?: string;
+  product?: {
+    url: string;
+    name: string;
+    description: string;
+    price: number;
+    quantity: number;
+    value: string;
+    type: VariantType;
+    unit?: string;
+  }[];
+}> {
   try {
     if (!paymentId) {
       return {
@@ -347,6 +361,15 @@ export async function findByPaymentIdAndUpdate(paymentId: string) {
     const order = await prisma.order.findUnique({
       where: {
         paymentId: paymentId,
+      },
+      include: {
+        address: true,
+        user: true,
+        OrderItems: {
+          include: {
+            variant: { include: { product: true, Image: true } },
+          },
+        },
       },
     });
     if (!order) {
@@ -368,6 +391,19 @@ export async function findByPaymentIdAndUpdate(paymentId: string) {
     return {
       success: true,
       message: "Sipariş başarıyla güncellendi",
+      email: order.user ? order.user.email : order.address.email,
+      product: order.OrderItems.map((item) => {
+        return {
+          name: item.variant.product.name,
+          description: item.variant.product.shortDescription,
+          price: item.price,
+          quantity: item.quantity,
+          type: item.variant.type,
+          unit: item.variant.unit,
+          url: item.variant.Image[0].url,
+          value: item.variant.value,
+        };
+      }),
     };
   } catch (error) {
     throw error;

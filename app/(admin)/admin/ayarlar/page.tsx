@@ -71,17 +71,15 @@ const SettingsPage = () => {
     },
     {
       icon: <CiImageOn className="h-6 w-6 text-primary-600" />,
-      title: "Bannerlar",
-      description: "Bannerları yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      title: "Kayan Yazı ve Alt İmageler",
+      description: "Kayan yazı ve alt resimleri düzenleyin.",
+      href: "/admin/ayarlar/edit-homepage-section",
     },
     {
       icon: <CiCircleChevDown className="h-6 w-6 text-primary-600" />,
-      title: "Aşağı Açılır Menü",
-      description: "Aşağı açılır menüleri yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      title: "Email Ayarları",
+      description: "Email Ayarları düzenleyin.",
+      href: "/admin/ayarlar/e-mail",
     },
     {
       icon: <CiViewBoard className="h-6 w-6 text-primary-600" />,

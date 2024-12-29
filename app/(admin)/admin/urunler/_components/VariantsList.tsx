@@ -90,7 +90,7 @@ export function VariantList({
 
               <Group gap="lg">
                 <Text size="sm" c="dimmed">
-                  Stok:{" "}
+                  Stok:
                   <Text
                     span
                     fw={500}
@@ -108,7 +108,7 @@ export function VariantList({
                       </Text>
                       <Text fw={600} size="lg" c="red">
                         {variant.price -
-                          (variant.price * variant.discount) / 100}{" "}
+                          (variant.price * variant.discount) / 100}
                         TL
                       </Text>
                       <Badge color="red" variant="light" size="sm">

@@ -344,7 +344,7 @@ const EditableCategoryForm = ({
             initialCategories={googleCategories}
           />
         </div>
-      </div>{" "}
+      </div>
       <FeedbackDialog
         isOpen={dialogState.isOpen}
         onClose={handleDialogClose}
