@@ -12,7 +12,6 @@ import {
   Textarea,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { CancelReason } from "@prisma/client";
 import { Fragment, useState } from "react";
 import { MdClose, MdDone, MdVisibility } from "react-icons/md";
 import { OrderRefundType } from "../[slug]/page";
@@ -20,6 +19,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { fetchWrapper } from "@/lib/fetchWrapper";
 import { useRouter } from "next/navigation";
+import { UserCancelReason } from "@prisma/client";
 
 const RefundRequestModal = ({
   item,
@@ -102,7 +102,7 @@ const RefundRequestModal = ({
             <Group justify="space-between" align="center">
               <Text fw={500}>İade Nedeni:</Text>
               <Text>
-                {formatCancelReason(item.refundReason as CancelReason).text}
+                {formatCancelReason(item.refundReason as UserCancelReason).text}
               </Text>
             </Group>
             <Group justify="space-between" align="center">
