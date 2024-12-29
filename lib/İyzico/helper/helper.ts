@@ -11,7 +11,7 @@ import {
   GroupedItems,
   itemTransactions,
 } from "../types";
-import { CancelReason, VariantType } from "@prisma/client";
+import { UserCancelReason, VariantType } from "@prisma/client";
 import { differenceInDays } from "date-fns";
 export const isWithinRefundPeriod = (paymentDate: Date) => {
   const REFUND_PERIOD_DAYS = 14; // or whatever your refund policy states
@@ -534,91 +534,4 @@ export async function createTempatureAddress(addressInfo: {
   } catch (error) {
     throw error;
   }
-}
-export async function deleteTempatureAdress(id: IdForEverythingType) {
-  try {
-    if (!id) {
-      return false;
-    }
-    const address = await prisma.address.findUnique({
-      where: {
-        id,
-      },
-    });
-    if (!address) {
-      return false;
-    }
-    await prisma.address.delete({
-      where: {
-        id,
-      },
-    });
-    return true;
-  } catch (error) {
-    throw error;
-  }
-}
-export async function findAndCancelOrder(
-  paymentId: string,
-  hostReference: string,
-  cancelReason: CancelReason,
-) {
-  try {
-    const order = await prisma.order.findUnique({
-      where: {
-        paymentId,
-      },
-      include: {
-        OrderItems: true,
-      },
-    });
-
-    if (!order) {
-      return false;
-    }
-
-    await prisma.order.update({
-      where: {
-        paymentId: paymentId,
-      },
-      data: {
-        status: "CANCELLED",
-        cancelPaymentId: hostReference,
-        isCancelled: true,
-        cancelReason: cancelReason,
-        cancelProcessDate: new Date(),
-      },
-    });
-    return true;
-  } catch (error) {
-    throw error;
-  }
-}
-export async function findAndRefundOrderItem(
-  id: IdForEverythingType,
-  refundReason: CancelReason,
-) {
-  try {
-    if (!id) {
-      return false;
-    }
-    const orderItem = await prisma.orderItems.findUnique({
-      where: {
-        id: id,
-      },
-    });
-    if (!orderItem) {
-      return false;
-    }
-    await prisma.orderItems.update({
-      where: {
-        id: id,
-      },
-      data: {
-        isRefunded: true,
-        refundReason: refundReason,
-        refundStatus: "COMPLETED",
-      },
-    });
-  } catch (error) {}
 }
