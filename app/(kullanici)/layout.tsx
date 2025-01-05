@@ -1,10 +1,10 @@
 import FooterWrapper from "@/components/FooterServer";
 import Header from "@/components/Header";
 import { prisma } from "@/lib/prisma";
+import { Divider } from "@mantine/core";
 import { cache, Fragment } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import CustomMarquee from "./_components/CustomMarquee";
-import { Divider } from "@mantine/core";
 const feedPage = cache(async () => {
   try {
     const [infoWhatsapp, marquee] = await Promise.all([
@@ -17,7 +17,6 @@ const feedPage = cache(async () => {
     ]);
 
     const whatsappNumber = infoWhatsapp?.whatsapp || null;
-
     return {
       whatsapp: whatsappNumber, // Direkt string değerini döndür
       marquee: {
@@ -36,6 +35,7 @@ const feedPage = cache(async () => {
     return {
       whatsapp: null,
       marquee: null,
+      policies: [],
     };
   }
 });

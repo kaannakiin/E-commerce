@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 import { Footer } from "./Footer";
 import { Prisma } from "@prisma/client";
+import { slugify } from "@/utils/SlugifyVariants";
 export type FooterType = Prisma.SalerInfoGetPayload<{
   select: {
     logo: {
@@ -22,6 +23,12 @@ export type FooterType = Prisma.SalerInfoGetPayload<{
   };
 }>;
 const feedFooter = cache(async () => {
+  const policies = await prisma.policies.findMany({
+    select: {
+      type: true,
+      title: true,
+    },
+  });
   const salerInfo = await prisma.salerInfo.findFirst({
     select: {
       logo: {
@@ -40,15 +47,24 @@ const feedFooter = cache(async () => {
       storeName: true,
     },
   });
-  return salerInfo;
+  return {
+    salerInfo,
+    policies: policies.map((policy) => ({
+      type: policy.type,
+      title: policy.title,
+      slug: slugify(policy.type),
+    })),
+  };
 });
 
 const FooterWrapper = async () => {
   const session = await auth();
   const isVisible = session?.user ? true : false;
-  const salerInfo = await feedFooter();
+  const { salerInfo, policies } = await feedFooter();
 
-  return <Footer salerInfo={salerInfo} isVisible={isVisible} />;
+  return (
+    <Footer salerInfo={salerInfo} isVisible={isVisible} policies={policies} />
+  );
 };
 
 export default FooterWrapper;

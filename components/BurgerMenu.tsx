@@ -58,7 +58,11 @@ const BurgerMenu = ({ isUser, categories }) => {
                     </UnstyledButton>
                   </div>
                 )}
-                {isUser && <p className="font- text-2xl">Menü</p>}
+                {isUser && (
+                  <Text c={"primary.7"} className="text-2xl font-bold">
+                    Menü
+                  </Text>
+                )}
               </Drawer.Title>
               <Drawer.CloseButton size={40} c={"primary.7"} />
             </Drawer.Header>
@@ -108,7 +112,6 @@ const BurgerMenu = ({ isUser, categories }) => {
               <Drawer.CloseButton size={40} c={"primary.7"} />
             </Drawer.Header>
             <Drawer.Body>
-              {/* Buraya ürünlerle ilgili içerik eklenecek */}
               <div className="space-y-4">
                 {categories.map((category) => (
                   <UnstyledButton
