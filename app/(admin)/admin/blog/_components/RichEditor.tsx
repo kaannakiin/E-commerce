@@ -1,14 +1,14 @@
 "use client";
 import { Link, RichTextEditor } from "@mantine/tiptap";
+import "@mantine/tiptap/styles.css";
 import Highlight from "@tiptap/extension-highlight";
+import Placeholder from "@tiptap/extension-placeholder";
 import SubScript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
-import { BubbleMenu, useEditor, FloatingMenu } from "@tiptap/react";
+import { BubbleMenu, FloatingMenu, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import "@mantine/tiptap/styles.css";
-import Placeholder from "@tiptap/extension-placeholder";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
 const EditorContent = ({
   content,

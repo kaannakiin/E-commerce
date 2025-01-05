@@ -17,10 +17,10 @@ import {
 import { VariantType } from "@prisma/client";
 import React, { useCallback, useEffect } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import ControlledRichEditor from "../../blog/_components/RichEditor";
 import { VariantDataWithDbImages } from "../[slug]/page";
 import CustomDropzone from "./CustomDropzone";
 import ExistingImagesDisplay from "./ExistingImagesDisplay";
-import TipTapEditor from "./RichTextEditor";
 import SEOCard from "./SeoCard";
 
 interface AddVariantProps {
@@ -378,19 +378,17 @@ const VariantForm: React.FC<AddVariantProps> = ({
           <Text size="xs">
             Bu alana özellik olarak sadece ürün sayfasında gösterilecektir.
           </Text>
-          <Controller
-            name="richTextDescription"
+          {errors.richTextDescription && (
+            <div className="text-sm text-red-500">
+              {errors.richTextDescription.message}
+            </div>
+          )}
+          <ControlledRichEditor<VariantData>
             control={control}
-            render={({ field: { value, onChange } }) => (
-              <TipTapEditor
-                value={value}
-                onChange={onChange}
-                className={errors.richTextDescription ? "border-red-500" : ""}
-              />
-            )}
+            name="richTextDescription"
           />
           {errors.richTextDescription && (
-            <Text color="red" size="sm">
+            <Text c="red" size="sm">
               {errors.richTextDescription.message}
             </Text>
           )}
