@@ -38,10 +38,13 @@ const BlogCard = async () => {
     return null;
   }
   return (
-    <Container size="70%" py="xl" className="w-full lg:px-10">
-      <h1 className="mb-8 text-center text-3xl font-bold tracking-tight text-gray-900">
-        Son Blog Yazıları
-      </h1>
+    <Container
+      classNames={{
+        root: "lg:w-3/4 w-full",
+      }}
+      py="xl"
+      className="w-full lg:px-10"
+    >
       <SimpleGrid cols={{ base: 1, sm: blogs.length > 1 ? 2 : 1 }}>
         {blogs.map((blog) => (
           <Card

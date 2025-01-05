@@ -1,0 +1,16 @@
+-- CreateEnum
+CREATE TYPE "ECommerceAgreements" AS ENUM ('TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'DISTANCE_SALES_AGREEMENT', 'PERSONAL_DATA_PROTECTION', 'CLARIFICATION_TEXT', 'EXPLICIT_CONSENT', 'MEMBERSHIP_AGREEMENT', 'SECURE_SHOPPING', 'RETURN_POLICY', 'PAYMENT_TERMS');
+
+-- CreateTable
+CREATE TABLE "Policies" (
+    "id" TEXT NOT NULL,
+    "type" "ECommerceAgreements" NOT NULL,
+    "title" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Policies_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Policies_type_key" ON "Policies"("type");

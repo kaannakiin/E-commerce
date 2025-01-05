@@ -1,5 +1,9 @@
 "use client";
-import { Link, RichTextEditor } from "@mantine/tiptap";
+import {
+  Link,
+  RichTextEditor,
+  useRichTextEditorContext,
+} from "@mantine/tiptap";
 import "@mantine/tiptap/styles.css";
 import Highlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -32,7 +36,7 @@ const EditorContent = ({
       Highlight,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Placeholder.configure({
-        placeholder: "Dilediğiniz gibi blog yazınızı yazabilirsiniz.",
+        placeholder: "Dilediğiniz gibi yazabilirsiniz.",
       }),
     ],
   });
@@ -119,7 +123,6 @@ const EditorContent = ({
   );
 };
 
-// Ana kontrollü bileşen
 interface ControlledRichEditorProps<T extends FieldValues> {
   control: Control<T>;
   name: Path<T>;

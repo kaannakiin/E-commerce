@@ -63,9 +63,8 @@ export function CategoryCarousels({ categories }) {
   return (
     <Carousel
       slideSize={{ base: "100%", sm: "33%" }}
-      slideGap={{ base: rem(2), sm: "xl" }}
+      slideGap={{ sm: "xl" }}
       align="start"
-      loop
       slidesToScroll={mobile ? 1 : 3}
       withControls={mobile ? true : false}
       withIndicators={mobile ? false : true}
