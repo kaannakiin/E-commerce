@@ -146,7 +146,7 @@ const page = async (params: { params: Params }) => {
                       İndirim Kodu: {order.discountCode.code}
                     </Text>
                     <Text size="sm" c="dimmed">
-                      İndirim Tutarı:{" "}
+                      İndirim Tutarı:
                       <Text span fw={500} c="green">
                         {order.discountCode.discountType === "PERCENTAGE"
                           ? formattedPrice(

@@ -200,6 +200,7 @@ model Image {
   mainSeoImage      MainSeoSettings?  @relation("MainImage")
   mainSeoFavicon    MainSeoSettings?  @relation("Favicon")
   AltSectionImage   AltSectionImage[]
+  Blog              Blog?
 
   @@index([variantId])
   @@index([categoryId])
@@ -466,4 +467,21 @@ enum EmailTemplateType {
   REFUND_REJECTED // İade Reddedildi: İade talebi reddedildiğinde gönderilir
   PASSWORD_RESET // Şifre Sıfırlama: Kullanıcı şifre sıfırlama talep ettiğinde gönderilir
   WELCOME_MESSAGE // Hoş Geldiniz Mesajı: Yeni üye olan kullanıcılara gönderilir
+}
+
+model Blog {
+  id              String  @id @default(cuid())
+  active          Boolean @default(false)
+  slug            String  @unique
+  author          String
+  blogTitle       String
+  blogDescription String
+  pageDescription String? //for SEO
+  pageTitle       String? //for SEO
+  Html            String  @db.Text
+  image           Image?  @relation(fields: [imageId], references: [id])
+  imageId         String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

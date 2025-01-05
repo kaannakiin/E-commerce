@@ -18,6 +18,7 @@ export type FooterType = Prisma.SalerInfoGetPayload<{
     pinterest: true;
     twitter: true;
     whatsapp: true;
+    storeName: true;
   };
 }>;
 const feedFooter = cache(async () => {
@@ -36,6 +37,7 @@ const feedFooter = cache(async () => {
       pinterest: true,
       twitter: true,
       whatsapp: true,
+      storeName: true,
     },
   });
   return salerInfo;

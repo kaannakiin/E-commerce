@@ -1361,3 +1361,207 @@ export const UpdatePasswordSchema = z
     path: ["newPassword"],
   });
 export type UpdatePasswordType = z.infer<typeof UpdatePasswordSchema>;
+const MIN_CONTENT_LENGTH = 50;
+const MAX_CONTENT_LENGTH = 20000;
+export const BlogPostSchema = z.object({
+  active: z.boolean().default(true),
+  blog: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((value) => value?.trim() || value)
+    .refine(
+      (value) => {
+        if (value === null || value === undefined) return true;
+        // Güvenlik kontrolü - zararlı tagları ve attributeleri kontrol et
+        const forbiddenPatterns = [
+          /<script/i,
+          /<iframe/i,
+          /<embed/i,
+          /<object/i,
+          /javascript:/i,
+          /onerror=/i,
+          /onload=/i,
+          /onclick=/i,
+          /onmouseover=/i,
+          /data:text\/html/i,
+          /vbscript:/i,
+          /expression\(/i,
+          /url\(/i,
+        ];
+        return !forbiddenPatterns.some((pattern) => pattern.test(value));
+      },
+      {
+        message: "İçerik güvenlik kontrolünden geçemedi",
+      },
+    )
+    .refine(
+      (value) => {
+        if (value === null || value === undefined) return true;
+        // İçerik uzunluğu kontrolü
+        const strippedContent = value
+          .replace(/<[^>]*>/g, "") // HTML tagları temizle
+          .replace(/&nbsp;/g, " ") // &nbsp; karakterlerini boşluğa çevir
+          .replace(/\s+/g, " ") // Birden fazla boşluğu teke indir
+          .trim();
+
+        return strippedContent.length >= MIN_CONTENT_LENGTH;
+      },
+      {
+        message: `İçerik en az ${MIN_CONTENT_LENGTH} karakter olmalıdır (HTML tagları hariç)`,
+      },
+    )
+    .refine(
+      (value) => {
+        if (value === null || value === undefined) return true;
+        const strippedContent = value
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        return strippedContent.length <= MAX_CONTENT_LENGTH;
+      },
+      {
+        message: `İçerik en fazla ${MAX_CONTENT_LENGTH} karakter olabilir (HTML tagları hariç)`,
+      },
+    )
+    .refine(
+      (value) => {
+        if (value === null || value === undefined) return true;
+        // Link kontrolü - tüm linklerin geçerli olduğundan emin ol
+        const linkMatches = value.match(/href=["'](.*?)["']/g);
+        if (!linkMatches) return true;
+
+        return linkMatches.every((link) => {
+          const urlMatch = /href=["'](.*?)["']/.exec(link);
+          if (!urlMatch || !urlMatch[1]) return false;
+
+          const url = urlMatch[1];
+          try {
+            new URL(url);
+            return true;
+          } catch {
+            return url.startsWith("/") || url.startsWith("#"); // İç linkler için
+          }
+        });
+      },
+      {
+        message: "İçerikteki bazı linkler geçersiz",
+      },
+    )
+    .refine(
+      (value) => {
+        if (value === null || value === undefined) return true;
+        // İçeriğin dengeli HTML taglarına sahip olduğunu kontrol et
+        const stack = [];
+        const selfClosingTags = ["img", "br", "hr", "input"];
+        const tags = value.match(/<\/?[^>]+>/g) || [];
+
+        for (const tag of tags) {
+          if (tag.match(/<\/?[^>]+\/>/)) continue; // Self-closing tagları atla
+
+          if (tag.startsWith("</")) {
+            const closeTag = tag.match(/<\/([^>]+)>/)[1];
+            if (stack.length === 0 || stack.pop() !== closeTag) {
+              return false;
+            }
+          } else {
+            const openTag = tag.match(/<([^>\s]+)/)[1];
+            if (!selfClosingTags.includes(openTag)) {
+              stack.push(openTag);
+            }
+          }
+        }
+        return stack.length === 0;
+      },
+      {
+        message: "HTML yapısı bozuk",
+      },
+    ),
+  blogTitle: z
+    .string({ required_error: "Bu alan zorunludur" })
+    .min(1, "Başlık en az 1 karakter olmalıdır")
+    .max(256, "Başlık en fazla 256 karakter olabilir")
+    .trim(),
+  blogDescription: z
+    .string({ required_error: "Bu alan zorunludur" })
+    .min(1, "Bu alan zorunludur")
+    .max(320, "Açıklama en fazla 320 karakter olabilir")
+    .trim(),
+  pageTitle: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim() || null)
+    .refine(
+      (val) => val === null || (val.length >= 1 && val.length <= 256),
+      (val) => ({
+        message:
+          val === ""
+            ? "Eğer başlık girilecekse en az 1 karakter olmalıdır"
+            : "Başlık en fazla 256 karakter olabilir",
+      }),
+    ),
+  authorName: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Yazar adı en az 1 karakter olmalıdır" })
+    .max(30, { message: "Yazar adı en fazla 30 karakter olabilir" })
+    .trim(),
+  authorSurname: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Yazar soyadı en az 1 karakter olmalıdır" })
+    .max(30, { message: "Yazar soyadı en fazla 30 karakter olabilir" })
+    .trim(),
+  pageDescription: z
+    .string()
+    .optional()
+    .transform((val) => val?.trim() || null)
+    .refine(
+      (val) => val === null || (val.length >= 1 && val.length <= 320),
+      (val) => ({
+        message:
+          val === ""
+            ? "Eğer açıklama girilecekse en az 1 karakter olmalıdır"
+            : "Açıklama en fazla 320 karakter olabilir",
+      }),
+    ),
+  imageFile: z
+    .array(z.instanceof(File, { message: "Geçersiz dosya formatı" }))
+    .optional()
+    .superRefine((files, ctx) => {
+      if (files && files.length > 0) {
+        // Dosya varsa kontrolleri yap
+        if (files.length > 1) {
+          ctx.addIssue({
+            code: "custom",
+            message: "Sadece bir fotoğraf yükleyebilirsiniz",
+          });
+        }
+
+        files.forEach((file) => {
+          if (file.size >= MAX_FILE_SIZE) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+            });
+          }
+
+          const SUPPORTED_FORMATS = [
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/gif",
+            "video/mp4",
+          ];
+
+          if (!SUPPORTED_FORMATS.includes(file.type)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+            });
+          }
+        });
+      }
+    }),
+});
+export type BlogPostFormValues = z.infer<typeof BlogPostSchema>;

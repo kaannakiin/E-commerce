@@ -1,7 +1,6 @@
 import { Card, Paper, Stack, Text, TextInput, Textarea } from "@mantine/core";
 import { Controller } from "react-hook-form";
 import { LiaSlashSolid } from "react-icons/lia";
-import { ControllerProps } from "react-hook-form";
 const SEOCard = ({ control, errors }) => {
   return (
     <Card padding="lg" radius="md">

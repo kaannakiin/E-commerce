@@ -23,6 +23,7 @@ const links = [
     label: "Siparişler",
     href: "/admin/siparisler",
   },
+  { label: "Blog", href: "/admin/blog" },
   {
     label: "İndirim Kodları",
     href: "/admin/indirim-kodu",

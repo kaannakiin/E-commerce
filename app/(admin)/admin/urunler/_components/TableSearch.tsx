@@ -1,19 +1,17 @@
 "use client";
-import React, { useMemo } from "react";
 import {
-  TextInput,
-  Group,
-  SegmentedControl,
-  Select,
+  Box,
   Button,
   Paper,
-  Stack,
-  Box,
+  SegmentedControl,
+  Select,
+  TextInput,
 } from "@mantine/core";
-import { BiSearch, BiFilterAlt } from "react-icons/bi";
-import { IoClose } from "react-icons/io5";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
+import { BiSearch } from "react-icons/bi";
+import { IoClose } from "react-icons/io5";
 
 const TableSearch = () => {
   const params = useSearchParams();
