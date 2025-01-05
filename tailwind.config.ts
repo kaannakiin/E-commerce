@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-
+import typography from "@tailwindcss/typography";
 const config: Config = {
   content: [
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -23,7 +23,7 @@ const config: Config = {
         },
         secondary: {
           50: "#fcf9e9", // 0
-          100: "#f6f0d9", // 1 
+          100: "#f6f0d9", // 1
           200: "#ebe0b2", // 2
           300: "#dfce88", // 3
           400: "#d6c064", // 4
@@ -36,6 +36,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [typography],
 };
 export default config;

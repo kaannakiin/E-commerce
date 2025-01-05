@@ -1,19 +1,18 @@
 "use client";
 import { ActionIcon, Anchor, Group } from "@mantine/core";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Fragment } from "react";
 import {
   RiFacebookCircleFill,
   RiInstagramFill,
-  RiTwitterXFill,
   RiPinterestFill,
+  RiTwitterXFill,
 } from "react-icons/ri";
 import CustomImage from "./CustomImage";
 import { FooterType } from "./FooterServer";
 import classes from "./modules/Footer.module.css";
 
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function Footer({
   salerInfo,
@@ -24,7 +23,7 @@ export function Footer({
 }) {
   const pathname = usePathname();
   const params = useSearchParams();
-  const { push, refresh } = useRouter();
+  const { push } = useRouter();
 
   const handleAuth = (tab: "giris" | "kayit") => {
     const currentQuery = params.toString();
@@ -145,6 +144,12 @@ export function Footer({
             </ActionIcon>
           )}
         </Group>
+      </div>
+      <div className="flex w-full justify-center">
+        <h6 className="text-center text-xs font-bold text-gray-500">
+          © 2024 {salerInfo?.storeName ? salerInfo.storeName : null}. Tüm
+          Hakları Saklıdır.
+        </h6>
       </div>
     </footer>
   );

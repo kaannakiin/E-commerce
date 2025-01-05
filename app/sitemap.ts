@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { MetadataRoute } from "next";
-
-// URL'leri güvenli hale getiren yardımcı fonksiyon
 function sanitizeUrl(url: string): string {
   return url
     .replace(/&/g, "&amp;")
@@ -45,26 +43,53 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   try {
-    const [variantsUrls, categoriesUrls] = await Promise.all([
-      prisma.variant
-        .findMany({
-          where: {
-            isPublished: true,
-            softDelete: false,
+    const [variantsData, categoriesData, blogsData] = await Promise.all([
+      prisma.variant.findMany({
+        where: {
+          isPublished: true,
+          softDelete: false,
+        },
+        select: {
+          slug: true,
+          updatedAt: true,
+          Image: {
+            select: { url: true },
           },
-          select: {
-            slug: true,
-            updatedAt: true,
-            Image: {
-              select: { url: true },
-            },
-            product: {
-              select: { shortDescription: true },
-            },
+          product: {
+            select: { shortDescription: true },
           },
-        })
-        .then((variants): MetadataRoute.Sitemap => {
-          return variants.map((variant) => ({
+        },
+      }),
+      prisma.category.findMany({
+        where: {
+          active: true,
+        },
+        select: {
+          slug: true,
+          updatedAt: true,
+          images: {
+            select: { url: true },
+          },
+        },
+      }),
+      prisma.blog.findMany({
+        where: {
+          active: true,
+        },
+        select: {
+          slug: true,
+          updatedAt: true,
+          image: {
+            select: { url: true },
+          },
+        },
+      }),
+    ]);
+
+    // Variants için kontrol ve dönüşüm
+    const variantsUrls =
+      variantsData?.length > 0
+        ? variantsData.map((variant): MetadataRoute.Sitemap[number] => ({
             url: sanitizeUrl(`${baseUrl}/${variant.slug}`),
             lastModified: new Date(variant.updatedAt),
             priority: 0.8,
@@ -76,23 +101,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 )}&og=true`,
               ),
             ),
-          }));
-        }),
-      prisma.category
-        .findMany({
-          where: {
-            active: true,
-          },
-          select: {
-            slug: true,
-            updatedAt: true,
-            images: {
-              select: { url: true },
-            },
-          },
-        })
-        .then((categories): MetadataRoute.Sitemap => {
-          return categories.map((category) => ({
+          }))
+        : [];
+
+    // Categories için kontrol ve dönüşüm
+    const categoriesUrls =
+      categoriesData?.length > 0
+        ? categoriesData.map((category): MetadataRoute.Sitemap[number] => ({
             url: sanitizeUrl(`${baseUrl}/category/${category.slug}`),
             lastModified: new Date(category.updatedAt),
             priority: 0.9,
@@ -104,20 +119,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 )}&og=true`,
               ),
             ),
-          }));
-        }),
-    ]);
+          }))
+        : [];
+
+    // Blogs için kontrol ve dönüşüm
+    const blogUrls =
+      blogsData?.length > 0
+        ? blogsData.map((blog): MetadataRoute.Sitemap[number] => ({
+            url: sanitizeUrl(`${baseUrl}/blog/${blog.slug}`),
+            lastModified: new Date(blog.updatedAt),
+            priority: 0.8,
+            changeFrequency: "weekly" as const,
+            images: blog.image
+              ? [
+                  sanitizeUrl(
+                    `${baseUrl}/api/user/asset/get-image?url=${encodeURIComponent(
+                      blog.image.url,
+                    )}&og=true`,
+                  ),
+                ]
+              : undefined,
+          }))
+        : [];
+
     return [
       ...staticPages,
-      ...categoriesUrls.map((item) => ({
+      ...(categoriesUrls?.map((item) => ({
         ...item,
         url: encodeURI(item.url),
-      })),
-      ...variantsUrls.map((item) => ({
+      })) || []),
+      ...(variantsUrls?.map((item) => ({
         ...item,
         url: encodeURI(item.url),
         images: item.images?.map((img) => encodeURI(img)),
-      })),
+      })) || []),
+      ...(blogUrls?.map((item) => ({
+        ...item,
+        url: encodeURI(item.url),
+        images: item.images?.map((img) => encodeURI(img)),
+      })) || []),
     ];
   } catch (error) {
     console.error("Sitemap generation error:", error);

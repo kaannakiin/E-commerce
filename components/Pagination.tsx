@@ -14,7 +14,7 @@ const SpecialPagination = ({
   const onPaginationChange = (page) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", page.toString());
-    router.replace(`${pathname}?${params.toString()}`);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
   return (
     <div className="flex w-full flex-row items-center justify-center">

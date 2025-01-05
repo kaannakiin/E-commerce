@@ -16,12 +16,11 @@ const IMAGE_TYPES = {
 };
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-
 interface CustomDropzoneProps {
   name: string;
   control: Control;
   maxFiles: number;
-  videosEnabled?: boolean; // Yeni prop
+  videosEnabled?: boolean;
   isForce?: boolean;
 }
 
