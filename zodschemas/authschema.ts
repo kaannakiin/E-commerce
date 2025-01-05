@@ -1,5 +1,6 @@
 import {
   DiscountType,
+  ECommerceAgreements,
   OrderStatus,
   ProductType,
   VariantType,
@@ -1565,3 +1566,129 @@ export const BlogPostSchema = z.object({
     }),
 });
 export type BlogPostFormValues = z.infer<typeof BlogPostSchema>;
+
+export const policyFormSchema = z.object({
+  policyTitle: z
+    .string({ message: "Bu alan zorunludur" })
+    .min(1, { message: "Bu alan zorunludur" })
+    .max(128, {
+      message: "Burası en fazla 128 karakter uzunluğunda olabilir.",
+    })
+    .trim(),
+  policyType: z.enum(
+    Object.values(ECommerceAgreements) as [string, ...string[]],
+    {
+      required_error: "Lütfen bir sözleşme türü seçin",
+      invalid_type_error: "Geçersiz sözleşme türü",
+    },
+  ),
+  policyTemplate: z
+    .string({
+      required_error: "Sözleşme şablonu zorunludur",
+      invalid_type_error: "Sözleşme şablonu metin formatında olmalıdır",
+    })
+    .min(1, { message: "Sözleşme şablonu boş bırakılamaz" })
+    .transform((value) => value?.trim())
+    .refine(
+      (value) => {
+        const forbiddenPatterns = [
+          /<script/i,
+          /<iframe/i,
+          /<embed/i,
+          /<object/i,
+          /javascript:/i,
+          /onerror=/i,
+          /onload=/i,
+          /onclick=/i,
+          /onmouseover=/i,
+          /data:text\/html/i,
+          /vbscript:/i,
+          /expression\(/i,
+          /url\(/i,
+        ];
+        return !forbiddenPatterns.some((pattern) => pattern.test(value));
+      },
+      {
+        message:
+          "Sözleşme şablonunda güvenlik açığı oluşturabilecek kod parçaları tespit edildi",
+      },
+    )
+    .refine(
+      (value) => {
+        const strippedContent = value
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        return strippedContent.length >= MIN_CONTENT_LENGTH;
+      },
+      {
+        message: `Sözleşme şablonu en az ${MIN_CONTENT_LENGTH} karakter içermelidir (HTML etiketleri hariç)`,
+      },
+    )
+    .refine(
+      (value) => {
+        const strippedContent = value
+          .replace(/<[^>]*>/g, "")
+          .replace(/&nbsp;/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        return strippedContent.length <= MAX_CONTENT_LENGTH;
+      },
+      {
+        message: `Sözleşme şablonu en fazla ${MAX_CONTENT_LENGTH} karakter içerebilir (HTML etiketleri hariç)`,
+      },
+    )
+    .refine(
+      (value) => {
+        const linkMatches = value.match(/href=["'](.*?)["']/g);
+        if (!linkMatches) return true;
+
+        return linkMatches.every((link) => {
+          const urlMatch = /href=["'](.*?)["']/.exec(link);
+          if (!urlMatch || !urlMatch[1]) return false;
+
+          const url = urlMatch[1];
+          try {
+            new URL(url);
+            return true;
+          } catch {
+            return url.startsWith("/") || url.startsWith("#");
+          }
+        });
+      },
+      {
+        message: "Sözleşme şablonunda geçersiz bağlantılar bulunmaktadır",
+      },
+    )
+    .refine(
+      (value) => {
+        const stack = [];
+        const selfClosingTags = ["img", "br", "hr", "input"];
+        const tags = value.match(/<\/?[^>]+>/g) || [];
+
+        for (const tag of tags) {
+          if (tag.match(/<\/?[^>]+\/>/)) continue;
+
+          if (tag.startsWith("</")) {
+            const closeTag = tag.match(/<\/([^>]+)>/)[1];
+            if (stack.length === 0 || stack.pop() !== closeTag) {
+              return false;
+            }
+          } else {
+            const openTag = tag.match(/<([^>\s]+)/)[1];
+            if (!selfClosingTags.includes(openTag)) {
+              stack.push(openTag);
+            }
+          }
+        }
+        return stack.length === 0;
+      },
+      {
+        message: "Sözleşme şablonunda HTML etiketleri düzgün kapatılmamış",
+      },
+    ),
+});
+export type PolicyFormValues = z.infer<typeof policyFormSchema>;

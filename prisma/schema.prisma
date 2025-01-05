@@ -485,3 +485,25 @@ model Blog {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+enum ECommerceAgreements {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  DISTANCE_SALES_AGREEMENT
+  PERSONAL_DATA_PROTECTION
+  CLARIFICATION_TEXT
+  EXPLICIT_CONSENT
+  MEMBERSHIP_AGREEMENT
+  SECURE_SHOPPING
+  RETURN_POLICY
+  PAYMENT_TERMS
+}
+
+model Policies {
+  id        String              @id @default(cuid())
+  type      ECommerceAgreements @unique
+  title     String?
+  content   String              @db.Text
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+}

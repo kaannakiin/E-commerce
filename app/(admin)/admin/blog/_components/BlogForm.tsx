@@ -272,7 +272,7 @@ const BlogForm = ({ blog }: BlogFormProps) => {
                       />
                     )}
                   />
-                </div>{" "}
+                </div>
                 <Paper p="md" radius="md" withBorder>
                   <Text size="sm" fw={500} c="dimmed" mb="sm">
                     Google Önizleme

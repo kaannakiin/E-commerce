@@ -2,16 +2,18 @@
 import { UnstyledButton } from "@mantine/core";
 import Link from "next/link";
 import {
+  CiCircleChevDown,
+  CiCreditCard1,
   CiImageOn,
   CiMenuBurger,
-  CiViewTable,
   CiShoppingTag,
-  CiCreditCard1,
-  CiViewList,
-  CiCircleChevDown,
   CiViewBoard,
+  CiViewList,
+  CiViewTable,
 } from "react-icons/ci";
 import { TfiLayoutSlider } from "react-icons/tfi";
+import { TbContract } from "react-icons/tb";
+
 interface MenuButtonProps {
   icon: React.ReactNode;
   title: string;
@@ -82,11 +84,10 @@ const SettingsPage = () => {
       href: "/admin/ayarlar/e-mail",
     },
     {
-      icon: <CiViewBoard className="h-6 w-6 text-primary-600" />,
-      title: "Popup & Bar Yönetimi",
-      description: "Popup ve Bar tasarımlarını yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      icon: <TbContract className="h-6 w-6 text-primary-600" />,
+      title: "Sözleşme Yönetimi",
+      description: "Sözleşmeleri düzenleyin.",
+      href: "/admin/ayarlar/sozlesmeler",
     },
     {
       icon: <CiViewList className="h-6 w-6 text-primary-600" />,

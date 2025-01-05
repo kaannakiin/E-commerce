@@ -56,7 +56,6 @@ export function Footer({
   return (
     <footer className={classes.footer}>
       <div className={classes.inner}>
-        {/* Logo */}
         {salerInfo?.logo?.url && (
           <div className={classes.logo}>
             <CustomImage
@@ -66,8 +65,6 @@ export function Footer({
             />
           </div>
         )}
-
-        {/* Links */}
         <Group className={classes.links} gap={8}>
           {!isVisible && (
             <Fragment>
