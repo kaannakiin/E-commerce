@@ -12,8 +12,8 @@
 /assets/*
 !/assets/.gitkeep# testing
 /coverage
-/assets/*
-
+/rich-text-assets/*
+/rich-text-assets/.gitkeep#
 # next.js
 /.next/
 /out/
