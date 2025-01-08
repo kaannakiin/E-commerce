@@ -13,7 +13,7 @@
 !/assets/.gitkeep# testing
 /coverage
 /rich-text-assets/*
-/rich-text-assets/.gitkeep#
+/rich-text-assets/.gitkeep
 # next.js
 /.next/
 /out/
