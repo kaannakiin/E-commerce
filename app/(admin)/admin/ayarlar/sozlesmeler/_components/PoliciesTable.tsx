@@ -90,7 +90,7 @@ const PoliciesTable = ({ data }: PoliciesTableProps) => {
             </Table.Tr>
           ))}
         </Table.Tbody>
-      </Table>{" "}
+      </Table>
       <FeedbackDialog
         isOpen={feedbackState.isOpen}
         onClose={() => setFeedbackState((prev) => ({ ...prev, isOpen: false }))}

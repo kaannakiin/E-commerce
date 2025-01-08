@@ -96,7 +96,11 @@ const BlogListPage = async (params: { searchParams: SearchParams }) => {
     <div className="flex min-h-screen flex-col gap-2">
       <Paper radius={0} w="100%" py="xl" className="px-10">
         <div className="max-w-4xl">
-          <Title c="dark.4" className="mb-3 text-4xl font-bold" order={1}>
+          <Title
+            c="dark.4"
+            className="mb-1 text-xl lg:mb-3 lg:text-4xl lg:font-bold"
+            order={1}
+          >
             Blog Sayfamıza Hoş Geldiniz | Tüm Bloglar
           </Title>
         </div>

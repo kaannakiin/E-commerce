@@ -43,8 +43,8 @@ const OrderSearchHeader = () => {
   return (
     <Group
       align="center"
-      p="md"
       justify="space-between"
+      py={"md"}
       style={{ backgroundColor: "white" }}
       className="w-full"
     >

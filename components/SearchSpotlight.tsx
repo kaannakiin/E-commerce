@@ -1,215 +1,238 @@
 "use client";
 import { SearchProductForSpotlight } from "@/actions/user/search-product-for-spotlight";
 import { calculatePrice } from "@/lib/calculatePrice";
-import { formattedPrice } from "@/lib/format";
-import { Badge, ColorSwatch, Group, Paper, Stack, Text } from "@mantine/core";
+import { Center, Group, Paper, Text } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { Spotlight, spotlight } from "@mantine/spotlight";
 import "@mantine/spotlight/styles.css";
-import React, { Fragment } from "react";
+import { useRouter } from "next/navigation";
+import { Fragment, useState } from "react";
 import { IoSearchOutline } from "react-icons/io5";
+import { TbMoodEmpty } from "react-icons/tb";
 import CustomImage from "./CustomImage";
 import MainLoader from "./MainLoader";
 
-const SearchSpotlight = ({ featuredProducts }) => {
-  const [query, setQuery] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [searchResults, setSearchResults] = React.useState(null);
-  const [errorMessage, setErrorMessage] = React.useState("");
+interface SearchDefaultActionType {
+  slug: string;
+  price: number;
+  discount: number;
+  product: {
+    name: string;
+    taxRate: number;
+  };
+  Image: Array<{ url: string }>;
+  type: "COLOR" | "WEIGHT" | "SIZE";
+  value: string;
+  unit?: string;
+}
 
-  const searchProducts = async (searchQuery) => {
+interface SpotlightActionDataType {
+  name: string;
+  value: string;
+  unit: string;
+  finalPrice: number;
+  discountedPrice: number;
+  type: "COLOR" | "WEIGHT" | "SIZE";
+  image: string;
+  url: string;
+}
+
+const formatPrice = (price: number) => {
+  return new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: "TRY",
+    minimumFractionDigits: 2,
+  }).format(price);
+};
+
+const SearchSpotlight = ({
+  featuredProducts,
+}: {
+  featuredProducts: SearchDefaultActionType[];
+}) => {
+  const { push } = useRouter();
+  const [searchData, setSearchData] = useState<
+    SpotlightActionDataType[] | null
+  >(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const handleSearch = useDebouncedCallback(async (searchQuery: string) => {
+    setQuery(searchQuery);
+    if (searchQuery.trim().length < 2) {
+      setSearchData(null);
+      return;
+    }
+
+    setIsLoading(true);
     try {
       const response = await SearchProductForSpotlight(searchQuery);
 
       if (!response.success) {
-        setErrorMessage(response.message);
-        return [];
+        setSearchData(null);
+        return;
       }
 
-      const transformedData = response.data.flatMap((product) =>
-        product.Variant.map((variant) => ({
-          slug: variant.slug,
-          product: {
-            name: product.name,
-            shortDescription: product.shortDescription,
-            taxRate: product.taxRate,
-          },
-          price: variant.price,
-          discount: variant.discount || 0,
-          type: variant.type,
-          value: variant.value,
-          unit: variant.unit,
-          Image: variant.Image,
-        })),
-      );
+      const formattedData = response.data.map((product) => {
+        const prices = calculatePrice(
+          product.Variant[0].price,
+          product.Variant[0].discount,
+          product.taxRate,
+        );
 
-      return transformedData;
+        return {
+          name: product.name,
+          value: product.Variant[0].value,
+          unit: product.Variant[0].unit,
+          type: product.Variant[0].type,
+          finalPrice: prices.finalPrice,
+          discountedPrice: prices.originalPrice - prices.finalPrice,
+          image: product.Variant[0].Image[0].url,
+          url: `/${product.Variant[0].slug}`,
+        };
+      });
+
+      setSearchData(formattedData);
     } catch (error) {
-      console.error("Search error:", error);
-      setErrorMessage("Arama sırasında bir hata oluştu");
-      return [];
-    }
-  };
-
-  const handleSearch = useDebouncedCallback(async (newQuery) => {
-    setQuery(newQuery);
-    setErrorMessage("");
-
-    if (newQuery.trim().length === 0) {
-      setSearchResults(null);
-      return;
-    }
-
-    if (newQuery.trim().length < 2) {
-      setErrorMessage("Lütfen en az 2 karakter girin");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const results = await searchProducts(newQuery);
-      setSearchResults(results);
-    } catch (error) {
-      console.error("Error during search:", error);
-      setErrorMessage("Beklenmedik bir hata oluştu");
-      setSearchResults([]);
+      console.error("Arama sırasında hata oluştu:", error);
+      setSearchData(null);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, 1000);
+  }, 500);
 
-  const currentProducts =
-    searchResults === null ? featuredProducts : searchResults;
-  const spotlightItems = currentProducts.map((item) => {
-    const priceCalculation = calculatePrice(
-      item.price,
-      item.discount,
-      item.product.taxRate,
-    );
-    return {
-      id: item.slug,
-      label: item.product.name,
-      description: item.product.shortDescription,
-      onClick: () => (window.location.href = `/${item.slug}`),
-      render: () => (
-        <Group
-          justify="space-between"
-          p="md"
-          className="w-full hover:bg-gray-50"
-        >
-          <Group gap="md" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-            <div className="relative h-20 w-20 flex-shrink-0">
-              {item.Image[0] && (
-                <CustomImage
-                  src={item.Image[0].url}
-                  objectFit="cover"
-                  quality={20}
-                  sizes="(max-width: 640px) 100vw, 640px"
-                />
+  const renderProductItem = (
+    name: string,
+    image: string,
+    value: string,
+    type: string,
+    unit?: string,
+    finalPrice?: number,
+    discountedPrice?: number,
+  ) => (
+    <Group
+      wrap="nowrap"
+      w="100%"
+      className="hover:bg-secondary-1/10 rounded-lg p-2 transition-colors"
+    >
+      <Center className="bg-secondary-1 relative h-20 w-20 overflow-hidden rounded-lg">
+        <CustomImage
+          src={image}
+          quality={40}
+          alt={name}
+          className="object-cover"
+        />
+      </Center>
+      <div className="flex-1 space-y-1">
+        <Text className="line-clamp-2 font-medium" size="sm">
+          {name}
+        </Text>
+        <div className="flex items-center gap-2">
+          {type === "COLOR" ? (
+            <span
+              className="border-secondary-3 inline-block h-6 w-6 rounded-full border"
+              style={{ backgroundColor: value }}
+            />
+          ) : (
+            <Paper
+              component="span"
+              bg="secondary.1"
+              c="secondary.8"
+              className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-sm font-medium"
+            >
+              {type === "WEIGHT" ? `${value} ${unit}` : value}
+            </Paper>
+          )}
+          {finalPrice && (
+            <div className="ml-auto space-y-0.5 text-right">
+              <Text className="text-primary-9 font-bold" size="sm">
+                {formatPrice(finalPrice)}
+              </Text>
+              {discountedPrice > 0 && (
+                <Text className="text-secondary-5 text-xs line-through">
+                  {formatPrice(finalPrice + discountedPrice)}
+                </Text>
               )}
             </div>
-            <Stack gap="xs" style={{ minWidth: 0, flex: 1, maxWidth: "60%" }}>
-              <Text fw={500} size="sm" className="truncate text-gray-900">
-                {item.product.name}
-              </Text>
-              <div className="max-w-full">
-                <Text
-                  size="xs"
-                  c="dimmed"
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {item.product.shortDescription}
-                </Text>
-              </div>
-              {item.type === "COLOR" && (
-                <Group gap="xs">
-                  <ColorSwatch color={item.value} size={20} />
-                </Group>
-              )}
-              {item.type !== "COLOR" && (
-                <Paper
-                  component="span"
-                  c={"secondary.8"}
-                  className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                >
-                  {item.type === "WEIGHT" && `${item.value}${item.unit}`}
-                  {item.type === "SIZE" && `${item.value}`}
-                </Paper>
-              )}
-            </Stack>
-          </Group>
-          <Stack gap="xs" align="flex-end" className="ml-4 flex-shrink-0">
-            <Text size="sm" fw={700}>
-              {formattedPrice(priceCalculation.finalPrice)}
-            </Text>
-            {item.discount > 0 && (
-              <Fragment>
-                <Text size="sm" td="line-through" c="dimmed">
-                  {formattedPrice(priceCalculation.originalPrice)}
-                </Text>
-                <Badge color="red" variant="light">
-                  %{priceCalculation.discount} İndirim
-                </Badge>
-              </Fragment>
-            )}
-          </Stack>
-        </Group>
-      ),
-    };
-  });
+          )}
+        </div>
+      </div>
+    </Group>
+  );
+
+  const renderDefaultActions = () =>
+    featuredProducts.map((product) => {
+      const prices = calculatePrice(
+        product.price,
+        product.discount,
+        product.product.taxRate,
+      );
+
+      return (
+        <Spotlight.Action
+          key={product.slug}
+          onClick={() => push(`/${product.slug}`)}
+        >
+          {renderProductItem(
+            product.product.name,
+            product.Image[0].url,
+            product.value,
+            product.type,
+            product.unit,
+            prices.finalPrice,
+            prices.originalPrice - prices.finalPrice,
+          )}
+        </Spotlight.Action>
+      );
+    });
+
+  const renderEmptyState = () => (
+    <div className="text-secondary-5 flex flex-col items-center justify-center py-8">
+      <TbMoodEmpty size={48} className="mb-2" />
+      <Text size="sm">Aradığınız ürün bulunamadı.</Text>
+    </div>
+  );
 
   return (
     <Fragment>
       <IoSearchOutline
         size={28}
-        className="cursor-pointer"
-        onClick={() => spotlight.open()}
+        className="text-secondary-7 hover:text-secondary-9 cursor-pointer transition-colors"
+        onClick={spotlight.open}
       />
-      <Spotlight.Root
-        styles={{
-          action: {
-            "&[data-selected]": {
-              backgroundColor: "transparent", // Seçili durumda bg'yi kaldırır
-            },
-            "&:hover": {
-              backgroundColor: "transparent", // Hover durumunda bg'yi kaldırır
-            },
-          },
-        }}
-      >
+      <Spotlight.Root>
         <Spotlight.Search
           onChange={(event) => handleSearch(event.currentTarget.value)}
-          placeholder="Ürün ara"
-          rightSection={<IoSearchOutline size={30} />}
+          placeholder="Dilediğiniz ürünü arayabilirsiniz."
+          classNames={{
+            wrapper: "border-b border-secondary-3",
+            input:
+              "focus:ring-0 focus:outline-none focus:border-none text-lg py-4",
+          }}
         />
-        <Spotlight.ActionsList>
-          {loading ? (
-            <div
-              style={{ position: "relative", height: "200px", width: "100%" }}
-            >
-              <MainLoader />
-            </div>
-          ) : errorMessage ? (
-            <Text c="dimmed" ta="center" py="xl">
-              {errorMessage}
-            </Text>
-          ) : currentProducts.length > 0 ? (
-            spotlightItems.map((action) => (
-              <Spotlight.Action key={action.id} onClick={action.onClick}>
-                {action.render()}
+        {isLoading ? (
+          <MainLoader />
+        ) : searchData ? (
+          searchData.length > 0 ? (
+            searchData.map((item) => (
+              <Spotlight.Action key={item.url} onClick={() => push(item.url)}>
+                {renderProductItem(
+                  item.name,
+                  item.image,
+                  item.value,
+                  item.type,
+                  item.unit,
+                  item.finalPrice,
+                  item.discountedPrice,
+                )}
               </Spotlight.Action>
             ))
           ) : (
-            <Text c="dimmed" ta="center" py="xl">
-              Sonuç bulunamadı
-            </Text>
-          )}
-        </Spotlight.ActionsList>
+            query.length >= 2 && renderEmptyState()
+          )
+        ) : (
+          renderDefaultActions()
+        )}
       </Spotlight.Root>
     </Fragment>
   );

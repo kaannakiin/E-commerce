@@ -6,7 +6,7 @@ import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { ActionIcon, Paper, Text, Title } from "@mantine/core";
+import { ActionIcon, Button, Card, Group, Paper, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { LiaTimesSolid } from "react-icons/lia";
+import styles from "./modules/ProductCardCarousels.module.css";
 
 const ProductCard = ({
   product,
@@ -27,7 +28,6 @@ const ProductCard = ({
     product.discount,
     product.product.taxRate,
   );
-
   const matches = useMediaQuery("(min-width: 56.25em)");
   const [isFave, setIsFave] = useState(isFavorited);
   const pathname = usePathname();
@@ -46,34 +46,24 @@ const ProductCard = ({
       }
     });
   };
+
   return (
-    <div className="group relative flex h-[450px] w-full flex-col overflow-hidden rounded-lg bg-white transition-all duration-300 hover:shadow-lg sm:h-[500px] lg:h-[550px]">
-      <div
-        style={{
-          backgroundColor: "var(--mantine-color-secondary-1)",
-        }}
-        className="relative h-[60%] w-full"
-      >
+    <Card radius="md" withBorder padding="xl">
+      <Card.Section>
         <Carousel
-          withControls={product.Image.length > 1}
-          align="start"
-          loop
-          styles={{
-            root: { height: "100%" },
-            viewport: { height: "100%" },
-            container: { height: "100%" },
-            slide: { height: "100%" },
-          }}
+          withIndicators={product.Image.length > 1}
+          withControls={false}
           classNames={{
-            controls: matches
-              ? "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              : "",
-            control:
-              "bg-white/90 hover:bg-white border border-secondary-100 shadow-sm",
+            indicator: styles.indicator,
+          }}
+          styles={{
+            viewport: {
+              overflow: "hidden",
+            },
           }}
         >
           {product.Image.map((image, index) => (
-            <Carousel.Slide key={index}>
+            <Carousel.Slide key={index} h={220}>
               <div className="relative h-full w-full overflow-hidden">
                 <CustomImage
                   src={image.url}
@@ -86,71 +76,14 @@ const ProductCard = ({
             </Carousel.Slide>
           ))}
         </Carousel>
+      </Card.Section>
 
-        <div className="absolute left-3 top-3 z-20 flex flex-col gap-2">
-          {product.discount > 0 && (
-            <span className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
-              -%{calculateTaxedPrice.discount}
-            </span>
-          )}
-        </div>
-
-        {!isInHomePage && (
-          <ActionIcon
-            onClick={() => {
-              const productSlug = product.slug;
-              const path = productSlug ? `/${productSlug}` : "/";
-              onClickHeart(path);
-            }}
-            size={"input-sm"}
-            radius={"xl"}
-            variant="transparent"
-            className="absolute right-3 top-3 z-20 h-8 w-8 bg-white"
-          >
-            {isInFavoritesPage ? (
-              <LiaTimesSolid
-                style={{
-                  height: "1rem",
-                  width: "1rem",
-                  color: "var(--mantine-color-gray-7)",
-                }}
-                className="transition-colors duration-200 hover:text-[var(--mantine-color-blue-5)]"
-              />
-            ) : isFave ? (
-              <FaHeart
-                style={{
-                  fontSize: "1.5rem",
-                  color: "var(--mantine-color-primary-5)",
-                }}
-              />
-            ) : (
-              <FaRegHeart
-                style={{
-                  fontSize: "1.5rem",
-                  color: "var(--mantine-color-secondary-6)",
-                  transition: "color 200ms",
-                }}
-                className="hover:text-[var(--mantine-color-primary-5)]" // hover için className kullanmak daha uygun
-              />
-            )}
-          </ActionIcon>
-        )}
-      </div>
-
-      <Link
-        href={product.slug ? `/${product.slug}` : "/"}
-        className="flex h-[40%] w-full flex-col p-4 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <Title
-            order={3}
-            c={"secondary.8"}
-            className="line-clamp-1 flex-1 text-base font-semibold"
-          >
-            {product.product.name.length > 20
-              ? product.product.name.slice(0, 20) + "..."
-              : product.product.name}
-          </Title>
+      {/* Product Info Section - Başlık ve Varyant */}
+      <div className="mt-4 flex items-start justify-between gap-2">
+        <Text fw={500} fz="lg" className="line-clamp-2 flex-1">
+          {product.product.name}
+        </Text>
+        <div className="shrink-0">
           {product.type === "COLOR" && (
             <span
               className="h-6 w-6 rounded-full"
@@ -162,31 +95,64 @@ const ProductCard = ({
               component={"span"}
               bg={"secondary.1"}
               c={"secondary.8"}
-              className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium"
+              className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-sm font-bold"
             >
-              {product.type === "WEIGHT" && `${product.value}${product.unit}`}
+              {product.type === "WEIGHT" && `${product.value} ${product.unit}`}
               {product.type === "SIZE" && `${product.value}`}
             </Paper>
           )}
         </div>
+      </div>
+      <Text fz="sm" c="dimmed" mt="sm" mb="sm" className="line-clamp-2">
+        {product.product.shortDescription}
+      </Text>
 
-        <p className="mt-1 line-clamp-2 h-[40px] text-sm">
-          {product.product.shortDescription}
-        </p>
-        <div className="mt-auto flex items-center justify-between">
-          <div className="flex flex-row items-center gap-2">
-            <Text c={"secondary-.8"} className="text-lg font-semibold">
-              {formattedPrice(calculateTaxedPrice.finalPrice)}
+      <div className="mt-auto flex items-center justify-between">
+        <div className="flex flex-col items-center justify-start">
+          {product.discount > 0 && (
+            <Text span fz="sm" c="dimmed" td="line-through" ml={4}>
+              {formattedPrice(calculateTaxedPrice.originalPrice)}
             </Text>
-            {product.discount > 0 && (
-              <span className="-mt-1 text-xs font-medium text-red-500 line-through">
-                {formattedPrice(calculateTaxedPrice.originalPrice)}
-              </span>
-            )}
-          </div>
+          )}
+          <Text fz="md" span fw={700}>
+            {formattedPrice(calculateTaxedPrice.finalPrice)}
+          </Text>
         </div>
-      </Link>
-    </div>
+
+        <div className="flex items-center gap-2">
+          {!isInHomePage && (
+            <ActionIcon
+              onClick={() => {
+                const productSlug = product.slug;
+                const path = productSlug ? `/${productSlug}` : "/";
+                onClickHeart(path);
+              }}
+              size="lg"
+              radius="xl"
+              variant="subtle"
+              className="transition-all duration-200 hover:scale-110"
+            >
+              {isInFavoritesPage ? (
+                <LiaTimesSolid size={18} />
+              ) : isFave ? (
+                <FaHeart size={18} />
+              ) : (
+                <FaRegHeart size={18} />
+              )}
+            </ActionIcon>
+          )}
+          <Button
+            component={Link}
+            href={product.slug ? `/${product.slug}` : "/"}
+            radius="md"
+            size="xs"
+            variant="outline"
+          >
+            Sepete Ekle
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 };
 

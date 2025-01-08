@@ -5,6 +5,9 @@ import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { processImages } from "@/lib/recordImage";
 import { slugify } from "@/utils/SlugifyVariants";
+import fs from "fs/promises"; // fs modülünü kullanabilmek için
+import path from "path";
+
 import {
   BlogPostFormValues,
   BlogPostSchema,
@@ -176,5 +179,52 @@ export async function BlogImageDelete(url: string): Promise<{
       success: false,
       message: "Bir hata oluştu. Lütfen tekrar deneyiniz.",
     };
+  }
+}
+export async function readAllImageSecureUrl(): Promise<string[]> {
+  try {
+    const session = await isAuthorized();
+    if (!session) {
+      return [];
+    }
+    const images = await prisma.richTextImageGallery.findMany();
+    return images.map(
+      (image) =>
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/user/asset/image-gallery?url=${image.url}&quality=80`,
+    );
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function DeleteImageForRichText(fileName: string) {
+  try {
+    const session = await isAuthorized();
+    if (!session) {
+      return { success: false, message: "Yetkisiz erişim" };
+    }
+
+    if (!fileName) {
+      return {
+        success: false,
+        message: "Dosya adı gereklidir",
+      };
+    }
+
+    const directoryPath = path.join("rich-text-assets", fileName);
+
+    try {
+      await fs.unlink(directoryPath);
+      await prisma.richTextImageGallery.delete({
+        where: { url: fileName },
+      });
+      return { success: true, message: "Resim başarıyla silindi" };
+    } catch (error) {
+      console.error("Silme hatası:", error);
+      return { success: false, message: "Resim silinirken bir hata oluştu" };
+    }
+  } catch (error) {
+    console.error("Genel hata:", error);
+    return { success: false, message: "Bir hata oluştu" };
   }
 }

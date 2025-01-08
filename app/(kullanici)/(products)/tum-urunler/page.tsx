@@ -89,7 +89,16 @@ const feedPage = cache(
         session !== null
           ? await prisma.user.findUnique({
               where: { id: session },
-              select: { FavoriteVariants: true },
+              select: {
+                FavoriteVariants: {
+                  where: {
+                    deletedAt: null,
+                  },
+                  select: {
+                    variantId: true,
+                  },
+                },
+              },
             })
           : null;
 
@@ -112,7 +121,7 @@ export async function generateMetadata(props: {
   const orderBy = (params.orderBy as string) || "newest";
   const minPrice = parseInt(params.minPrice as string, 10) || 0;
   const maxPrice = parseInt(params.maxPrice as string, 10) || 10000;
-  const { allVariant, allVariantCount } = await feedPage(
+  const { allVariantCount } = await feedPage(
     user,
     12,
     skip,
@@ -127,7 +136,6 @@ export async function generateMetadata(props: {
     },
   });
   const categoryNames = categories.map((cat) => cat.name).join(", ");
-  const jsonLd = generateProductListJsonLd(allVariant, allVariantCount);
 
   return {
     title: `Tüm Ürünler - ${allVariantCount}+ Ürün Çeşidi`,
@@ -156,9 +164,10 @@ const AllVariantPage = async (props: {
   const maxPrice = parseInt(params.maxPrice as string, 10) || 10000;
   const { allVariant, favoriteVariants, totalPages, allVariantCount } =
     await feedPage(user, 12, skip, orderBy, minPrice, maxPrice);
-  const favoriteIds = favoriteVariants?.FavoriteVariants.map((fav) => fav.id);
+  const favoriteIds = favoriteVariants?.FavoriteVariants.map(
+    (fav) => fav.variantId,
+  );
   const jsonLd = generateProductListJsonLd(allVariant, allVariantCount);
-
   return (
     <div className="flex w-full flex-col px-3 py-5 sm:px-6 md:px-8 lg:px-10">
       {Array.isArray(jsonLd) &&
@@ -175,12 +184,14 @@ const AllVariantPage = async (props: {
       <FilterDrawer count={allVariantCount} />
       <div className="my-6">
         {allVariantCount > 0 ? (
-          <div className="grid w-full grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+          <div className="grid w-full grid-cols-1 gap-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
             {allVariant.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
-                isFavorited={favoriteIds?.includes(product.id)}
+                isFavorited={
+                  favoriteIds ? favoriteIds.includes(product.id) : false
+                }
               />
             ))}
           </div>

@@ -13,6 +13,7 @@ import {
 } from "react-icons/ci";
 import { TfiLayoutSlider } from "react-icons/tfi";
 import { TbContract } from "react-icons/tb";
+import { MdOutlinePayment } from "react-icons/md";
 
 interface MenuButtonProps {
   icon: React.ReactNode;
@@ -90,11 +91,10 @@ const SettingsPage = () => {
       href: "/admin/ayarlar/sozlesmeler",
     },
     {
-      icon: <CiViewList className="h-6 w-6 text-primary-600" />,
-      title: "Bloklar",
-      description: "Sağ ve sol blokları yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      icon: <MdOutlinePayment className="h-6 w-6 text-primary-600" />,
+      title: "Ödeme Yöntemleri",
+      description: "Ödeme yöntemlerini düzenleyin.",
+      href: "/admin/ayarlar/odeme-yontemleri",
     },
     {
       icon: <CiShoppingTag className="h-6 w-6 text-primary-600" />,

@@ -1,7 +1,7 @@
 "use client";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { Paper, rem, Text, Title, useMantineTheme } from "@mantine/core";
+import { Paper, Text, Title, useMantineTheme } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import Link from "next/link";
 import classes from "./modules/CategoryCarousels.module.css";

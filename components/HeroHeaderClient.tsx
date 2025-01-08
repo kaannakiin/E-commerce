@@ -35,7 +35,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
     <Carousel
       withIndicators
       withControls={false}
-      height={matches ? 600 : 400} // 64px: Navbar height, 56px: Mobile Navbar height
+      height={matches ? 800 : 400}
       loop
       plugins={[autoplay.current as never]}
       onMouseEnter={autoplay.current.stop}
@@ -60,7 +60,6 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
       {items.map((item, index) => (
         <Carousel.Slide key={index}>
           <div className="relative h-full w-full">
-            {/* Media Content */}
             <div className="absolute inset-0">
               {item.type === "VIDEO" ? (
                 <video
@@ -79,9 +78,8 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
                 <CustomImage
                   src={`${item.image.url}`}
                   alt={item.alt}
-                  objectFit={matches ? "cover" : "contain"}
+                  objectFit="cover"
                   priority
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 100vw, 100vw"
                 />
               )}
             </div>

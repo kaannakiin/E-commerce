@@ -1,0 +1,11 @@
+.indicator {
+  width: 12px;
+  height: 4px;
+  transition: width 250ms ease;
+  background-color: #e5e7eb; /* Light gray */
+}
+
+.indicator[data-active] {
+  width: 40px;
+  background-color: #1f2937; /* Çok koyu gri, neredeyse siyah */
+}

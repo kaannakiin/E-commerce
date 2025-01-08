@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 
 export const SearchProductForSpotlight = async (query: string) => {
   try {
-    // Input validation
     if (!query || query.length < 2) {
       return {
         success: false,
@@ -14,6 +13,7 @@ export const SearchProductForSpotlight = async (query: string) => {
 
     const products = await prisma.product.findMany({
       where: {
+        active: true,
         OR: [
           { name: { contains: query, mode: "insensitive" } },
           { shortDescription: { contains: query, mode: "insensitive" } },
@@ -21,17 +21,12 @@ export const SearchProductForSpotlight = async (query: string) => {
       },
       select: {
         name: true,
-        shortDescription: true,
         taxRate: true,
-        categories: {
-          select: {
-            slug: true,
-          },
-        },
         Variant: {
           where: {
             isPublished: true,
             stock: { gt: 0 },
+            softDelete: false,
           },
           select: {
             slug: true,
@@ -55,8 +50,6 @@ export const SearchProductForSpotlight = async (query: string) => {
     const productsWithVariants = products.filter(
       (product) => product.Variant.length > 0,
     );
-
-    // Check if any products were found
     if (productsWithVariants.length === 0) {
       return {
         success: true,
