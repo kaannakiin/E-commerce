@@ -1,12 +1,11 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { Group, Text, rem } from "@mantine/core";
-import { useDropzone } from "react-dropzone";
-import { useController, Control } from "react-hook-form";
-import { IoCloudUpload, IoClose, IoVideocam, IoImage } from "react-icons/io5";
+import { Group, rem, SimpleGrid, Text } from "@mantine/core";
+import { Dropzone, FileWithPath } from "@mantine/dropzone";
+import "@mantine/dropzone/styles.css";
 import Image from "next/image";
-
-// Video uzantılarını ayrı tanımlayalım
+import React, { useEffect, useState } from "react";
+import { Control, useController } from "react-hook-form";
+import { IoClose, IoCloudUpload, IoImage, IoVideocam } from "react-icons/io5";
 const VIDEO_TYPES = {
   "video/*": [".mp4", ".mov", ".avi"],
 };
@@ -15,11 +14,10 @@ const IMAGE_TYPES = {
   "image/*": [".png", ".jpg", ".jpeg"],
 };
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 interface CustomDropzoneProps {
   name: string;
   control: Control;
-  maxFiles: number;
+  maxFiles?: number;
   videosEnabled?: boolean;
   isForce?: boolean;
 }
@@ -31,11 +29,15 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
   videosEnabled = false,
   isForce = true,
 }) => {
-  const [previews, setPreviews] = useState<{ url: string; file: File }[]>([]);
+  const MAX_FILE_SIZE = maxFiles * 10 * 1024 * 1024; // 50MB
 
-  const ACCEPTED_FILE_TYPES = videosEnabled
-    ? { ...IMAGE_TYPES, ...VIDEO_TYPES }
-    : IMAGE_TYPES;
+  const [previews, setPreviews] = useState<
+    { url: string; file: FileWithPath }[]
+  >([]);
+
+  const ACCEPTED_MIME_TYPES = videosEnabled
+    ? [...Object.values(IMAGE_TYPES)[0], ...Object.values(VIDEO_TYPES)[0]]
+    : [...Object.values(IMAGE_TYPES)[0]];
 
   const {
     field: { onChange, value },
@@ -46,28 +48,26 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
     defaultValue: [],
     rules: {
       validate: (files) => {
-        if (isForce && files.length === 0)
+        if (isForce && (!files || files.length === 0))
           return "En az bir dosya seçmelisiniz";
-        if (files.length > maxFiles)
+        if (files && files.length > maxFiles)
           return `En fazla ${maxFiles} dosya seçilebilir`;
         return true;
       },
     },
   });
-  const { getRootProps, getInputProps, isDragActive, isDragReject } =
-    useDropzone({
-      accept: ACCEPTED_FILE_TYPES,
-      maxSize: MAX_FILE_SIZE,
-      maxFiles,
-      onDrop: (accepted) => {
-        onChange([...(value || []), ...accepted]);
-      },
-    });
 
-  // Preview URL'lerini oluştur
   useEffect(() => {
-    if (!value) return;
+    // Mevcut URL'leri temizle
+    previews.forEach((preview) => URL.revokeObjectURL(preview.url));
 
+    // Eğer value boşsa, previews'ı temizle
+    if (!value || !Array.isArray(value) || value.length === 0) {
+      setPreviews([]);
+      return;
+    }
+
+    // Yeni preview'ları oluştur
     const newPreviews = value.map((file) => ({
       file,
       url: URL.createObjectURL(file),
@@ -75,36 +75,17 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
 
     setPreviews(newPreviews);
 
+    // Cleanup
     return () => {
       newPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  // Komponent unmount olduğunda tüm URL'leri temizle
-  useEffect(() => {
-    return () => {
-      setPreviews((prev) => {
-        prev.forEach((preview) => URL.revokeObjectURL(preview.url));
-        return [];
-      });
-    };
-  }, []);
-  useEffect(() => {
-    if (!value || !Array.isArray(value) || value.length === 0) return;
-
-    const newPreviews = value.map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-    }));
-
-    setPreviews(newPreviews);
-
-    return () => {
-      newPreviews.forEach((preview) => URL.revokeObjectURL(preview.url));
-    };
-  }, [value]);
-  const removeFile = (fileToRemove: File) => {
-    const updatedFiles = value.filter((file: File) => file !== fileToRemove);
+  const removeFile = (fileToRemove: FileWithPath) => {
+    const updatedFiles = value.filter(
+      (file: FileWithPath) => file !== fileToRemove,
+    );
     onChange(updatedFiles);
   };
 
@@ -113,43 +94,36 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
 
   return (
     <div>
-      <div
-        {...getRootProps()}
-        style={{
-          border: `2px dashed ${
-            isDragActive
-              ? "var(--mantine-color-blue-6)"
-              : isDragReject
-                ? "var(--mantine-color-red-6)"
-                : error
-                  ? "var(--mantine-color-red-6)"
-                  : "var(--mantine-color-gray-4)"
-          }`,
-          padding: rem(20),
-          borderRadius: rem(8),
-          cursor: "pointer",
-          backgroundColor: isDragActive
-            ? "var(--mantine-color-blue-0)"
-            : isDragReject
-              ? "var(--mantine-color-red-0)"
-              : "transparent",
+      <Dropzone
+        onDrop={(files) => {
+          onChange([...(value || []), ...files]);
+        }}
+        maxSize={MAX_FILE_SIZE}
+        maxFiles={maxFiles}
+        accept={ACCEPTED_MIME_TYPES}
+        onReject={(files) => {
+          console.log("rejected files", files);
         }}
       >
-        <input {...getInputProps()} />
-
-        <Group justify="center" gap="xl" style={{ minHeight: rem(140) }}>
-          {isDragActive ? (
+        <Group
+          justify="center"
+          gap="xl"
+          style={{ minHeight: rem(140), pointerEvents: "none" }}
+        >
+          <Dropzone.Accept>
             <IoCloudUpload size={52} color="var(--mantine-color-blue-6)" />
-          ) : isDragReject ? (
+          </Dropzone.Accept>
+          <Dropzone.Reject>
             <IoClose size={52} color="var(--mantine-color-red-6)" />
-          ) : (
+          </Dropzone.Reject>
+          <Dropzone.Idle>
             <Group gap="md">
               <IoImage size={52} color="var(--mantine-color-gray-6)" />
               {videosEnabled && (
                 <IoVideocam size={52} color="var(--mantine-color-gray-6)" />
               )}
             </Group>
-          )}
+          </Dropzone.Idle>
 
           <div>
             <Text size="xl" inline>
@@ -159,15 +133,16 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
               {videosEnabled
                 ? `Görseller (PNG, JPG, JPEG) ve videolar (MP4, MOV, AVI) kabul edilir.`
                 : `Görseller (PNG, JPG, JPEG) kabul edilir.`}
-              Maksimum 50MB. En fazla {maxFiles} dosya yüklenebilir
+              Maksimum {maxFiles * 10} MB. En fazla {maxFiles} dosya
+              yüklenebilir
             </Text>
           </div>
         </Group>
-      </div>
+      </Dropzone>
 
       {value?.length > 0 && (
         <Group gap="sm" mt="md">
-          {value.map((file: File, index: number) => (
+          {value.map((file: FileWithPath, index: number) => (
             <div
               key={index}
               style={{
@@ -203,16 +178,16 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
 
       {/* Preview Grid */}
       {previews.length > 0 && (
-        <Group gap="sm" mt="md">
+        <SimpleGrid cols={3} spacing="md" verticalSpacing="md" mt="md">
           {previews.map((preview, index) => (
             <div
               key={index}
               style={{
-                width: rem(200),
-                height: rem(200),
+                aspectRatio: "1",
                 position: "relative",
                 borderRadius: rem(4),
                 overflow: "hidden",
+                backgroundColor: "var(--mantine-color-gray-1)",
               }}
             >
               {isFileImage(preview.file) ? (
@@ -238,7 +213,7 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
               ) : null}
             </div>
           ))}
-        </Group>
+        </SimpleGrid>
       )}
 
       {error && (

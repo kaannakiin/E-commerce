@@ -153,8 +153,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const { data } = await feedLayout();
-
-  // Use default theme color if not provided
   const baseColor = data?.themeColor ?? DEFAULT_SETTINGS.themeColor;
   const secondColor = data?.themeColorSecondary ?? DEFAULT_SETTINGS.themeColor;
   const primaryColors = [

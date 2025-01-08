@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import Info from "./_components/Info";
 import { HeaderSearch } from "./_components/AdminHeader";
+import Provider from "@/providers/ImageProvider";
 const feedLayout = cache(async () => {
   try {
     const info = await prisma.salerInfo.findFirst();
@@ -34,7 +35,7 @@ export default async function AdminLayout({
 
       <main>
         {info === null ? <Info /> : null}
-        {children}
+        <Provider>{children}</Provider>
       </main>
     </Box>
   );

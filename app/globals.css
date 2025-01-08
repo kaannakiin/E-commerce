@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.resize-image {
+  display: inline-block;
+  vertical-align: middle;
+  max-width: 100%;
+  height: auto;
+  margin: 0 4px;
+}
+
+.ProseMirror {
+  img {
+    &.resize-image {
+      cursor: pointer;
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 4px;
+    }
+  }
+}

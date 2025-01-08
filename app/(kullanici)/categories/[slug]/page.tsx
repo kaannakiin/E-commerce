@@ -75,8 +75,6 @@ interface FeedCatResponse {
   childCategories: ChildCategory[];
 }
 
-
-
 export async function generateMetadata(props: {
   params: Params;
   searchParams: SearchParams;
@@ -411,7 +409,7 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
       <FilterDrawer count={response.count} />
       <div className="mt-6">
         {response.count > 0 ? (
-          <div className="grid w-full grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+          <div className="grid w-full grid-cols-1 gap-2 sm:gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
             {response.categoryVariants.map((product) => (
               <ProductCard
                 key={product.id}

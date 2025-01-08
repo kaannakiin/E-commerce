@@ -163,9 +163,10 @@ export function Footer({
         </div>
       </div>
       <div className="flex w-full justify-center">
-        <h6 className="text-center text-xs font-semibold text-gray-500">
-          © 2024 {salerInfo?.storeName ? salerInfo.storeName : null}. Tüm
-          Hakları Saklıdır.
+        <h6 className="text-center text-[10px] font-semibold text-gray-500">
+          © {new Date().getFullYear()}
+          {salerInfo?.storeName ? ` ${salerInfo.storeName}` : null}. Tüm Hakları
+          Saklıdır.
         </h6>
       </div>
     </footer>
