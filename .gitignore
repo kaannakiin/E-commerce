@@ -12,6 +12,7 @@
 /assets/*
 !/assets/.gitkeep# testing
 /coverage
+/assets/*
 
 # next.js
 /.next/
