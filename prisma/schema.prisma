@@ -345,38 +345,43 @@ enum AdminCancelReason {
   OTHER // Diğer nedenler
 }
 
+enum PaymentType {
+  BANK_TRANSFER
+  IYZICO
+  TAMI
+}
+
 model Order {
-  id             String        @id @default(cuid())
-  orderNumber    String        @unique
-  paymentId      String        @unique
-  status         OrderStatus   @default(PENDING)
-  paymentStatus  PaymentStatus @default(PENDING)
-  paymentDate    DateTime?
-  total          Float
-  priceIyzico    Float
-  discountCode   DiscountCode? @relation(fields: [discountCodeId], references: [id])
-  discountCodeId String?
-  user           User?         @relation(fields: [userId], references: [id])
-  userId         String?
-  address        Address       @relation(fields: [addressId], references: [id])
-  addressId      String
-  ip             String
-
-  // Card Info
-  cardType         String?
-  maskedCardNumber String?
-  cardFamily       String?
-  cardAssociation  String?
-
+  id                String            @id @default(cuid())
+  orderNumber       String            @unique
+  paymentId         String            @unique
+  status            OrderStatus       @default(PENDING)
+  paymentStatus     PaymentStatus     @default(PENDING)
+  paymentDate       DateTime?
+  total             Float
+  priceIyzico       Float
+  discountCode      DiscountCode?     @relation(fields: [discountCodeId], references: [id])
+  discountCodeId    String?
+  user              User?             @relation(fields: [userId], references: [id])
+  userId            String?
+  address           Address           @relation(fields: [addressId], references: [id])
+  addressId         String
+  ip                String
+  cardType          String?
+  maskedCardNumber  String?
+  cardFamily        String?
+  cardAssociation   String?
+  paymentType       PaymentType       @default(IYZICO)
   // Cancellation Fields
   isCancelled       Boolean           @default(false) // Siparişin iptal edilip edilmediği
   cancelReason      UserCancelReason? // İptal nedeni
   cancelProcessDate DateTime? // İptalin işleme alındığı tarih
   cancelPaymentId   String? // İyzico iptal işlem ID'si
 
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  OrderItems OrderItems[]
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  OrderItems               OrderItems[]
+  BankTransferNotification BankTransferNotification[]
 }
 
 model OrderItems {
@@ -543,4 +548,17 @@ model RichTextImageGallery {
   id        String   @id @default(cuid())
   url       String   @unique
   createdAt DateTime @default(now())
+}
+
+model BankTransferNotification {
+  id          String @id @default(cuid())
+  orderNumber String
+  order       Order  @relation(fields: [orderNumber], references: [orderNumber])
+
+  name            String
+  surname         String
+  transactionTime String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

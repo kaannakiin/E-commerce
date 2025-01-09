@@ -41,7 +41,7 @@ const CartDrawer = () => {
         opened={open && !isCartPage}
         onClose={() => setOpen(false)}
         position="right"
-        size={mobile ? "calc(100% - 40px)" : "35%"}
+        size={mobile ? "100%" : "35%"}
       >
         <Drawer.Overlay />
         <Drawer.Content>

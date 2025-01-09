@@ -22,8 +22,7 @@ const OrderItemsCard = (props: OrderItemsForRefundExtended) => {
       case "SIZE":
         return (
           <Group gap="xs">
-            <TbRuler size={14} color="#666666" />
-            <Text size="sm" c="dimmed">
+            <Text size="sm" c="dimmed" fw={700}>
               {props.variant.value}
             </Text>
           </Group>
@@ -31,8 +30,7 @@ const OrderItemsCard = (props: OrderItemsForRefundExtended) => {
       case "WEIGHT":
         return (
           <Group gap="xs">
-            <TbWeight size={14} color="#666666" />
-            <Text size="sm" c="dimmed">
+            <Text size="sm" c="dimmed" fw={700}>
               {props.variant.value} {props.variant.unit}
             </Text>
           </Group>
@@ -43,7 +41,7 @@ const OrderItemsCard = (props: OrderItemsForRefundExtended) => {
   return (
     <Card withBorder padding="sm" shadow="sm" radius="sm">
       <div className="flex flex-col gap-4 lg:flex-row">
-        <div className="relative w-full lg:w-32">
+        <div className="relative w-full lg:w-44">
           <div className="aspect-square lg:aspect-auto lg:h-full">
             <CustomImage
               src={props.variant.Image[0].url}

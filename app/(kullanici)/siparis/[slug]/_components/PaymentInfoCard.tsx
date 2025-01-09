@@ -1,5 +1,5 @@
 import { Badge, Card, Divider, Group, Stack, Title, Text } from "@mantine/core";
-import { PaymentStatus, UserCancelReason } from "@prisma/client";
+import { PaymentStatus, PaymentType, UserCancelReason } from "@prisma/client";
 import { formatCancelReason, formatPaymentStatusWithColor } from "@/lib/format";
 import { TbCreditCard, TbCalendar, TbAlertCircle } from "react-icons/tb";
 import React from "react";
@@ -13,6 +13,7 @@ interface PaymentInfoCardProps {
   paymentDate: Date | null;
   cancelProcessDate: Date | null;
   cancelReason: UserCancelReason | null;
+  paymentType: PaymentType;
 }
 
 const PaymentInfoCard = (props: PaymentInfoCardProps) => {
@@ -27,15 +28,15 @@ const PaymentInfoCard = (props: PaymentInfoCardProps) => {
         <Divider />
 
         <Stack gap="md">
-          <Group gap="xs" align="center">
-            <TbCreditCard size={20} style={{ color: "#666" }} />
-            <Text size="sm" c="dimmed">
-              Kart Numarası:
-            </Text>
-            <Text>{formatCardNumber(props.maskedCardNumber)}</Text>
-          </Group>
-
-          {/* Ödeme Durumu */}
+          {props.maskedCardNumber && (
+            <Group gap="xs" align="center">
+              <TbCreditCard size={20} style={{ color: "#666" }} />
+              <Text size="sm" c="dimmed">
+                Kart Numarası:
+              </Text>
+              <Text>{formatCardNumber(props.maskedCardNumber)}</Text>
+            </Group>
+          )}
           <Group gap="xs" align="center">
             <TbCalendar size={20} style={{ color: "#666" }} />
             <Text size="sm" c="dimmed">
@@ -45,7 +46,10 @@ const PaymentInfoCard = (props: PaymentInfoCardProps) => {
               color={formatPaymentStatusWithColor(props.paymentStatus).color}
               variant="light"
             >
-              {formatPaymentStatusWithColor(props.paymentStatus).text}
+              {props.paymentType === "BANK_TRANSFER" &&
+              props.paymentStatus === "PENDING"
+                ? "Havale/EFT onayı bekleniyor"
+                : formatPaymentStatusWithColor(props.paymentStatus).text}
             </Badge>
             {props.paymentDate && (
               <Text size="sm">

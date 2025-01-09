@@ -41,18 +41,20 @@ const EditorContent = ({
       SubScript,
       Highlight,
       ImageResize.configure({
-        inline: true,
         allowBase64: true,
       }),
       Image.configure({
-        inline: true, // Bunu true yapıyoruz ki yanına yazı yazılabilsin
+        inline: false,
         allowBase64: true,
         HTMLAttributes: {
-          class: "inline-block resize-image", // inline-block kullanıyoruz
-          style: "display: inline-block; margin: 0 4px;", // Temel stil ayarları
+          style: "display: block; max-width: 100%; height: auto;",
         },
       }),
-      TextAlign.configure({ types: ["heading", "paragraph", "image"] }), // image'i de ekledik
+      TextAlign.configure({
+        types: ["heading", "paragraph", "image"],
+        alignments: ["left", "center", "right", "justify"],
+        defaultAlignment: "left",
+      }),
       Placeholder.configure({
         placeholder: "Dilediğiniz gibi yazabilirsiniz.",
       }),
@@ -72,38 +74,26 @@ const EditorContent = ({
         clearFormattingControlLabel: "Formatlamayı temizle",
         highlightControlLabel: "Vurgula",
         codeControlLabel: "Kod",
-
-        // Başlıklar
         h1ControlLabel: "Başlık 1",
         h2ControlLabel: "Başlık 2",
         h3ControlLabel: "Başlık 3",
         h4ControlLabel: "Başlık 4",
         h5ControlLabel: "Başlık 5",
         h6ControlLabel: "Başlık 6",
-
-        // Liste ve blok elementleri
         blockquoteControlLabel: "Alıntı",
         hrControlLabel: "Yatay çizgi",
         bulletListControlLabel: "Madde işaretli liste",
         orderedListControlLabel: "Numaralı liste",
         subscriptControlLabel: "Alt simge",
         superscriptControlLabel: "Üst simge",
-
-        // Link kontrolleri
         linkControlLabel: "Bağlantı ekle",
         unlinkControlLabel: "Bağlantıyı kaldır",
-
-        // Hizalama kontrolleri
         alignLeftControlLabel: "Sola hizala",
         alignCenterControlLabel: "Ortala",
         alignJustifyControlLabel: "İki yana yasla",
         alignRightControlLabel: "Sağa hizala",
-
-        // Geri alma kontrolleri
         undoControlLabel: "Geri al",
         redoControlLabel: "İleri al",
-
-        // Link düzenleme modalı
         linkEditorInputLabel: "Bağlantı URL",
         linkEditorInputPlaceholder: "https://ornek.com",
         linkEditorExternalLink: "Yeni sekmede aç",
@@ -207,15 +197,19 @@ const EditorContent = ({
 interface ControlledRichEditorProps<T extends FieldValues> {
   control: Control<T>;
   name: Path<T>;
+  isWithImage?: boolean;
 }
-
 function InsterTheImageControl() {
   const { editor } = useRichTextEditorContext();
   const handleImageSelect = (imageSrc: string) => {
     editor
       ?.chain()
       .focus()
-      .setImage({ src: imageSrc, alt: "rich-text-images" })
+      .setImage({
+        src: imageSrc,
+        alt: "rich-text-images",
+      })
+      .setTextAlign("left") // Varsayılan hizalama
       .run();
   };
 
@@ -228,13 +222,18 @@ function InsterTheImageControl() {
 const ControlledRichEditor = <T extends FieldValues>({
   control,
   name,
+  isWithImage = false,
 }: ControlledRichEditorProps<T>) => {
   return (
     <Controller
       name={name}
       control={control}
       render={({ field: { onChange, value } }) => (
-        <EditorContent content={value} onChange={onChange} />
+        <EditorContent
+          content={value}
+          onChange={onChange}
+          isWithImage={isWithImage}
+        />
       )}
     />
   );

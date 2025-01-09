@@ -4,6 +4,7 @@ import {
   OrderChangeType,
   OrderStatus,
   PaymentChannels,
+  PaymentType,
   ProductType,
   VariantType,
 } from "@prisma/client";
@@ -665,8 +666,7 @@ export const variantIdQtyItemSchema = z.object({
 export type VariantIdQtyItemType = z.infer<typeof variantIdQtyItemSchema>;
 export const variantIdQtySchema = z
   .array(variantIdQtyItemSchema)
-  .nonempty({ message: "En az 1 ürün seçmelisiniz" })
-  .max(10, { message: "En fazla 10 farklı ürün seçebilirsiniz" });
+  .nonempty({ message: "En az 1 ürün seçmelisiniz" });
 export const refundFormSchema = z.object({
   info: z
     .string({ message: "Bu alan gereklidir" })
@@ -1901,3 +1901,69 @@ export const richTextImageUploadSchema = z.object({
 export type RichTextImageUploadFormValues = z.infer<
   typeof richTextImageUploadSchema
 >;
+
+export const BankTransferAddressSchema = z
+  .object({
+    firstName: z
+      .string({ message: "Bu alan boş olamaz" })
+      .min(2, "Ad en az 2 karakter olmalıdır")
+      .max(50, "Ad en fazla 50 karakter olabilir")
+      .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, "Ad sadece harflerden oluşmalıdır"),
+    lastName: z
+      .string({ message: "Bu alan boş olamaz" })
+      .min(2, "Soyad en az 2 karakter olmalıdır")
+      .max(50, "Soyad en fazla 50 karakter olabilir")
+      .regex(
+        /^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/,
+        "Soyad sadece harflerden oluşmalıdır",
+      ),
+    email: z
+      .string({ message: "Bu alan boş olamaz" })
+      .email("Geçerli bir e-posta adresi giriniz")
+      .min(5, "E-posta adresi en az 5 karakter olmalıdır")
+      .max(100, "E-posta adresi en fazla 100 karakter olabilir"),
+    phone: z
+      .string({ message: "Bu alan boş olamaz" })
+      .regex(turkishPhoneRegex, "Geçerli bir telefon numarası giriniz "),
+    addressDetail: z
+      .string({ message: "Bu alan boş olamaz" })
+      .min(5, "Adres en az 5 karakter olmalıdır")
+      .max(100, "Adres en fazla 100 karakter olabilir"),
+    city: z
+      .string({ message: "Bu alan boş olamaz" })
+      .min(2, "Şehir en az 2 karakter olmalıdır")
+      .max(50, "Şehir en fazla 50 karakter olabilir"),
+    district: z
+      .string({ message: "Bu alan boş olamaz" })
+      .min(2, "İlçe en az 2 karakter olmalıdır")
+      .max(50, "İlçe en fazla 50 karakter olabilir"),
+
+    aggrements: z.boolean().default(false),
+  })
+  .refine((data) => data.aggrements === true, {
+    message: "Sözleşmeleri kabul etmelisiniz",
+    path: ["aggrements"],
+  });
+export type BankTransferAddressFormValues = z.infer<
+  typeof BankTransferAddressSchema
+>;
+
+export const BankTransferSchema = z.object({
+  transferFirstName: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(2, "Ad en az 2 karakter olmalıdır")
+    .max(50, "Ad en fazla 50 karakter olabilir")
+    .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, "Ad sadece harflerden oluşmalıdır"),
+  transferLastName: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(2, "Soyad en az 2 karakter olmalıdır")
+    .max(50, "Soyad en fazla 50 karakter olabilir")
+    .regex(/^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$/, "Soyad sadece harflerden oluşmalıdır"),
+  transferTime: z
+    .string({ message: "İşlem saati boş olamaz" })
+    .regex(
+      /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/,
+      "Geçerli bir saat giriniz (Örnek: 15:15)",
+    ),
+});
+export type BankTransferFormValues = z.infer<typeof BankTransferSchema>;
