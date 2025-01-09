@@ -283,6 +283,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               name="googleId"
               render={(field) => (
                 <TextInput
+                  {...field}
                   label="Google Analytics ID"
                   description='"G-" veya "AW-" ile başlayan kod'
                   error={errors?.googleId?.message}
@@ -294,6 +295,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               name="googleVerification"
               render={(field) => (
                 <TextInput
+                  {...field}
                   label="Google"
                   description='Google"dan alacağınız kod'
                   error={errors?.googleVerification?.message}
