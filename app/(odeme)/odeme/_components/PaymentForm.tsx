@@ -258,7 +258,7 @@ const PaymentForm = ({ address }) => {
                     label={
                       <div className="my-auto flex flex-wrap items-center gap-1 p-0 text-xs font-bold">
                         <Anchor
-                          href="/gizlilik-sozlesmesi"
+                          href="/sozlesmeler/privacypolicy"
                           c={"primary.9"}
                           fw={500}
                           td={"underline"}
@@ -268,9 +268,9 @@ const PaymentForm = ({ address }) => {
                         >
                           Gizlilik Sözleşmesi
                         </Anchor>
-                        <span>ve</span>
+                        <span> ve </span>
                         <Anchor
-                          href="/satis-politikasi"
+                          href="sozlesmeler/distancesalesagreement"
                           c={"primary.9"}
                           fw={500}
                           td={"underline"}
@@ -280,7 +280,7 @@ const PaymentForm = ({ address }) => {
                         >
                           Satış Politikası
                         </Anchor>
-                        <span>&#39;nı okudum ve kabul ediyorum</span>
+                        <span> &#39;nı okudum ve kabul ediyorum</span>
                       </div>
                     }
                   />

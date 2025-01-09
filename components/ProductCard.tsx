@@ -6,7 +6,15 @@ import { calculatePrice } from "@/lib/calculatePrice";
 import { formattedPrice } from "@/lib/format";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
-import { ActionIcon, Button, Card, Group, Paper, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Button,
+  Card,
+  ColorSwatch,
+  Group,
+  Paper,
+  Text,
+} from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -78,18 +86,12 @@ const ProductCard = ({
         </Carousel>
       </Card.Section>
 
-      {/* Product Info Section - Başlık ve Varyant */}
       <div className="mt-4 flex items-start justify-between gap-2">
         <Text fw={500} fz="lg" className="line-clamp-2 flex-1">
           {product.product.name}
         </Text>
         <div className="shrink-0">
-          {product.type === "COLOR" && (
-            <span
-              className="h-6 w-6 rounded-full"
-              style={{ backgroundColor: product.value }}
-            />
-          )}
+          {product.type == "COLOR" && <ColorSwatch color={product.value} />}
           {product.type !== "COLOR" && (
             <Paper
               component={"span"}

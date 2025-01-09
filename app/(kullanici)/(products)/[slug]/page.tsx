@@ -260,10 +260,12 @@ const ProductsPage = async (params: { params: Params }) => {
             </div>
             <div className="flex w-full flex-col space-y-6 lg:flex-1 lg:p-6">
               <div className="relative space-y-2">
-                <FavHeart isFavorited={isFavorited} productId={variant.id} />
-                <h1 className="text-3xl font-medium uppercase tracking-tight text-gray-900">
-                  {variant.product.name}
-                </h1>
+                <div className="flex items-start justify-between gap-4">
+                  <h1 className="flex-1 text-3xl font-medium uppercase tracking-tight text-gray-900">
+                    {variant.product.name}
+                  </h1>
+                  <FavHeart isFavorited={isFavorited} productId={variant.id} />
+                </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {variant.discount ? (

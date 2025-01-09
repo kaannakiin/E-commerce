@@ -4,7 +4,6 @@ import { ActionIcon } from "@mantine/core";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-
 const FavHeart = ({ isFavorited, productId }) => {
   const onClickHeart = async () => {
     await AddFavorite(productId).then(async (res) => {
@@ -23,15 +22,15 @@ const FavHeart = ({ isFavorited, productId }) => {
   return (
     <ActionIcon
       onClick={onClickHeart}
-      className={`absolute right-0 top-0 z-20 h-11 w-11`}
+      className="h-11 w-11"
       variant="transparent"
       size={"input-xl"}
     >
       {isFave ? (
         <FaHeart
           style={{
-            fontSize: "2rem", // text-4xl
-            fontWeight: 700, // font-bold
+            fontSize: "2rem",
+            fontWeight: 700,
           }}
         />
       ) : (

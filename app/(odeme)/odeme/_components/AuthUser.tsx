@@ -20,28 +20,31 @@ import {
   FaUser,
 } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
-import { Address } from "../page";
+import { Address, BankTransferDetailProps } from "../page";
 import AddressForm from "@/app/(kullanici)/hesabim/adres-defterim/_components/AddressForm";
 import PaymentForm from "./PaymentForm";
 import { useRouter, useSearchParams } from "next/navigation";
+import AccordionForPayment from "./AccordionForPayment";
+import { useStore } from "@/store/store";
 
 const AuthUser = ({
   addresses,
   email,
+  bankTransferData,
 }: {
   addresses: Address[];
   email: string;
+  bankTransferData: BankTransferDetailProps;
 }) => {
   const [opened, { open, close }] = useDisclosure(false);
   const [openedEdit, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const totalFinalPrice = useStore((state) => state.totalFinalPrice);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [defaultAddressId, setDefaultAddressId] = useState<string>("");
   const activeTab = searchParams.get("tab") || "address";
-
-  // Tab değiştiğinde URL'i güncelle
   const updateTabInURL = (value: string) => {
     const params = new URLSearchParams(searchParams);
     params.set("tab", value);
@@ -199,7 +202,21 @@ const AuthUser = ({
       </Tabs.Panel>
 
       <Tabs.Panel value="payment">
-        <PaymentForm address={defaultAddressId} />
+        {bankTransferData ? (
+          (bankTransferData.maxAmount === null ||
+            totalFinalPrice <= bankTransferData.maxAmount) &&
+          (bankTransferData.minAmount === null ||
+            totalFinalPrice >= bankTransferData.minAmount) ? (
+            <AccordionForPayment
+              data={bankTransferData}
+              defaultAddressId={defaultAddressId}
+            />
+          ) : (
+            <PaymentForm address={defaultAddressId} />
+          )
+        ) : (
+          <PaymentForm address={defaultAddressId} />
+        )}
       </Tabs.Panel>
     </Tabs>
   );

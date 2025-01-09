@@ -7,7 +7,6 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Fragment } from "react";
 import { HiOutlineShoppingBag } from "react-icons/hi";
-import MainLoader from "./MainLoader";
 import ShoppingProduct from "./ShoppingProduct";
 
 const CartPage = () => {
