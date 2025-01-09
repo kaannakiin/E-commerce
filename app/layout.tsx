@@ -198,7 +198,7 @@ export default async function RootLayout({
         </SessionProvider>
       </body>
 
-      {data?.googleId && <GoogleAnalytics gaId={data.googleId} />}
+      {data?.googleId && <GoogleAnalytics gaId="G-332N0X54S6" />}
     </html>
   );
 }
