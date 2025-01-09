@@ -43,6 +43,7 @@ const feedPage = cache(async (slug: string) => {
         status: true,
         cancelProcessDate: true,
         cancelReason: true,
+        paymentType: true,
         OrderItems: {
           select: {
             id: true,
@@ -184,6 +185,7 @@ const page = async (params: { params: Params }) => {
           surname={order.address.surname}
         />
         <PaymentInfoCard
+          paymentType={order.paymentType}
           cancelProcessDate={order.cancelProcessDate}
           cancelReason={order.cancelReason}
           isCancelled={order.isCancelled}
