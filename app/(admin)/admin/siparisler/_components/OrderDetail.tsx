@@ -39,10 +39,12 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
           <Text size="sm">Ödenen Tutar:</Text>
           <Text size="sm">{formattedPrice(order.total)}</Text>
         </Group>
-        <Group justify="space-between">
-          <Text size="sm">Kart:</Text>
-          <Text size="sm">{order.maskedCardNumber}</Text>
-        </Group>
+        {order.paymentType !== "BANK_TRANSFER" && (
+          <Group justify="space-between">
+            <Text size="sm">Kart:</Text>
+            <Text size="sm">{order.maskedCardNumber}</Text>
+          </Group>
+        )}
         <Group justify="space-between">
           <Text size="sm">Kazandığınız Tutar:</Text>
           <Text size="sm">{formattedPrice(order.priceIyzico)}</Text>
@@ -71,7 +73,6 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
     </Card>
   );
 
-  // Customer Details Card
   const CustomerDetailsCard = () => (
     <Card withBorder shadow="sm" radius="md" p="md">
       <Text fw={600} size="lg" mb="xs">
@@ -137,7 +138,6 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
     </Card>
   );
 
-  // Order Items List
   const OrderItemsList = () => (
     <ScrollArea h={isMobile ? 400 : 600}>
       <Stack gap="md">
@@ -182,21 +182,25 @@ const OrderDetailsPage = ({ order }: { order: Order }) => {
   );
 
   return (
-    <Container size="xl" py="xl">
+    <Container size="xl">
       <div className="flex w-full flex-row items-center justify-between">
         <Text fw={700} size="xl" mb="lg">
           Sipariş {order.orderNumber}
         </Text>
-        <Badge
-          size="xl"
-          color={formatPaymentStatusWithColor(order.paymentStatus).color}
-        >
-          {formatPaymentStatusWithColor(order.paymentStatus).text}
-        </Badge>
+        {order.paymentType == "BANK_TRANSFER" &&
+        order.paymentStatus === "PENDING" ? (
+          <Text>Havale / EFT Onayı Bekleniyor</Text>
+        ) : (
+          <Badge
+            size="xl"
+            color={formatPaymentStatusWithColor(order.paymentStatus).color}
+          >
+            {formatPaymentStatusWithColor(order.paymentStatus).text}
+          </Badge>
+        )}
       </div>
 
       <Grid gutter="md">
-        {/* Main content area */}
         <Grid.Col span={isMobile ? 12 : 8}>
           <Card withBorder shadow="sm" radius="md" p="md">
             <Text fw={600} size="lg" mb="md">

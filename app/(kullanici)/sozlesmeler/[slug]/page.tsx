@@ -4,7 +4,14 @@ import { slugify } from "@/utils/SlugifyVariants";
 import { ECommerceAgreements } from "@prisma/client";
 import { notFound } from "next/navigation";
 import React, { cache } from "react";
-import { Paper, Title, Text, Container, Group } from "@mantine/core";
+import {
+  Paper,
+  Title,
+  Text,
+  Container,
+  Group,
+  TypographyStylesProvider,
+} from "@mantine/core";
 import { RiCalendarLine, RiRefreshLine } from "react-icons/ri";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -79,11 +86,9 @@ const PolicyUserPage = async ({ params }: { params: Params }) => {
             <Text size="sm">Son Güncelleme: {formatDate(data.updatedAt)}</Text>
           </Group>
         </Group>
-
-        <div
-          dangerouslySetInnerHTML={createMarkup(data.content)}
-          className="space-y-4 text-pretty [&>blockquote]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-gray-300 [&>blockquote]:pl-4 [&>blockquote]:italic [&>em]:italic [&>h1]:mb-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h2]:mb-3 [&>h2]:text-xl [&>h2]:font-bold [&>h3]:mb-2 [&>h3]:text-lg [&>h3]:font-bold [&>ol]:mb-4 [&>ol]:list-decimal [&>ol]:pl-5 [&>p]:mb-4 [&>p]:leading-relaxed [&>strong]:font-bold [&>ul]:mb-4 [&>ul]:list-disc [&>ul]:pl-5"
-        />
+        <TypographyStylesProvider>
+          <div dangerouslySetInnerHTML={createMarkup(data.content)} />
+        </TypographyStylesProvider>
       </Paper>
     </Container>
   );

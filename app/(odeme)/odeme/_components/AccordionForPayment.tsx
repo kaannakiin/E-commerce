@@ -1,5 +1,12 @@
 "use client";
-import { Accordion, Button, Paper, Text, Title } from "@mantine/core";
+import {
+  Accordion,
+  Button,
+  Paper,
+  Text,
+  Title,
+  TypographyStylesProvider,
+} from "@mantine/core";
 import { BsBank2, BsCreditCard2Front } from "react-icons/bs";
 import { BankTransferDetailProps } from "../page";
 import PaymentForm from "./PaymentForm";
@@ -62,12 +69,15 @@ const AccordionForPayment = ({
             </Accordion.Control>
             <Accordion.Panel>
               <div className="prose prose-blue max-w-none space-y-1">
-                <div
-                  className="space-y-1"
-                  dangerouslySetInnerHTML={{
-                    __html: data?.description,
-                  }}
-                />
+                <TypographyStylesProvider>
+                  <div
+                    className="space-y-1"
+                    dangerouslySetInnerHTML={{
+                      __html: data?.description,
+                    }}
+                  />
+                </TypographyStylesProvider>
+
                 <Button
                   variant="outline"
                   fullWidth

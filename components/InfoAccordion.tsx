@@ -1,5 +1,10 @@
 "use client";
-import { Accordion, ScrollArea,Text } from "@mantine/core";
+import {
+  Accordion,
+  ScrollArea,
+  Text,
+  TypographyStylesProvider,
+} from "@mantine/core";
 import React from "react";
 import { MdOutlineDescription } from "react-icons/md";
 
@@ -15,7 +20,9 @@ interface AccordionLabelProps {
 const AccordionLabel = ({ label, icon }: AccordionLabelProps) => {
   return (
     <div className="flex items-center gap-3">
-      <Text c='primary.5' className="text-xl">{icon}</Text>
+      <Text c="primary.5" className="text-xl">
+        {icon}
+      </Text>
       <Text className="font-medium text-gray-700">{label}</Text>
     </div>
   );
@@ -41,10 +48,9 @@ const ProductDetails = ({ richText }: ProductDetailsProps) => {
               p={0}
             >
               {richText ? (
-                <div
-                  className="prose prose-sm max-w-none text-gray-600"
-                  dangerouslySetInnerHTML={{ __html: richText }}
-                />
+                <TypographyStylesProvider>
+                  <div dangerouslySetInnerHTML={{ __html: richText }} />
+                </TypographyStylesProvider>
               ) : (
                 <p className="text-gray-500">
                   Ürün açıklaması bulunmamaktadır.
