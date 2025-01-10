@@ -60,7 +60,6 @@ const AuthUser = ({
     setSelectedAddress(address);
     openEdit();
   };
-
   return (
     <Tabs value={activeTab} onChange={updateTabInURL}>
       <Tabs.List grow>
