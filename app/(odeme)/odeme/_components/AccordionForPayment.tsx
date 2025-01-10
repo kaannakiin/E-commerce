@@ -38,10 +38,10 @@ const AccordionForPayment = ({
                 <Text size="sm" c="dimmed">
                   Banka havalesi ile güvenli ödeme
                 </Text>
-                {data.orderChange &&
-                data.orderChangeDiscountType &&
-                data.orderChangeType &&
-                data.orderChangeType === "minus" ? (
+                {data?.orderChange &&
+                data?.orderChangeDiscountType &&
+                data?.orderChangeType &&
+                data?.orderChangeType === "minus" ? (
                   <Text size="sm" c="dimmed">
                     Havale ile ödeme yöntemini seçtiğiniz takdirde{" "}
                     {data.orderChangeDiscountType === "PERCENTAGE"
@@ -51,10 +51,10 @@ const AccordionForPayment = ({
                   </Text>
                 ) : (
                   <Text size="sm" c={"dimmed"}>
-                    Havale ile ödeme yöntemini seçtiğiniz takdirde{" "}
-                    {data.orderChangeDiscountType === "PERCENTAGE"
-                      ? data.orderChange + "%"
-                      : data.orderChange + " TL"}{" "}
+                    Havale ile ödeme yöntemini seçtiğiniz takdirde
+                    {data?.orderChangeDiscountType === "PERCENTAGE"
+                      ? data?.orderChange + "%"
+                      : data?.orderChange + " TL"}
                     komisyon ödeyebilirsiniz.
                   </Text>
                 )}
