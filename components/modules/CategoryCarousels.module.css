@@ -6,7 +6,10 @@
   align-items: flex-start;
   background-size: cover;
   background-position: center;
-  transition: all 1s ease; /* Smooth transition for all properties */
+  transition: all 1s ease;
+  @media (min-width: 992px) {
+    height: rem(580px); /* Daha büyük height */
+  }
 }
 
 .card:hover {

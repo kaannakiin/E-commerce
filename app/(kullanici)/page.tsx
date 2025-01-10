@@ -6,7 +6,7 @@ import BlogCard from "./_components/BlogCard";
 
 export default function Home() {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-1">
       <HeroHeader />
       <FeedCategoryCarousels />
       <FeedFeaturedProducts />
