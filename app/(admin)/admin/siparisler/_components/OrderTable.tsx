@@ -40,6 +40,7 @@ const OrdersTable = ({
               <Table.Th>Ürün Sayısı</Table.Th>
               <Table.Th>Sipariş Durumu</Table.Th>
               <Table.Th>Ödeme Durumu</Table.Th>
+              <Table.Th>Odeme Türü</Table.Th>
               <Table.Th>Toplam</Table.Th>
               <Table.Th>Sipariş Tarihi</Table.Th>
               <Table.Th className="w-32 text-center">İşlem</Table.Th>
@@ -63,8 +64,20 @@ const OrdersTable = ({
                     </Text>
                   </div>
                 </Table.Td>
+                <Table.Td>
+                  <Text size="sm" fw={500}>
+                    {order.paymentType === "BANK_TRANSFER"
+                      ? "Havale/EFT"
+                      : "Kredi Kartı"}
+                  </Text>
+                </Table.Td>
                 <Table.Td>{order._count.OrderItems}</Table.Td>
-                <Table.Td>{getOrderStatusConfig(order.status).text}</Table.Td>
+                <Table.Td>
+                  {order.paymentType === "BANK_TRANSFER" &&
+                  order.paymentStatus === "PENDING"
+                    ? "Havale bekliyor"
+                    : getOrderStatusConfig(order.status).text}
+                </Table.Td>
                 <Table.Td>
                   <Badge
                     color={

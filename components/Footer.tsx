@@ -1,5 +1,5 @@
 "use client";
-import { ActionIcon, Anchor, Group } from "@mantine/core";
+import { ActionIcon, Anchor, Group, Text } from "@mantine/core";
 import Link from "next/link";
 import { Fragment } from "react";
 import {
@@ -11,10 +11,10 @@ import {
 import CustomImage from "./CustomImage";
 import { FooterType } from "./FooterServer";
 import classes from "./modules/Footer.module.css";
-
 import { ECommerceAgreements } from "@prisma/client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-
+import footerIyzico from "../public/logo_band_colored.svg";
+import Image from "next/image";
 export function Footer({
   salerInfo,
   isVisible,
@@ -162,13 +162,20 @@ export function Footer({
           </Group>
         </div>
       </div>
-      <div className="flex w-full justify-center">
-        <h6 className="text-center text-[10px] font-semibold text-gray-500">
+      <Group justify="space-between" w="100%" px="md" py="xs">
+        <Text size="xs" fw={600} c="dimmed">
           © {new Date().getFullYear()}
           {salerInfo?.storeName ? ` ${salerInfo.storeName}` : null}. Tüm Hakları
           Saklıdır.
-        </h6>
-      </div>
+        </Text>
+        <div className="relative h-8 w-64">
+          <Image
+            src={footerIyzico}
+            alt="Footer iyzico image"
+            className="h-full w-full min-w-full"
+          />
+        </div>
+      </Group>
     </footer>
   );
 }

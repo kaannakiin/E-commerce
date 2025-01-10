@@ -9,6 +9,7 @@ export type OrderForOrderTable = Prisma.OrderGetPayload<{
     paymentId: true;
     status: true;
     paymentStatus: true;
+    paymentType: true;
     OrderItems: {
       select: {
         isRefunded: true;
@@ -101,6 +102,7 @@ const feedOrderPage = async (
         paymentId: true,
         status: true,
         paymentStatus: true,
+        paymentType: true,
         OrderItems: {
           select: {
             isRefunded: true,

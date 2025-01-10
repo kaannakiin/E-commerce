@@ -21,7 +21,6 @@ export default function ConfirmOrderButton({ orderId }: ConfirmOrderFormProps) {
     type: "success",
   });
 
-  // Dialog'u otomatik kapatmak için useEffect
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
 

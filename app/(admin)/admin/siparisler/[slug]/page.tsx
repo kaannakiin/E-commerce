@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { Params, SearchParams } from "@/types/types";
-import { Card, Paper } from "@mantine/core";
+import { Card, Container, Paper } from "@mantine/core";
 import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import OrderDetailsPage from "../_components/OrderDetail";
+import BankTransferConfirmButton from "../_components/BankTransferConfirmButton";
 
 export type Order = Prisma.OrderGetPayload<{
   select: {
@@ -20,6 +21,7 @@ export type Order = Prisma.OrderGetPayload<{
     cancelPaymentId: true;
     cancelProcessDate: true;
     cancelReason: true;
+    paymentType: true;
     paymentStatus: true;
     address: {
       select: {
@@ -80,6 +82,7 @@ export type OrderRefundType = Prisma.OrderItemsGetPayload<{
     quantity: true;
     price: true;
     iyzicoPrice: true;
+
     variant: {
       select: {
         value: true;
@@ -100,6 +103,15 @@ export type OrderRefundType = Prisma.OrderItemsGetPayload<{
     };
   };
 }>;
+export type BankTransferNotificationType =
+  Prisma.BankTransferNotificationGetPayload<{
+    select: {
+      name: true;
+      surname: true;
+      orderNumber: true;
+      transactionTime: true;
+    };
+  }>;
 const feedPage = async (slug: string) => {
   const order = await prisma.order.findUnique({
     where: {
@@ -113,6 +125,7 @@ const feedPage = async (slug: string) => {
       paymentDate: true,
       paymentId: true,
       total: true,
+      paymentType: true,
       maskedCardNumber: true,
       status: true,
       isCancelled: true,
@@ -120,6 +133,14 @@ const feedPage = async (slug: string) => {
       cancelProcessDate: true,
       cancelReason: true,
       paymentStatus: true,
+      BankTransferNotification: {
+        select: {
+          name: true,
+          surname: true,
+          orderNumber: true,
+          transactionTime: true,
+        },
+      },
       address: {
         select: {
           name: true,
@@ -184,7 +205,21 @@ const OrderDetailPage = async (props: {
   if (!order) {
     return notFound();
   }
-  return <OrderDetailsPage order={order} />;
+
+  return (
+    <div className="w-full space-y-1">
+      <Container size="xl" pt={"xs"} className="flex justify-end">
+        {order.paymentType === "BANK_TRANSFER" &&
+          order.status === "PENDING" && (
+            <BankTransferConfirmButton
+              bankTransferNotification={order?.BankTransferNotification[0]}
+              orderTotal={order.total}
+            />
+          )}
+      </Container>
+      <OrderDetailsPage order={order} />
+    </div>
+  );
 };
 
 export default OrderDetailPage;

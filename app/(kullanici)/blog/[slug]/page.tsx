@@ -1,7 +1,13 @@
 import CustomImage from "@/components/CustomImage";
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
-import { Anchor, Breadcrumbs, Card, Text } from "@mantine/core";
+import {
+  Anchor,
+  Breadcrumbs,
+  Card,
+  Text,
+  TypographyStylesProvider,
+} from "@mantine/core";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { notFound } from "next/navigation";
@@ -139,10 +145,9 @@ const BlogPage = async (params: { params: Params }) => {
           radius="md"
           className="prose-container"
         >
-          <div
-            className="prose max-w-none prose-headings:text-gray-800 prose-h1:mb-4 prose-h1:text-2xl prose-h1:font-bold prose-h2:mb-3 prose-h2:text-xl prose-h2:font-semibold prose-h3:mb-2 prose-h3:text-lg prose-h3:font-medium prose-h4:mb-2 prose-h4:text-base prose-h4:font-medium prose-p:mb-4 prose-p:text-base prose-p:text-gray-600 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-ul:my-4 prose-li:text-gray-600 prose-img:rounded-lg"
-            dangerouslySetInnerHTML={{ __html: data.Html }}
-          />
+          <TypographyStylesProvider>
+            <div dangerouslySetInnerHTML={{ __html: data.Html }} />
+          </TypographyStylesProvider>
         </Card>
       </div>
     </div>

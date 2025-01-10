@@ -195,6 +195,7 @@ const ButtonRenderer = memo(({ button }: { button: EmailButton }) => {
   return (
     <Section className="text-center">
       <Button href={button.link} style={buttonStyle}>
+        
         <div
           dangerouslySetInnerHTML={{
             __html: `<!--[if mso]>

@@ -14,6 +14,7 @@ import {
   Select,
   Textarea,
   TextInput,
+  TypographyStylesProvider,
 } from "@mantine/core";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
@@ -24,7 +25,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { DiscountCheck } from "@/actions/user/discount-check";
 import { formattedPrice } from "@/lib/format";
 import { createBankTransfer } from "../_actions/BankTransfer";
-import { GetAddresById, OrderNumberCheck } from "../_actions/BankTransferHelperActions";
+import {
+  GetAddresById,
+  OrderNumberCheck,
+} from "../_actions/BankTransferHelperActions";
 import MainLoader from "@/components/MainLoader";
 import BankTransferNotificationForm from "./BankTransferNotificationForm";
 
@@ -264,12 +268,13 @@ const BankTransferAddressForm = ({
   return (
     <div className="grid min-h-[55vh] lg:grid-cols-2">
       <Card withBorder shadow="sm" padding={"sm"} radius={"sm"}>
-        <div
-          className="prose prose-blue max-w-none space-y-1"
-          dangerouslySetInnerHTML={{
-            __html: data?.description,
-          }}
-        />
+        <TypographyStylesProvider>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: data?.description,
+            }}
+          />
+        </TypographyStylesProvider>
       </Card>
       <Card
         withBorder
