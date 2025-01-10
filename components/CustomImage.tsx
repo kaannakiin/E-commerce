@@ -80,14 +80,11 @@ const CustomImage = ({
     onError?.();
   };
 
-  // Base className'leri birleştir
   const imageClassName = twMerge(
     "absolute inset-0 h-full w-full bg-white",
     objectFit === "cover" ? "object-cover" : "object-contain",
     className,
   );
-
-  // Fallback gösterimi için
   if (error) {
     return (
       <div className="relative flex h-full w-full items-center justify-center bg-gray-100">
@@ -119,7 +116,6 @@ const CustomImage = ({
         />
       )}
 
-      {/* Yüksek kaliteli asıl görsel */}
       {!error && (
         <Image
           fill

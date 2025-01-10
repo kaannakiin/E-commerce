@@ -69,6 +69,7 @@ export function CategoryCarousels({ categories }) {
       withControls={mobile ? true : false}
       withIndicators={mobile ? false : true}
       classNames={{ indicator: classes.indicator }}
+      className="mb-2"
     >
       {slides}
     </Carousel>
