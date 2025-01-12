@@ -174,7 +174,7 @@ export async function UpdateCategoryDB(
           "Bu ada sahip kategori mevcuttur. Lütfen Başka bir isimle tekrar deneyin.",
       };
     }
-    const result = await prisma.$transaction(
+    await prisma.$transaction(
       async (tx) => {
         const updatedCategory = await tx.category.update({
           where: { slug },
@@ -206,22 +206,20 @@ export async function UpdateCategoryDB(
             googleCategory: {
               include: {
                 parent: true,
+
                 children: true,
               },
             },
             images: true,
           },
         });
-        const parentCategories =
-          updatedCategory.googleCategory?.breadcrumbs.map((name) => ({
-            name,
-            fullPath: updatedCategory.googleCategory?.breadcrumbs
-              .slice(
-                0,
-                updatedCategory.googleCategory?.breadcrumbs.indexOf(name) + 1,
-              )
-              .join(" > "),
-          })) || [];
+        const breadcrumbs = updatedCategory.googleCategory?.breadcrumbs || [];
+        const parentCategories = breadcrumbs.map((name) => ({
+          name,
+          fullPath: breadcrumbs
+            .slice(0, breadcrumbs.indexOf(name) + 1)
+            .join(" > "),
+        }));
 
         const childCategories = updatedCategory.googleCategory?.children || [];
 

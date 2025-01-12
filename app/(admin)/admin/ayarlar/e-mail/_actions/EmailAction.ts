@@ -77,7 +77,6 @@ export async function EmailTemplateAction(
         type,
       },
     });
-    console.log(order);
     if (order.length > 1) {
       return {
         success: false,
