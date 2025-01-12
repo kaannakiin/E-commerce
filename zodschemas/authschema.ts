@@ -1967,3 +1967,25 @@ export const BankTransferSchema = z.object({
     ),
 });
 export type BankTransferFormValues = z.infer<typeof BankTransferSchema>;
+export const ContactUsSchema = z.object({
+  name: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(2, "Ad en az 2 karakter olmalıdır")
+    .max(20, { message: "İsim en fazla 20 karakter uzunluğunda olmalıdır" })
+    .regex(/^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$/, {
+      message: "İsim sadece harflerden oluşmalı",
+    }),
+  email: z
+    .string({ message: "Bu alan boş olamaz" })
+    .email("Geçerli bir e-posta adresi giriniz"),
+  subject: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(2, "Konu en az 2 karakter olmalıdır")
+    .max(50, { message: "Konu en fazla 50 karakter uzunluğunda olmalıdır" }),
+  message: z
+    .string({ message: "Bu alan boş olamaz" })
+    .min(10, { message: "Mesaj en az 10 karakter olmalıdır" })
+    .max(500, { message: "Mesaj en fazla 500 karakter olabilir" }),
+});
+
+export type ContactUsFormValues = z.infer<typeof ContactUsSchema>;

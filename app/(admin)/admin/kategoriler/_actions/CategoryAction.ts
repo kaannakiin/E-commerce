@@ -296,9 +296,6 @@ export async function DeleteImageOnCategory(
         },
       });
       const deleteimageres = await DeleteImageToAsset(url);
-      if (!deleteimageres.success) {
-        throw new Error(deleteimageres.message);
-      }
       const updatedCategory = await tx.category.findUnique({
         where: { id: category.id },
         include: {

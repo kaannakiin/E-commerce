@@ -140,10 +140,10 @@ const Header = async () => {
     : "/giris?callbackUrl=/hesabim/favoriler";
   return (
     <header className="relative h-24 w-full">
-      <div className="mx-auto flex h-4 max-w-[1920px] items-center justify-end space-x-2 text-xs text-gray-500">
+      <div className="mx-auto flex h-4 max-w-[1920px] items-center justify-end space-x-1 text-xs text-gray-900">
         <Link href={"/hakkimizda"}>Hakkımızda</Link>
-        <Link href={"/iletisim"}>S.S.S</Link>
-        <Link href={"/sikca-sorulan-sorular"}>İletisim</Link>
+        <Link href={"/sikca-sorulan-sorular"}>S.S.S</Link>
+        <Link href={"/iletisim"}>İletisim</Link>
       </div>
       <div className="mx-auto flex h-20 max-w-[1920px] items-center justify-between px-2 lg:justify-between lg:px-10">
         <div className="hidden w-1/3 flex-row items-center gap-1 lg:flex">
