@@ -3,7 +3,7 @@
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
-import { processImages } from "@/lib/recordImage";
+import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { generateCategoryJsonLd } from "@/utils/generateJsonLD";
 import { slugify } from "@/utils/SlugifyVariants";
 import {
@@ -47,8 +47,22 @@ export async function CreateCategoryDB(
 
     const urls: string[] = [];
     try {
-      const processedImages = await processImages(imageFiles);
-      urls.push(processedImages[0].url);
+      imageFiles.forEach(async (file) => {
+        try {
+          const recordAsset = await NewRecordAsset(
+            file,
+            "category",
+            true,
+            true,
+          );
+          if (!recordAsset.success) {
+            return { success: false, message: "Veritabanı işlemi başarısız" };
+          }
+          urls.push(recordAsset.fileName);
+        } catch (error) {
+          return { success: false, message: "Veritabanı işlemi başarısız" };
+        }
+      });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         return { success: false, message: "Veritabanı işlemi başarısız" };
@@ -218,19 +232,21 @@ export async function UpdateCategoryDB(
           childCategories,
         });
         if (updatedCategory.images.length === 0) {
-          await processImages(imageFiles).then(async (processedImages) => {
-            await tx.category.update({
-              where: { id: updatedCategory.id },
-              data: {
-                JSONLD: jsonLd,
-                images: {
-                  create: processedImages.map((image) => ({
-                    url: image.url,
-                  })),
+          await NewRecordAsset(imageFiles[0], "category", true, true).then(
+            async (processedImages) => {
+              await tx.category.update({
+                where: { id: updatedCategory.id },
+                data: {
+                  JSONLD: jsonLd,
+                  images: {
+                    create: {
+                      url: processedImages.fileName,
+                    },
+                  },
                 },
-              },
-            });
-          });
+              });
+            },
+          );
         } else {
           await tx.category.update({
             where: { id: updatedCategory.id },
@@ -263,7 +279,7 @@ export async function DeleteImageOnCategory(
       return { success: false, message: "Yetkisiz İşlem" };
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       const category = await tx.category.findUnique({
         where: { slug },
         include: { images: true },

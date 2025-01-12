@@ -1,11 +1,11 @@
-import React from "react";
-import { Group, ActionIcon, Text, Modal, Button, Stack } from "@mantine/core";
-import { IoClose } from "react-icons/io5";
-import { useState } from "react";
+"use client";
 import CustomImage from "@/components/CustomImage";
+import { ActionIcon, Button, Group, Modal, Stack, Text } from "@mantine/core";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { IoClose } from "react-icons/io5";
 import { MdOutlineZoomOutMap } from "react-icons/md";
 import { DeleteAsset } from "../_actions/ProductActions";
-import { useRouter } from "next/navigation";
 
 interface ExistingImagesDisplayProps {
   images: string[];
@@ -17,21 +17,28 @@ const ExistingImagesDisplay: React.FC<ExistingImagesDisplayProps> = ({
   onImageDeleted,
 }) => {
   const [images, setImages] = useState<string[]>(initialImages || []);
-
-  const [deleteModal, setDeleteModal] = useState({
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    imageUrl: string | null;
+  }>({
     isOpen: false,
     imageUrl: null,
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { refresh } = useRouter();
-  const [previewModal, setPreviewModal] = useState({
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean;
+    imageUrl: string | null;
+  }>({
     isOpen: false,
     imageUrl: null,
   });
-  if (!initialImages || initialImages.length === 0) {
+
+  if (!images || images.length === 0) {
     return null;
   }
+
   const handleCloseDeleteModal = () => {
     setDeleteModal({ isOpen: false, imageUrl: null });
     setErrorMessage(null);
@@ -60,28 +67,32 @@ const ExistingImagesDisplay: React.FC<ExistingImagesDisplayProps> = ({
     setErrorMessage(null);
 
     try {
-      // const res = await DeleteAsset(deleteModal.imageUrl, variantId);
-      // if (res.success) {
-      //   setImages((prevImages) =>
-      //     prevImages.filter((img) => img !== deleteModal.imageUrl),
-      //   );
-      //   // Call the onImageDeleted callback with the deleted image URL
-      //   onImageDeleted?.(deleteModal.imageUrl);
-      //   handleCloseDeleteModal();
-      //   refresh();
-      // } else {
-      //   setErrorMessage(res.message || "Resim silinirken bir hata oluştu");
-      // }
+      const response = await DeleteAsset(deleteModal.imageUrl);
+
+      if (response.success) {
+        setImages((prevImages) =>
+          prevImages.filter((img) => img !== deleteModal.imageUrl),
+        );
+
+        if (onImageDeleted) {
+          onImageDeleted(deleteModal.imageUrl);
+        }
+
+        handleCloseDeleteModal();
+        refresh();
+      } else {
+        setErrorMessage(
+          response.message || "Görsel silinirken bir hata oluştu",
+        );
+      }
     } catch (error) {
-      setErrorMessage("Beklenmeyen bir hata oluştu");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu",
+      );
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (!images || images.length === 0) {
-    return null;
-  }
 
   return (
     <div>

@@ -3,11 +3,11 @@
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
-import { processImages } from "@/lib/recordImage";
 import { slugify } from "@/utils/SlugifyVariants";
 import fs from "fs/promises"; // fs modülünü kullanabilmek için
 import path from "path";
 
+import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import {
   BlogPostFormValues,
   BlogPostSchema,
@@ -38,7 +38,7 @@ export async function BlogEdit(
     if (id === null) {
       const imageUrl = [];
       try {
-        await processImages(imageFile).then((res) => {
+        await NewRecordAsset(imageFile[0]).then((res) => {
           imageUrl.push(res[0].url);
         });
       } catch (error) {
@@ -84,7 +84,7 @@ export async function BlogEdit(
       const imageUrl = [];
       if (imageFile) {
         try {
-          await processImages(imageFile).then((res) => {
+          await NewRecordAsset(imageFile[0]).then((res) => {
             imageUrl.push(res[0].url);
           });
         } catch (error) {

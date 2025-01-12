@@ -1,7 +1,7 @@
 "use server";
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
+import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { prisma } from "@/lib/prisma";
-import { processImages } from "@/lib/recordImage";
 import { SalerInfoFormValues } from "@/zodschemas/authschema";
 
 // Interface tanımlama
@@ -52,12 +52,17 @@ export async function AddInfo(data: SalerInfoFormValues): Promise<{
 
       let logoData = undefined;
       if (data.logo && data.logo.length > 0) {
-        const processedImages = await processImages(data.logo, {
-          isLogo: true,
-        },);
-        if (processedImages && processedImages.length > 0) {
+        const processedImages = await NewRecordAsset(
+          data.logo[0],
+          "variant",
+          false,
+          false,
+          true,
+          false,
+        );
+        if (processedImages && processedImages.fileName) {
           logoData = {
-            url: processedImages[0].url,
+            url: processedImages.fileName,
           };
         }
       }
@@ -71,8 +76,6 @@ export async function AddInfo(data: SalerInfoFormValues): Promise<{
           if (existingInfo.logo?.url) {
             await DeleteImageToAsset(existingInfo.logo.url, {
               isLogo: true,
-              maxRetries: 5,
-              retryDelay: 200,
             });
           }
 

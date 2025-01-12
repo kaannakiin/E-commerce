@@ -69,7 +69,7 @@ const ProductForm = ({
           active: defaultValues.active,
           googleCategories: defaultValues.googleCategoryId.toString(),
           variants: defaultValues.variants.map((variant) => ({
-            uniqueId: variant.uniqueId, // id yerine uniqueId kullan
+            uniqueId: variant.uniqueId,
             price: variant.price,
             stock: variant.stock,
             discount: variant.discount,

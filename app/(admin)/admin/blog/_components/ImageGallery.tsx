@@ -1,7 +1,7 @@
 "use client";
 import MainLoader from "@/components/MainLoader";
 import { useImages } from "@/context/ImageContext";
-import { RecordAssetForRichText } from "@/lib/RichTextRecordAsset";
+import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { Group, Modal, rem, Text } from "@mantine/core";
 import { Dropzone, DropzoneProps, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import "@mantine/dropzone/styles.css";
@@ -27,7 +27,12 @@ const ImageGallery = ({ onImageSelect, ...props }: ImageGalleryProps) => {
   const onDrop = async (data) => {
     try {
       setLoading(true);
-      const res = await RecordAssetForRichText(data.imageFiles[0]);
+      const res = await NewRecordAsset(
+        data.imageFiles[0],
+        "richText",
+        false,
+        false,
+      );
       if (res.success) {
         updateImages([res.secureUrl, ...images]);
       }
