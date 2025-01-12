@@ -197,7 +197,6 @@ const EditableCategoryForm = ({
           />
           {defaultValues?.images.length > 0 ? (
             <ImageWithDelete
-              slug={slug}
               src={defaultValues.images[0].url}
               onDeleteSuccess={() => {
                 refresh();
