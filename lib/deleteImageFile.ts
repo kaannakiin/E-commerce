@@ -1,24 +1,35 @@
 "use server";
 import fs from "fs/promises";
 import path from "path";
+import { isAuthorized } from "./isAdminorSuperAdmin";
+import { prisma } from "./prisma";
 
 interface DeleteImageOptions {
   isLogo?: boolean;
   isFavicon?: boolean;
+  type?: "category" | "variant" | "richText";
 }
 
 export async function DeleteImageToAsset(
   imageUrl: string,
   options: DeleteImageOptions = {},
 ): Promise<{ success: boolean; message: string }> {
-  const { isLogo = false, isFavicon = false } = options;
-
-  if (!imageUrl) {
-    return { success: false, message: "No image URL provided" };
-  }
-
   try {
-    const ASSETS_DIR = path.join(process.cwd(), "assets");
+    const session = await isAuthorized();
+    if (!session) {
+      return { success: false, message: "Yetkisiz Erişim" };
+    }
+    console.log(session);
+    if (!imageUrl) {
+      return { success: false, message: "Resim URL'si belirtilmedi" };
+    }
+
+    const { isLogo = false, isFavicon = false, type = "variant" } = options;
+    const ASSETS_DIR = path.join(
+      process.cwd(),
+      type === "richText" ? "rich-tech-assets" : "assets",
+    );
+
     const fileName = path.basename(imageUrl);
     const fileNameWithoutExt = fileName.substring(0, fileName.lastIndexOf("."));
     if (isLogo || isFavicon) {
@@ -40,6 +51,27 @@ export async function DeleteImageToAsset(
       }
     }
 
+    if (type === "richText") {
+      const filePath = path.join(ASSETS_DIR, fileName);
+      try {
+        await fs.unlink(filePath);
+        await prisma.richTextImageGallery.delete({
+          where: {
+            url: fileName,
+          },
+        });
+        return {
+          success: true,
+          message: "Rich text resmi başarıyla silindi",
+        };
+      } catch (error) {
+        if (error.code === "ENOENT") {
+          return { success: false, message: "Rich text resmi bulunamadı" };
+        }
+        throw error;
+      }
+    }
+
     const mainFilePath = path.join(ASSETS_DIR, fileName);
     const thumbnailPath = path.join(
       ASSETS_DIR,
@@ -56,7 +88,7 @@ export async function DeleteImageToAsset(
         deletedCount++;
       } catch (error) {
         if (error.code !== "ENOENT") {
-          console.error(`Error deleting ${filePath}:`, error);
+          console.error(`Dosya silme hatası ${filePath}:`, error);
         }
       }
     }
@@ -69,7 +101,7 @@ export async function DeleteImageToAsset(
           : "Silinecek dosya bulunamadı",
     };
   } catch (error) {
-    console.error("Error in DeleteImage:", error);
+    console.error("DeleteImage hatası:", error);
     return {
       success: false,
       message:

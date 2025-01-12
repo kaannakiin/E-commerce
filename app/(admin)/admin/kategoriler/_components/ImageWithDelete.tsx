@@ -31,18 +31,18 @@ const ImageDeleteModal = ({
   );
 };
 
-const ImageWithDelete = ({ src, slug, onDeleteSuccess }) => {
+const ImageWithDelete = ({ src, onDeleteSuccess }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
-      const response = await DeleteImageOnCategory(src, slug);
-      if (response.success) {
-        onDeleteSuccess();
-      } else {
-      }
+      await DeleteImageOnCategory(src).then((res) => {
+        if (res.success) {
+          onDeleteSuccess();
+        }
+      });
     } catch (error) {
     } finally {
       setIsDeleting(false);

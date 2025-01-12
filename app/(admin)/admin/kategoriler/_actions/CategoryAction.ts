@@ -271,88 +271,19 @@ export async function UpdateCategoryDB(
 }
 export async function DeleteImageOnCategory(
   url: string,
-  slug: string,
 ): Promise<{ success: boolean; message: string }> {
   try {
     const session = await isAuthorized();
     if (!session) {
       return { success: false, message: "Yetkisiz İşlem" };
     }
-
-    await prisma.$transaction(async (tx) => {
-      const category = await tx.category.findUnique({
-        where: { slug },
-        include: { images: true },
-      });
-
-      if (!category) {
-        throw new Error("Kategori bulunamadı");
-      }
-
-      await tx.image.deleteMany({
-        where: {
-          categoryId: category.id,
-          url: url,
-        },
-      });
-      const deleteimageres = await DeleteImageToAsset(url);
-      const updatedCategory = await tx.category.findUnique({
-        where: { id: category.id },
-        include: {
-          products: {
-            include: {
-              Variant: {
-                where: {
-                  softDelete: false,
-                  isPublished: true,
-                },
-                include: {
-                  Image: true,
-                },
-              },
-              GoogleCategory: true,
-            },
-          },
-          googleCategory: {
-            include: {
-              parent: true,
-              children: true,
-            },
-          },
-          images: true,
-        },
-      });
-
-      const parentCategories =
-        updatedCategory.googleCategory?.breadcrumbs.map((name) => ({
-          name,
-          fullPath: updatedCategory.googleCategory?.breadcrumbs
-            .slice(
-              0,
-              updatedCategory.googleCategory?.breadcrumbs.indexOf(name) + 1,
-            )
-            .join(" > "),
-        })) || [];
-
-      const childCategories = updatedCategory.googleCategory?.children || [];
-
-      const jsonLd = generateCategoryJsonLd({
-        category: updatedCategory,
-        products: updatedCategory.products,
-        parentCategories,
-        childCategories,
-      });
-
-      await tx.category.update({
-        where: { id: category.id },
-        data: {
-          JSONLD: jsonLd,
-        },
-      });
-
-      return updatedCategory;
+    await prisma.image.delete({ where: { url } });
+    const deleteAssetResult = await DeleteImageToAsset(url, {
+      type: "category",
     });
-
+    if (!deleteAssetResult.success) {
+      return deleteAssetResult;
+    }
     return { success: true, message: "Resim başarıyla silindi" };
   } catch (error) {
     console.error("Resim silme hatası:", error);
