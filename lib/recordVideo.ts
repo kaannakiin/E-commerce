@@ -1,7 +1,6 @@
 import { CustomFile } from "@/types/types";
 import fs from "fs/promises";
 import path from "path";
-import { cleanupFiles } from "./recordImage";
 
 interface ProcessedVideo {
   url: string;
@@ -76,14 +75,12 @@ export const RecordVideoToAsset = async (
       };
     } catch (error) {
       console.error(`Error processing video ${file.name}:`, error);
-      await cleanupFiles([outputPath]);
       return {
         success: false,
         message: "Video işlenirken bir hata oluştu",
       };
     }
   } catch (error) {
-    await cleanupFiles(createdFiles);
     return {
       success: false,
       message: "İşlem sırasında bir hata oluştu",
