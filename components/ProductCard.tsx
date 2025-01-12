@@ -71,7 +71,7 @@ const ProductCard = ({
           }}
         >
           {product.Image.map((image, index) => (
-            <Carousel.Slide key={index} h={220}>
+            <Carousel.Slide key={index} h={350}>
               <div className="relative h-full w-full overflow-hidden">
                 <CustomImage
                   src={image.url}

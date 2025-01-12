@@ -2,19 +2,6 @@ import { CustomFile } from "@/types/types";
 import fs from "fs/promises";
 import path from "path";
 
-interface ProcessedVideo {
-  url: string;
-  size: number;
-  duration?: number;
-  thumbnail?: string;
-  metadata?: {
-    width: number;
-    height: number;
-    codec: string;
-    bitrate: number;
-  };
-}
-
 interface VideoResponse {
   success: boolean;
   message: string;

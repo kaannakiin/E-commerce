@@ -1,6 +1,9 @@
 "use client";
 import { ActionIcon, Anchor, Group, Text } from "@mantine/core";
+import { ECommerceAgreements } from "@prisma/client";
+import Image from "next/image";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment } from "react";
 import {
   RiFacebookCircleFill,
@@ -8,13 +11,10 @@ import {
   RiPinterestFill,
   RiTwitterXFill,
 } from "react-icons/ri";
+import footerIyzico from "../public/logo_band_colored.svg";
 import CustomImage from "./CustomImage";
 import { FooterType } from "./FooterServer";
 import classes from "./modules/Footer.module.css";
-import { ECommerceAgreements } from "@prisma/client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import footerIyzico from "../public/logo_band_colored.svg";
-import Image from "next/image";
 export function Footer({
   salerInfo,
   isVisible,

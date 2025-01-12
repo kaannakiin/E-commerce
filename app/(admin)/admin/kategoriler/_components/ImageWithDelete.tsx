@@ -42,10 +42,8 @@ const ImageWithDelete = ({ src, slug, onDeleteSuccess }) => {
       if (response.success) {
         onDeleteSuccess();
       } else {
-        console.error("Resim silinemedi:", response.message);
       }
     } catch (error) {
-      console.error("Silme işlemi sırasında hata:", error);
     } finally {
       setIsDeleting(false);
       setIsModalOpen(false);

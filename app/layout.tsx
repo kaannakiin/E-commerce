@@ -4,10 +4,10 @@ import type { MantineColorsTuple } from "@mantine/core";
 import { ColorSchemeScript, MantineProvider, createTheme } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { SessionProvider } from "next-auth/react";
-import { cache } from "react";
+import Script from "next/script";
+import { cache, Fragment } from "react";
 import "./globals.css";
 
 const DEFAULT_SETTINGS = {
@@ -185,6 +185,20 @@ export default async function RootLayout({
     <html lang="tr" suppressHydrationWarning className="bg-white">
       <head>
         <ColorSchemeScript forceColorScheme="light" />
+        <Fragment>
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-332N0X54S6"
+            async
+          />
+          <Script id="google-analytics">
+            {`
+             window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-332N0X54S6');
+          `}
+          </Script>
+        </Fragment>
       </head>
       <body>
         <SessionProvider>
@@ -197,8 +211,6 @@ export default async function RootLayout({
           </MantineProvider>
         </SessionProvider>
       </body>
-
-      {data?.googleId && <GoogleAnalytics gaId="G-332N0X54S6" />}
     </html>
   );
 }
