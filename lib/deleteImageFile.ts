@@ -19,7 +19,6 @@ export async function DeleteImageToAsset(
     if (!session) {
       return { success: false, message: "Yetkisiz Erişim" };
     }
-    console.log(session);
     if (!imageUrl) {
       return { success: false, message: "Resim URL'si belirtilmedi" };
     }
