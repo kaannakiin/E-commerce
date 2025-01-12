@@ -8,6 +8,7 @@ import {
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Alert,
   Box,
   Button,
   Combobox,
@@ -29,6 +30,8 @@ import { googleType } from "../../urunler/urun-ekle/page";
 import { CategoryFormDefault } from "../[slug]/page";
 import { CreateCategoryDB, UpdateCategoryDB } from "../_actions/CategoryAction";
 import ImageWithDelete from "./ImageWithDelete";
+import { IoAlertCircleOutline } from "react-icons/io5";
+
 type FormProps = {
   defaultValues?: CategoryFormDefault;
   slug?: string;
@@ -142,6 +145,15 @@ const EditableCategoryForm = ({
         }
       }}
     >
+      <Alert
+        variant="filled"
+        color="gray"
+        title="Uyarı"
+        icon={<IoAlertCircleOutline />}
+      >
+        Ürün Eklenmemiş kategoriler aktif olarak sitenizde gözükmeyecektir.
+        Lütfen ürün ekleyerek kategorinizi aktif hale getirin.
+      </Alert>
       <div className="mt-4 flex items-center justify-end gap-3">
         <Button
           variant="outline"

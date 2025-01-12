@@ -2,8 +2,8 @@
 import { auth } from "@/auth";
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
+import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { prisma } from "@/lib/prisma";
-import { processImages } from "@/lib/recordImage";
 import { variantSlugify } from "@/utils/SlugifyVariants";
 import {
   IdForEverythingType,
@@ -16,20 +16,15 @@ import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 export async function AddProduct(data: ProductAddFormValues) {
   try {
-    // Yetkilendirme kontrolü
     const session = await isAuthorized();
     if (!session) {
       return { success: false, message: "Yetkisiz işlem" };
     }
-
-    // Veri doğrulama
     try {
       ProductAddSchema.parse(data);
     } catch (error) {
       return { success: false, message: "Geçersiz ürün verisi" };
     }
-
-    // Kategori kontrolü
     const firstCategory = await prisma.category.findFirst({
       where: {
         id: data.categories[0],
@@ -39,8 +34,6 @@ export async function AddProduct(data: ProductAddFormValues) {
     if (!firstCategory) {
       return { success: false, message: "Kategori bulunamadı" };
     }
-
-    // Transaction işlemi
     return await prisma.$transaction(
       async (tx) => {
         // Ürün adı kontrolü
@@ -79,20 +72,15 @@ export async function AddProduct(data: ProductAddFormValues) {
                     unit: variant.unit,
                   });
 
-                  const urls = [];
-                  if (variant.imageFiles.length > 0) {
-                    await processImages(variant.imageFiles, {
-                      quality: 80,
-                      maxWidth: 1920,
-                      maxHeight: 1920,
-                      format: "webp",
-                    }).then((images) => {
-                      images.forEach((img) => {
-                        urls.push(img.url);
-                      });
-                    });
-                  }
-
+                  const urls = await Promise.all(
+                    variant.imageFiles.map(async (file) => {
+                      const result = await NewRecordAsset(file);
+                      if (result.success) {
+                        return result.fileName;
+                      }
+                      return null;
+                    }),
+                  ).then((urls) => urls.filter((url) => url !== null));
                   return {
                     value: variant.value.toString(),
                     unit: variant.type === "WEIGHT" ? variant.unit : null,
@@ -190,56 +178,54 @@ export async function getGoogleCategories() {
 }
 export async function DeleteAsset(
   imageUrl: string,
-  variantId: string,
 ): Promise<{ success: boolean; message: string; imageUrl?: string }> {
   try {
-    // Yetki kontrolü
     const session = await isAuthorized();
     if (!session) {
       return { success: false, message: "Yetkisiz işlem" };
     }
 
-    // Parametre kontrolü
-    if (!variantId || !imageUrl) {
-      return { success: false, message: "Geçersiz parametreler" };
+    if (!imageUrl || typeof imageUrl !== "string") {
+      return { success: false, message: "Geçersiz resim URL'i" };
+    }
+    const fileDeleteResult = await DeleteImageToAsset(imageUrl);
+
+    if (!fileDeleteResult.success) {
+      return {
+        success: false,
+        message: "Resim dosyası silinemedi",
+        imageUrl,
+      };
     }
 
-    // Transaction işlemi
-    const result = await prisma.$transaction(async (tx) => {
-      // Resmin varlığını kontrol et
-      const image = await tx.image.findUnique({
-        where: { url: imageUrl },
-      });
-
-      if (!image) {
-        return { success: false, message: "Resim bulunamadı" };
-      }
-      const deleteResult = await DeleteImageToAsset(imageUrl);
-      if (!deleteResult.success) {
-        return {
-          success: false,
-          message: "Depolama alanından resim silinemedi",
-        };
-      }
-
-      await tx.image.delete({
+    try {
+      // Dosya silindiyse DB kaydını sil
+      await prisma.image.delete({
         where: { url: imageUrl },
       });
 
       return {
         success: true,
-        message: "Resim başarıyla silindi",
-        imageUrl: imageUrl,
+        message: "Resim ve veritabanı kaydı başarıyla silindi",
+        imageUrl,
       };
-    });
-
-    return result;
+    } catch (dbError) {
+      console.error("Database deletion error:", dbError);
+      return {
+        success: false,
+        message: "Resim silindi fakat veritabanı kaydı silinemedi",
+        imageUrl,
+      };
+    }
   } catch (error) {
     console.error("DeleteAsset error:", error);
     return {
       success: false,
       message:
-        error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu",
+        error instanceof Error
+          ? `İşlem başarısız: ${error.message}`
+          : "Beklenmeyen bir hata oluştu",
+      imageUrl,
     };
   }
 }
@@ -315,19 +301,15 @@ export async function EditProduct(
                       value: variant.value.toString(),
                       unit: variant.unit,
                     });
-                    const urls = [];
-                    if (variant.imageFiles.length > 0) {
-                      await processImages(variant.imageFiles, {
-                        quality: 80,
-                        maxWidth: 1920,
-                        maxHeight: 1920,
-                        format: "webp",
-                      }).then((images) => {
-                        images.forEach((img) => {
-                          urls.push(img.url);
-                        });
-                      });
-                    }
+                    const urls = await Promise.all(
+                      variant.imageFiles.map(async (file) => {
+                        const result = await NewRecordAsset(file);
+                        if (result.success) {
+                          return result.fileName;
+                        }
+                        return null;
+                      }),
+                    ).then((urls) => urls.filter((url) => url !== null));
                     return {
                       where: { id: variant.uniqueId },
                       data: {
@@ -374,19 +356,15 @@ export async function EditProduct(
                   value: variant.value.toString(),
                   unit: variant.unit,
                 });
-                const urls = [];
-                if (variant.imageFiles.length > 0) {
-                  await processImages(variant.imageFiles, {
-                    quality: 80,
-                    maxWidth: 1920,
-                    maxHeight: 1920,
-                    format: "webp",
-                  }).then((images) => {
-                    images.forEach((img) => {
-                      urls.push(img.url);
-                    });
-                  });
-                }
+                const urls = await Promise.all(
+                  variant.imageFiles.map(async (file) => {
+                    const result = await NewRecordAsset(file);
+                    if (result.success) {
+                      return result.fileName;
+                    }
+                    return null;
+                  }),
+                ).then((urls) => urls.filter((url) => url !== null));
                 return {
                   value: variant.value.toString(),
                   unit: variant.type === "WEIGHT" ? variant.unit : null,

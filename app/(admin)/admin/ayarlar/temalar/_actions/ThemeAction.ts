@@ -1,7 +1,7 @@
 "use server";
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
+import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { prisma } from "@/lib/prisma";
-import { processImages } from "@/lib/recordImage";
 import {
   SocialMediaPreviewSchema,
   SocialMediaPreviewType,
@@ -23,26 +23,17 @@ export async function EditTheme(
       themeColor2,
     } = SocialMediaPreviewSchema.parse(data);
 
-    // Process images in parallel if they exist
     const [faviconResult, logoResult] = await Promise.all([
-      favicon ? processImages(favicon, { isFavicon: true }) : null,
+      favicon
+        ? NewRecordAsset(favicon[0], "variant", false, false, false, true)
+        : null,
       logo
-        ? processImages(logo, {
-            quality: 80,
-            ogImageOptions: {
-              width: 1200,
-              height: 630,
-              format: "jpeg",
-              quality: 80,
-            },
-          })
+        ? NewRecordAsset(logo[0], "variant", false, false, true, false)
         : null,
     ]);
 
     const faviconUrl = faviconResult?.[0]?.url;
     const logoUrl = logoResult?.[0]?.url;
-
-    // Database operations
     await prisma.$transaction(async (tx) => {
       const existingSettings = await tx.mainSeoSettings.findFirst({
         select: {

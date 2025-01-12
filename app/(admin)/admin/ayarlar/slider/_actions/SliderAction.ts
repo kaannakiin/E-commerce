@@ -1,8 +1,8 @@
 "use server";
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
+import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { prisma } from "@/lib/prisma";
-import { processImages } from "@/lib/recordImage";
 import { RecordVideoToAsset } from "@/lib/recordVideo";
 import {
   AddSliderSchema,
@@ -10,23 +10,7 @@ import {
   IdForEverythingTypeUuid,
 } from "@/zodschemas/authschema";
 import { AssetType } from "@prisma/client";
-import fs from "fs/promises";
-import path from "path";
 import { ZodError } from "zod";
-
-async function cleanupFiles(urls: string[]) {
-  const ASSETS_DIR = path.join(process.cwd(), "assets");
-
-  for (const url of urls) {
-    try {
-      const filePath = path.join(ASSETS_DIR, url);
-      await fs.access(filePath); // Dosya var mı kontrol et
-      await fs.unlink(filePath); // Dosyayı sil
-    } catch (error) {
-      console.warn(`Cleanup warning for ${url}:`, error);
-    }
-  }
-}
 
 export const addSliderAction = async (
   data: AddSliderSchemaType,
@@ -42,8 +26,6 @@ export const addSliderAction = async (
       message: "Yetkisiz işlem",
     };
   }
-
-  let createdFiles: string[] = []; // Oluşturulan dosyaları takip et
 
   try {
     AddSliderSchema.parse(data);
@@ -68,19 +50,20 @@ export const addSliderAction = async (
           const urls =
             type === "VIDEO"
               ? await RecordVideoToAsset(data.imageFile)
-              : await processImages(data.imageFile, {
-                  isLogo: true,
-                  ogImageOptions: { format: "jpeg" },
-                });
-
-          // Oluşturulan dosyaları kaydet
-          createdFiles = urls.map((u) => u.url);
+              : await NewRecordAsset(
+                  data.imageFile[0],
+                  "variant",
+                  false,
+                  true,
+                  false,
+                  false,
+                );
 
           await tx.mainHeroSection.create({
             data: {
               ...commonData,
               image: {
-                create: { url: urls[0].url },
+                create: { url: urls.fileName },
               },
             },
           });
@@ -90,10 +73,6 @@ export const addSliderAction = async (
             message: `Slider başarıyla eklendi (${type})`,
           };
         } catch (error) {
-          // Hata durumunda dosyaları temizle
-          if (createdFiles.length > 0) {
-            await cleanupFiles(createdFiles);
-          }
           throw new Error(
             `İşlem hatası: ${error instanceof Error ? error.message : "Bilinmeyen hata"}`,
           );
@@ -103,11 +82,6 @@ export const addSliderAction = async (
     );
     return result;
   } catch (error) {
-    // Transaction veya validation hatası durumunda dosyaları temizle
-    if (createdFiles.length > 0) {
-      await cleanupFiles(createdFiles);
-    }
-
     if (error instanceof ZodError) {
       return {
         success: false,

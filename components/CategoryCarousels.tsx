@@ -5,6 +5,7 @@ import { Paper, Text, Title, useMantineTheme } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import Link from "next/link";
 import classes from "./modules/CategoryCarousels.module.css";
+import { FeedCategoriesType } from "./FeedCategoryCarousels";
 
 interface CardProps {
   image: string;
@@ -35,14 +36,17 @@ function Card({ image, title, category, slug }: CardProps) {
   );
 }
 
-export function CategoryCarousels({ categories }) {
+export function CategoryCarousels({
+  categories,
+}: {
+  categories: FeedCategoriesType[];
+}) {
   const data =
     categories.length > 0 &&
     categories.map((category) => {
       const imageUrl =
         category.images?.[0]?.url &&
         "/api/user/asset/get-image?url=" + category.images[0].url;
-
       return {
         image: imageUrl,
         title: category.name ?? "İsimsiz Kategori",
@@ -54,11 +58,13 @@ export function CategoryCarousels({ categories }) {
   const mobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const slides =
     data &&
-    data.map((item) => (
-      <Carousel.Slide key={item.title}>
-        <Card {...item} />
-      </Carousel.Slide>
-    ));
+    data
+      .filter((item) => item !== null)
+      .map((item) => (
+        <Carousel.Slide key={item.title}>
+          <Card {...item} />
+        </Carousel.Slide>
+      ));
 
   return (
     <Carousel

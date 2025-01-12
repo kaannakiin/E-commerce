@@ -72,7 +72,7 @@ const VariantForm: React.FC<AddVariantProps> = ({
       unit: unitValue,
       pageTitle: variant?.pageTitle || "",
       metaDescription: variant?.metaDescription || "",
-      imageFiles: variant?.imageFiles || [], // imageFiles'ı koru
+      imageFiles: variant?.imageFiles || [],
       isSpotLight: variant?.isSpotLight || false,
       richTextDescription: variant?.richTextDescription || null,
     };

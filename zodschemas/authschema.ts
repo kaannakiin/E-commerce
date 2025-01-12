@@ -789,7 +789,7 @@ export const SalerInfoSchema = z.object({
     .max(60, "SEO başlığı en fazla 60 karakter olabilir"),
   seoDescription: z
     .string({ message: "Bu alan zorunludur." })
-    .max(160, "SEO açıklaması en fazla 160 karakter olabilir"),
+    .max(320, "SEO açıklaması en fazla 320 karakter olabilir"),
   instagram: z
     .string()
     .regex(
@@ -1007,7 +1007,7 @@ export const Variants = z
       .string({ message: "Bu alan boş olamaz" })
       .trim()
       .min(50, { message: "Açıklama en az 50 karakter olmalıdır" })
-      .max(160, { message: "Açıklama 160 karakterden uzun olamaz" }),
+      .max(320, { message: "Açıklama 320 karakterden uzun olamaz" }),
     richTextDescription: z
       .string()
       .nullable()
@@ -1147,10 +1147,10 @@ export const ProductAddSchema = z.object({
     .min(1, { message: "Ürün açıklaması zorunludur" }),
   shortDescription: z
     .string({ message: "Bu alan zorunludur" })
-    .trim() // Trimmed
+    .trim()
     .min(1, { message: "Kısa açıklama zorunludur" }),
   active: z.boolean().default(true),
-  googleCategories: z.string().trim().optional(), // Trimmed
+  googleCategories: z.string().trim().optional(),
 
   taxPrice: z
     .number({ message: "Bu alan boş olamaz" })
@@ -1235,7 +1235,7 @@ export const CategoryEditableSchema = z.object({
   metaDescription: z
     .string({ message: "Bu alan zorunludur" })
     .min(1, "SEO Açıklaması en az 1 karakter olmalıdır")
-    .max(160, "SEO açıklama 160 karakterden uzun olamaz"),
+    .max(320, "SEO açıklama 320 karakterden uzun olamaz"),
   metaKeywords: z
     .string()
     .transform((val) => (val ? val.split(",").filter(Boolean) : []))

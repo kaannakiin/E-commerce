@@ -38,6 +38,17 @@ const feedHeader = cache(async () => {
     const data = await prisma.category.findMany({
       where: {
         active: true,
+        products: {
+          some: {
+            active: true,
+            Variant: {
+              some: {
+                isPublished: true,
+                softDelete: false,
+              },
+            },
+          },
+        },
       },
       select: {
         name: true,
