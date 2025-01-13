@@ -92,7 +92,9 @@ const OrdersTable = ({
                       ? "Ödeme Başarılı"
                       : order.paymentStatus === "FAILED"
                         ? "Ödeme Başarısız"
-                        : "Ödeme Bekliyor"}
+                        : order.paymentStatus === "REFUND"
+                          ? "İade Edildi"
+                          : "Ödeme Bekleniyor"}
                   </Badge>
                 </Table.Td>
                 <Table.Td>
