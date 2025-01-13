@@ -70,7 +70,7 @@ export function HeroCarousel({ items }: HeroCarouselProps) {
                   className="h-full w-full object-cover"
                 >
                   <source
-                    src={`http://localhost:3000/api/user/asset/get-video?url=${encodeURIComponent(item.image.url)}`}
+                    src={`${process.env.NEXT_PUBLIC_APP_URL}/api/user/asset/get-video?url=${encodeURIComponent(item.image.url)}`}
                     type="video/mp4"
                   />
                 </video>
