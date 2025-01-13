@@ -5,7 +5,7 @@ import {
   NonAuthUserCreateOrder,
 } from "@/lib/İyzico/helper/helper";
 import { iyzico } from "@/lib/İyzico/iyzicoClient";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -60,7 +60,10 @@ export async function POST(req: NextRequest) {
           ip,
         });
         return Response.redirect(
-          new URL(`/hesabim/siparislerim/${orderNumber}`, req.nextUrl.origin),
+          new URL(
+            `/hesabim/siparislerim/${orderNumber}`,
+            process.env.NEXT_PUBLIC_APP_URL,
+          ),
         );
       } else {
         const orderNumber = await NonAuthUserCreateOrder({
@@ -72,11 +75,13 @@ export async function POST(req: NextRequest) {
           ip,
         });
         return Response.redirect(
-          new URL(`/siparis/${orderNumber}`, req.nextUrl.origin),
+          new URL(`/siparis/${orderNumber}`, process.env.NEXT_PUBLIC_APP_URL),
         );
       }
     }
   } catch (error) {
-    return Response.redirect(new URL("/odeme", req.nextUrl.origin));
+    return Response.redirect(
+      new URL("/odeme", process.env.NEXT_PUBLIC_APP_URL),
+    );
   }
 }
