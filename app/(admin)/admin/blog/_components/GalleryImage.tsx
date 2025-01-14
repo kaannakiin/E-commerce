@@ -1,16 +1,22 @@
 "use client";
-import Image from "next/image";
+import CustomImage from "@/components/CustomImage";
 import { FC } from "react";
 import { BiCheck, BiSolidTrash } from "react-icons/bi";
+
 interface Props {
-  src: string;
+  secureUrl: string;
   onDeleteClick?(): void;
   onSelectClick?(): void;
 }
-const GalleryImage: FC<Props> = ({ src, onDeleteClick, onSelectClick }) => {
+
+const GalleryImage: FC<Props> = ({
+  secureUrl,
+  onDeleteClick,
+  onSelectClick,
+}) => {
   return (
     <div className="group relative aspect-square w-full overflow-hidden rounded">
-      <Image src={src} alt="Resim" className="object-cover" fill />
+      <CustomImage src={secureUrl} richText alt="Resim" quality={40} />
       <div className="absolute bottom-0 left-0 right-0 hidden group-hover:flex">
         <button
           onClick={onDeleteClick}

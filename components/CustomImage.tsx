@@ -111,7 +111,8 @@ const CustomImage = ({
         <div className="absolute inset-0 animate-pulse bg-gray-200" />
       )}
 
-      {!error && (
+      {/* Thumbnail image'ı sadece richText false ise göster */}
+      {!error && !richText && (
         <Image
           fill
           src={imgSrc}

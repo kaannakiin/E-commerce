@@ -10,8 +10,8 @@ import { Fragment, useState } from "react";
 import { HiOutlinePhoto } from "react-icons/hi2";
 import { IoCloudUploadOutline, IoImageOutline } from "react-icons/io5";
 import { LiaTimesSolid } from "react-icons/lia";
-import GalleryImage from "./GalleryImage";
 import { DeleteImageForRichText } from "../_actions/BlogAction";
+import GalleryImage from "./GalleryImage";
 
 interface ImageGalleryProps extends Partial<DropzoneProps> {
   onImageSelect?: (imageSrc: string) => void;
@@ -24,6 +24,7 @@ const ImageGallery = ({ onImageSelect, ...props }: ImageGalleryProps) => {
   const updateImages = image?.updateImages;
   const removeOldImage = image?.removeOldImage;
   const [loading, setLoading] = useState(false);
+
   const onDrop = async (data) => {
     try {
       setLoading(true);
@@ -43,31 +44,27 @@ const ImageGallery = ({ onImageSelect, ...props }: ImageGalleryProps) => {
     }
   };
 
-  const handleSelection = (item: string) => {
+  const handleSelection = (secureUrl: string) => {
     if (onImageSelect) {
-      onImageSelect(item);
+      onImageSelect(secureUrl);
       close();
     }
   };
-
-  const handleDelete = async (imageUrl: string) => {
+  const handleDelete = async (secureUrl: string) => {
     if (updateImages && images) {
-      const urlParams = new URLSearchParams(new URL(imageUrl).search);
-      const url = urlParams.get("url");
-      if (url) {
-        try {
-          const res = await DeleteImageForRichText(url);
-          if (res.success) {
-            if (removeOldImage) {
-              removeOldImage(imageUrl);
-            }
+      try {
+        const res = await DeleteImageForRichText(secureUrl);
+        if (res.success) {
+          if (removeOldImage) {
+            removeOldImage(secureUrl);
           }
-        } catch (error) {
-          console.error("Resim silme hatası:", error);
         }
+      } catch (error) {
+        console.error("Resim silme hatası:", error);
       }
     }
   };
+
   return (
     <Fragment>
       <IoImageOutline size={"1rem"} onClick={open} />
@@ -141,12 +138,12 @@ const ImageGallery = ({ onImageSelect, ...props }: ImageGalleryProps) => {
             <div className="p-4 text-center">Resim Bulunamadı</div>
           )}
           <div className="mt-2 grid grid-cols-2 gap-4 md:grid-cols-4">
-            {images?.map((image, index) => (
+            {images?.map((secureUrl, index) => (
               <GalleryImage
                 key={index}
-                src={image}
-                onSelectClick={() => handleSelection(image)}
-                onDeleteClick={() => handleDelete(image)}
+                secureUrl={secureUrl}
+                onSelectClick={() => handleSelection(secureUrl)}
+                onDeleteClick={() => handleDelete(secureUrl)}
               />
             ))}
           </div>

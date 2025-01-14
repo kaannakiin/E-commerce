@@ -101,7 +101,7 @@ export async function NewRecordAsset(
       return {
         success: true,
         message: "Dosya başarıyla kaydedildi",
-        secureUrl: `${process.env.NEXT_PUBLIC_APP_URL}/api/user/asset/get-image?url=${data.url}&quality=80&richText=true`,
+        secureUrl: data.url,
       };
     }
     if (isNeedThumbnail) {
