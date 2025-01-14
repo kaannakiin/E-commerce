@@ -9,11 +9,11 @@ import {
   generateCategoryJsonLd,
   sanitizeAndValidateJsonLd,
 } from "@/utils/generateJsonLD";
+import { Paper, Text } from "@mantine/core";
 import { VariantType } from "@prisma/client";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-
 // Önce interface'leri güncelleyelim
 export interface CategoryVariant {
   id: string;
@@ -401,10 +401,34 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
           __html: sanitizedJsonLd,
         }}
       />
-      <h1 className="mb-4 text-2xl font-bold">{response.category.name}</h1>
-      {response.category.description && (
-        <p className="mb-6 text-gray-600">{response.category.description}</p>
-      )}
+      {response.category.name && response.category.description && (
+        <Paper
+          bg={"secondary.1"}
+          p={"lg"}
+          radius={"xl"}
+          className="mb-6 space-y-4"
+        >
+          <Text
+            component="h1"
+            size="xl"
+            fw={600}
+            c={"gray.9"}
+            className="tracking-tight"
+          >
+            {response.category.name}
+          </Text>
+          <Text
+            component="p"
+            size="md"
+            c={"gray.7"}
+            fw={400}
+            className="leading-relaxed"
+          >
+            {response.category.description}
+          </Text>
+        </Paper>
+      )}  
+
       <FilterDrawer count={response.count} />
       <div className="mt-6">
         {response.count > 0 ? (

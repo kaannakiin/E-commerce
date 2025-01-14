@@ -190,7 +190,7 @@ export async function readAllImageSecureUrl(): Promise<string[]> {
     const images = await prisma.richTextImageGallery.findMany();
     return images.map(
       (image) =>
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/user/asset/image-gallery?url=${image.url}&quality=80`,
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/user/asset/image-gallery?url=${image.url}&quality=80&richText=true`,
     );
   } catch (error) {
     return [];
