@@ -38,18 +38,14 @@ const BlogCard = async () => {
     return null;
   }
   return (
-    <Container
-      classNames={{
-        root: "lg:w-3/4 w-full",
-      }}
-      py="xl"
-      className="w-full lg:px-10"
-    >
+    <Container size={"100%"} py="xl" className="w-full lg:px-5">
       <SimpleGrid cols={{ base: 1, sm: blogs.length > 1 ? 2 : 1 }}>
         {blogs.map((blog) => (
           <Card
             key={blog.blogTitle}
             component={Link}
+            withBorder
+            radius={"lg"}
             href={`/blog/${blog.slug}`}
             className="transition-all duration-150 ease-in hover:scale-[1.01] hover:shadow-md"
           >

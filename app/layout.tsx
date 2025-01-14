@@ -103,12 +103,10 @@ export async function generateMetadata(): Promise<Metadata> {
         }
       : undefined,
     description: data?.description ?? DEFAULT_SETTINGS.description,
-    verification: {
-      google: data?.googleVerification ?? "",
-    },
     openGraph: {
       title: data?.title ?? DEFAULT_SETTINGS.title,
       description: data?.description ?? DEFAULT_SETTINGS.description,
+
       images: [
         {
           url: ogImageUrl,

@@ -4,7 +4,6 @@ import {
   OrderChangeType,
   OrderStatus,
   PaymentChannels,
-  PaymentType,
   ProductType,
   VariantType,
 } from "@prisma/client";
@@ -1989,3 +1988,67 @@ export const ContactUsSchema = z.object({
 });
 
 export type ContactUsFormValues = z.infer<typeof ContactUsSchema>;
+export const FaqQuestionSchema = z.object({
+  question: z
+    .string({ message: "Bu alan zorunludur." })
+    .min(1, { message: "Soru en az 1 karakter olmalıdır" })
+    .max(256, { message: "Soru en fazla 256 karakter olabilir" }),
+  answer: z
+    .string({ message: "Bu alan zorunludur." })
+    .min(1)
+    .max(5000, { message: "Cevap en fazla 5000 karakter olabilir" }),
+  active: z.boolean().default(true),
+});
+export type FaqQuestionFormValues = z.infer<typeof FaqQuestionSchema>;
+export const FaqSectionSchema = z.object({
+  title: z
+    .string({ message: "Bu alan zorunludur." })
+    .min(1, { message: "Başlık en az 1 karakter olmalıdır" })
+    .max(50, { message: "Başlık en fazla 50 karakter olabilir" }),
+  description: z
+    .string({ message: "Bu alan zorunludur." })
+    .min(1, { message: "Açıklama en az 1 karakter olmalıdır" })
+    .max(500, { message: "Açıklama en fazla 500 karakter olabilir" }),
+  isFooter: z.boolean().default(false),
+  isMainPage: z.boolean().default(false),
+  isHeader: z.boolean().default(false),
+  imageFile: z
+    .array(z.instanceof(File))
+    .optional()
+    .superRefine((files, ctx) => {
+      if (files.length > 1) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Sadece bir fotoğraf yükleyebilirsiniz",
+        });
+      }
+      files.forEach((file) => {
+        if (file.size >= MAX_FILE_SIZE) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+          });
+        }
+
+        const SUPPORTED_FORMATS = [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+          "video/mp4",
+        ];
+
+        if (!SUPPORTED_FORMATS.includes(file.type)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+          });
+        }
+      });
+    }),
+  active: z.boolean().default(true),
+  questions: z
+    .array(FaqQuestionSchema, { message: "Soru alanı zorunludur" })
+    .min(1, { message: "En az bir soru eklemelisiniz" }),
+});
+export type FaqSectionFormValues = z.infer<typeof FaqSectionSchema>;

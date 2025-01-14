@@ -10,14 +10,29 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import SubScript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
+import Table from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import { BubbleMenu, FloatingMenu, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Control, Controller, FieldValues, Path } from "react-hook-form";
-import ImageGallery from "./ImageGallery";
 import ImageResize from "tiptap-extension-resize-image";
-
+import ImageGallery from "./ImageGallery";
+import {
+  TbColumnInsertLeft,
+  TbColumnInsertRight,
+  TbColumnRemove,
+  TbRowInsertTop,
+  TbRowInsertBottom,
+  TbRowRemove,
+  TbTableOff,
+  TbTablePlus, // Changed from TbTableMergeCells
+  TbTableDown, // Changed from TbTableSplit
+  TbTable, // Changed from TbLayoutHeaders
+} from "react-icons/tb";
 const EditorContent = ({
   content,
   onChange,
@@ -40,6 +55,27 @@ const EditorContent = ({
       Superscript,
       SubScript,
       Highlight,
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: "my-custom-table",
+        },
+      }),
+      TableRow.configure({
+        HTMLAttributes: {
+          class: "my-custom-tr",
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: "my-custom-th",
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: "my-custom-td",
+        },
+      }),
       ImageResize.configure({
         allowBase64: true,
       }),
@@ -145,6 +181,7 @@ const EditorContent = ({
           <RichTextEditor.Undo />
           <RichTextEditor.Redo />
         </RichTextEditor.ControlsGroup>
+        {<InsertTableControl />}
         {isWithImage && (
           <RichTextEditor.ControlsGroup>
             <InsterTheImageControl />
@@ -219,6 +256,119 @@ function InsterTheImageControl() {
     </RichTextEditor.Control>
   );
 }
+
+function InsertTableControl() {
+  const { editor } = useRichTextEditorContext();
+  const insertTable = () =>
+    editor
+      ?.chain()
+      .focus()
+      .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+      .run();
+  const addColumnBefore = () => editor?.chain().focus().addColumnBefore().run();
+  const addColumnAfter = () => editor?.chain().focus().addColumnAfter().run();
+  const deleteColumn = () => editor?.chain().focus().deleteColumn().run();
+  const addRowBefore = () => editor?.chain().focus().addRowBefore().run();
+  const addRowAfter = () => editor?.chain().focus().addRowAfter().run();
+  const deleteRow = () => editor?.chain().focus().deleteRow().run();
+  const deleteTable = () => editor?.chain().focus().deleteTable().run();
+  const mergeCells = () => editor?.chain().focus().mergeCells().run();
+  const splitCell = () => editor?.chain().focus().splitCell().run();
+  const toggleHeaderColumn = () =>
+    editor?.chain().focus().toggleHeaderColumn().run();
+
+  return (
+    <RichTextEditor.ControlsGroup>
+      <RichTextEditor.Control
+        title="Tablo Ekle"
+        aria-label="Tablo Ekle"
+        onClick={insertTable}
+      >
+        <TbTable size={18} />
+      </RichTextEditor.Control>
+      <RichTextEditor.Control
+        title="Öne Sütun Ekle"
+        aria-label="Öne Sütun Ekle"
+        onClick={addColumnBefore}
+      >
+        <TbColumnInsertLeft size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Arkaya Sütun Ekle"
+        aria-label="Arkaya Sütun Ekle"
+        onClick={addColumnAfter}
+      >
+        <TbColumnInsertRight size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Sütun Sil"
+        aria-label="Sütun Sil"
+        onClick={deleteColumn}
+      >
+        <TbColumnRemove size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Üste Satır Ekle"
+        aria-label="Üste Satır Ekle"
+        onClick={addRowBefore}
+      >
+        <TbRowInsertTop size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Alta Satır Ekle"
+        aria-label="Alta Satır Ekle"
+        onClick={addRowAfter}
+      >
+        <TbRowInsertBottom size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Satır Sil"
+        aria-label="Satır Sil"
+        onClick={deleteRow}
+      >
+        <TbRowRemove size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Tabloyu Sil"
+        aria-label="Tabloyu Sil"
+        onClick={deleteTable}
+      >
+        <TbTableOff size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Hücreleri Birleştir"
+        aria-label="Hücreleri Birleştir"
+        onClick={mergeCells}
+      >
+        <TbTablePlus size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Hücreyi Böl"
+        aria-label="Hücreyi Böl"
+        onClick={splitCell}
+      >
+        <TbTableDown size={18} />
+      </RichTextEditor.Control>
+
+      <RichTextEditor.Control
+        title="Başlık Sütunu"
+        aria-label="Başlık Sütunu"
+        onClick={toggleHeaderColumn}
+      >
+        <TbTable size={18} />
+      </RichTextEditor.Control>
+    </RichTextEditor.ControlsGroup>
+  );
+}
+
 const ControlledRichEditor = <T extends FieldValues>({
   control,
   name,

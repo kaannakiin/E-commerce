@@ -99,7 +99,9 @@ const feedHeader = cache(async () => {
       },
     });
     const blogCount = await prisma.blog.findFirst({ where: { active: true } });
-
+    const faqSection = await prisma.faqSection.findFirst({
+      include: { displaySettings: true },
+    });
     const featuredProducts = variants.map((variant) => ({
       slug: variant.slug,
       product: {
@@ -119,6 +121,8 @@ const feedHeader = cache(async () => {
       featuredProducts,
       salerInfo: salerInfo?.logo?.url,
       blogCount: blogCount ? true : false,
+      faqSectionVisible:
+        faqSection?.isActive && faqSection?.displaySettings?.isHeader,  
     };
   } catch (error) {
     console.error("Header data fetch error:", error);
@@ -127,12 +131,14 @@ const feedHeader = cache(async () => {
       featuredProducts: [],
       salerInfo: null,
       blogCount: false,
+      faqSectionVisible: false,
     };
   }
 });
 
 const Header = async () => {
-  const { featuredProducts, data, salerInfo, blogCount } = await feedHeader();
+  const { featuredProducts, data, salerInfo, blogCount, faqSectionVisible } =
+    await feedHeader();
   const session = await auth();
   const isUser = session?.user ? true : false;
   const favoritesUrl = isUser
@@ -142,7 +148,9 @@ const Header = async () => {
     <header className="relative h-24 w-full">
       <div className="mx-auto flex h-4 max-w-[1920px] items-center justify-end space-x-1 text-xs text-gray-900">
         <Link href={"/hakkimizda"}>Hakkımızda</Link>
-        <Link href={"/sikca-sorulan-sorular"}>S.S.S</Link>
+        {faqSectionVisible && (
+          <Link href={"/sikca-sorulan-sorular"}>S.S.S</Link>
+        )}{" "}
         <Link href={"/iletisim"}>İletisim</Link>
       </div>
       <div className="mx-auto flex h-20 max-w-[1920px] items-center justify-between px-2 lg:justify-between lg:px-10">

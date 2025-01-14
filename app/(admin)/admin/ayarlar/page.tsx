@@ -14,6 +14,7 @@ import {
 import { TfiLayoutSlider } from "react-icons/tfi";
 import { TbContract } from "react-icons/tb";
 import { MdOutlinePayment } from "react-icons/md";
+import { FaQuestion } from "react-icons/fa";
 
 interface MenuButtonProps {
   icon: React.ReactNode;
@@ -97,11 +98,10 @@ const SettingsPage = () => {
       href: "/admin/ayarlar/odeme-yontemleri",
     },
     {
-      icon: <CiShoppingTag className="h-6 w-6 text-primary-600" />,
-      title: "Vitrin Blokları",
-      description: "Vitrin bloklarını yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      icon: <FaQuestion className="h-6 w-6 text-primary-600" />,
+      title: "Sık Sorulan Sorular ",
+      description: "Sık sorulan soruları düzenleyin.",
+      href: "/admin/ayarlar/faq-section",
     },
     {
       icon: <CiCreditCard1 className="h-6 w-6 text-primary-600" />,
