@@ -288,106 +288,117 @@ export function generateCategoryJsonLd({
     description: category.description,
     numberOfItems: products?.length || 0,
     itemListElement:
-      products?.map((product, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        item: {
-          "@type": "Product",
-          "@id": `${baseUrl}/${product.slug}`,
-          name: product.name,
-          description: product.description,
-          sku: product.id,
-          image: product.Image?.[0]?.url
-            ? `${baseUrl}/api/user/asset/get-image?url=${encodeURIComponent(
-                product.Image[0].url,
-              )}`
-            : null,
-          url: `${baseUrl}/${product.slug}`,
-          offers: {
-            "@type": "AggregateOffer",
-            "@id": `${baseUrl}/${product.slug}#offers`,
-            priceCurrency: "TRY",
-            lowPrice: calculateLowestPrice(product.variants, product.taxRate),
-            highPrice: calculateHighestPrice(product.variants, product.taxRate),
-            offerCount: product.variants.length,
-            availability: product.variants.some((v) => v.stock > 0)
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
-          },
-          brand: {
-            "@type": "Brand",
-            name: "Your Brand Name", // Marka adınızı buraya ekleyin
-          },
-          category: category.name,
-          itemCondition: "https://schema.org/NewCondition",
-        },
-      })) || [],
+      products
+        ?.map((product, index) => {
+          if (!product?.variants || !Array.isArray(product.variants)) {
+            return null;
+          }
+
+          return {
+            "@type": "ListItem",
+            position: index + 1,
+            item: {
+              "@type": "Product",
+              "@id": `${baseUrl}/${product.slug}`,
+              name: product.name || "",
+              description: product.description || "",
+              sku: product.id,
+              image: product.Image?.[0]?.url
+                ? `${baseUrl}/api/user/asset/get-image?url=${encodeURIComponent(
+                    product.Image[0].url,
+                  )}`
+                : null,
+              url: `${baseUrl}/${product.slug}`,
+              offers: {
+                "@type": "AggregateOffer",
+                "@id": `${baseUrl}/${product.slug}#offers`,
+                priceCurrency: "TRY",
+                lowPrice: calculateLowestPrice(
+                  product.variants || [],
+                  product.taxRate || 0,
+                ),
+                highPrice: calculateHighestPrice(
+                  product.variants || [],
+                  product.taxRate || 0,
+                ),
+                offerCount: product.variants?.length || 0,
+                availability: product.variants?.some((v) => v?.stock > 0)
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+              },
+              brand: {
+                "@type": "Brand",
+                name: "Your Brand Name",
+              },
+              category: category.name,
+              itemCondition: "https://schema.org/NewCondition",
+            },
+          };
+        })
+        .filter(Boolean) || [],
   };
+
   jsonLdArray.push(categoryJsonLd);
 
-  // Breadcrumb JSON-LD'si
-  const breadcrumbJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "@id": `${baseUrl}/categories/${category.slug}#breadcrumb`,
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        item: {
-          "@id": baseUrl,
-          name: "Ana Sayfa",
+  // Breadcrumb JSON-LD'si kontrolünü güncelleyelim
+  if (category?.GoogleCategory?.breadcrumbs?.length > 0) {
+    const breadcrumbJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "@id": `${baseUrl}/categories/${category.slug}#breadcrumb`,
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          item: {
+            "@id": baseUrl,
+            name: "Ana Sayfa",
+          },
         },
-      },
-      ...(parentCategories?.map((cat, index) => ({
-        "@type": "ListItem",
-        position: index + 2,
-        item: {
-          "@id": `${baseUrl}/categories/${cat.slug}`,
-          name: cat.name,
-        },
-      })) || []),
-      {
-        "@type": "ListItem",
-        position: (parentCategories?.length || 0) + 2,
-        item: {
-          "@id": `${baseUrl}/categories/${category.slug}`,
-          name: category.name,
-        },
-      },
-    ],
-  };
-  jsonLdArray.push(breadcrumbJsonLd);
+        ...(category.GoogleCategory.breadcrumbs?.map((cat, index) => ({
+          "@type": "ListItem",
+          position: index + 2,
+          item: {
+            "@id": `${baseUrl}/categories/${encodeURIComponent(cat.toLowerCase())}`,
+            name: cat,
+          },
+        })) || []),
+      ],
+    };
+    jsonLdArray.push(breadcrumbJsonLd);
+  }
 
-  // Alt kategoriler varsa CollectionPage JSON-LD'si
-  if (childCategories?.length > 0) {
+  // Alt kategoriler kontrolünü de güncelleyelim
+  if (Array.isArray(childCategories) && childCategories.length > 0) {
     const collectionJsonLd = {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
       "@id": `${baseUrl}/categories/${category.slug}#collection`,
-      name: category.name,
-      description: category.description,
+      name: category.name || "",
+      description: category.description || "",
       breadcrumb: {
         "@id": `${baseUrl}/categories/${category.slug}#breadcrumb`,
       },
       mainEntity: {
         "@id": `${baseUrl}/categories/${category.slug}#itemlist`,
       },
-      hasPart: childCategories.map((child) => ({
-        "@type": "ItemList",
-        "@id": `${baseUrl}/categories/${child.slug}`,
-        name: child.name,
-        description: child.description,
-        url: `${baseUrl}/categories/${child.slug}`,
-      })),
+      hasPart: childCategories
+        .map((child) => ({
+          "@type": "ItemList",
+          "@id": `${baseUrl}/categories/${child?.slug || ""}`,
+          name: child?.name || "",
+          description: child?.description || "",
+          url: `${baseUrl}/categories/${child?.slug || ""}`,
+        }))
+        .filter((item) => item.name), // Boş ismi olan öğeleri filtrele
     };
     jsonLdArray.push(collectionJsonLd);
   }
-  const wrappedJsonLd = {
+
+  return {
     "@context": "https://schema.org",
     "@graph": jsonLdArray,
   };
-  return wrappedJsonLd;
 }
 
 // Yardımcı fonksiyonlar
