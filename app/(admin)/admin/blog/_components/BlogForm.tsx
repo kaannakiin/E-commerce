@@ -144,6 +144,7 @@ const BlogForm = ({ blog }: BlogFormProps) => {
           <ControlledRichEditor<BlogPostFormValues>
             control={control}
             name="blog"
+            isWithImage
           />
         </div>
         <div className="w-full">

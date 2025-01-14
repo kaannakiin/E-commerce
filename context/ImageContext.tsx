@@ -8,31 +8,40 @@ import {
   useEffect,
   useState,
 } from "react";
+
 interface ImageContextProps {
   children: ReactNode;
 }
+
 interface ContextProps {
   images: string[];
   updateImages(images: string[]): void;
-  removeOldImage(src: string): void;
+  removeOldImage(secureUrl: string): void;
 }
+
 const Context = createContext<ContextProps | null>(null);
+
 const ImageProvider: FC<ImageContextProps> = ({ children }) => {
   const [images, setImages] = useState<string[]>([]);
+
   const updateImages = (data: string[]) => {
     setImages([...data, ...images]);
   };
-  const removeOldImage = (src: string) => {
-    setImages((old) => old.filter((img) => src !== img));
+
+  const removeOldImage = (secureUrl: string) => {
+    setImages((old) => old.filter((img) => secureUrl !== img));
   };
+
   useEffect(() => {
     readAllImageSecureUrl().then(setImages);
   }, []);
+
   return (
     <Context.Provider value={{ images, updateImages, removeOldImage }}>
       {children}
     </Context.Provider>
   );
 };
+
 export const useImages = () => useContext(Context);
 export default ImageProvider;

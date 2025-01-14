@@ -229,7 +229,7 @@ export async function UpdateCategoryDB(
           parentCategories,
           childCategories,
         });
-        if (updatedCategory.images.length === 0) {
+        if (updatedCategory.images.length === 0 && imageFiles?.length > 0) {
           await NewRecordAsset(imageFiles[0], "category", true, true).then(
             async (processedImages) => {
               await tx.category.update({

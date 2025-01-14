@@ -238,15 +238,17 @@ interface ControlledRichEditorProps<T extends FieldValues> {
 }
 function InsterTheImageControl() {
   const { editor } = useRichTextEditorContext();
+
   const handleImageSelect = (imageSrc: string) => {
+    const encodedUrl = encodeURIComponent(imageSrc);
     editor
       ?.chain()
       .focus()
       .setImage({
-        src: imageSrc,
+        src: `${process.env.NEXT_PUBLIC_APP_URL}/api/user/asset/get-image?url=${encodedUrl}&quality=40&richText=true`,
         alt: "rich-text-images",
       })
-      .setTextAlign("left") // Varsayılan hizalama
+      .setTextAlign("left")
       .run();
   };
 
@@ -256,7 +258,6 @@ function InsterTheImageControl() {
     </RichTextEditor.Control>
   );
 }
-
 function InsertTableControl() {
   const { editor } = useRichTextEditorContext();
   const insertTable = () =>

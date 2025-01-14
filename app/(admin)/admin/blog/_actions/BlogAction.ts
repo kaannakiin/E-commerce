@@ -4,8 +4,6 @@ import { DeleteImageToAsset } from "@/lib/deleteImageFile";
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/utils/SlugifyVariants";
-import fs from "fs/promises"; // fs modülünü kullanabilmek için
-import path from "path";
 
 import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import {
@@ -188,10 +186,10 @@ export async function readAllImageSecureUrl(): Promise<string[]> {
       return [];
     }
     const images = await prisma.richTextImageGallery.findMany();
-    return images.map(
-      (image) =>
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/user/asset/image-gallery?url=${image.url}&quality=80&richText=true`,
-    );
+    if (images.length > 0) {
+      return images.map((image) => image.url);
+    }
+    return [];
   } catch (error) {
     return [];
   }
@@ -210,14 +208,28 @@ export async function DeleteImageForRichText(fileName: string) {
         message: "Dosya adı gereklidir",
       };
     }
-
-    const directoryPath = path.join("rich-text-assets", fileName);
-
     try {
-      await fs.unlink(directoryPath);
+      const existingImage = await prisma.richTextImageGallery.findUnique({
+        where: { url: fileName },
+      });
+
+      if (!existingImage) {
+        console.log("Silinecek kayıt bulunamadı:", fileName);
+        return { success: false, message: "Resim veritabanında bulunamadı" };
+      }
+
       await prisma.richTextImageGallery.delete({
         where: { url: fileName },
       });
+
+      const deletedImage = await DeleteImageToAsset(fileName, {
+        type: "richText",
+      });
+
+      if (!deletedImage.success) {
+        return { success: false, message: deletedImage.message };
+      }
+
       return { success: true, message: "Resim başarıyla silindi" };
     } catch (error) {
       console.error("Silme hatası:", error);

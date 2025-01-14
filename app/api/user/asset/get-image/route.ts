@@ -163,8 +163,7 @@ export async function GET(req: NextRequest) {
     const headers = {
       "Content-Type": "image/webp",
       "Cache-Control": "public, max-age=31536000, stale-while-revalidate=86400",
-      "Access-Control-Allow-Origin": "*",
-      "Cross-Origin-Resource-Policy": "cross-origin",
+      "Cross-Origin-Resource-Policy": "same-site",
     };
 
     return new NextResponse(processedImage, { headers });
