@@ -365,7 +365,6 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
     notFound();
   }
 
-  // JSON-LD oluştur
   const jsonLd = generateCategoryJsonLd({
     category: response.category,
     products: response.categoryVariants.map((variant) => ({

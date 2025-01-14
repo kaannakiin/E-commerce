@@ -200,6 +200,7 @@ model Image {
   mainSeoFavicon    MainSeoSettings?  @relation("Favicon")
   AltSectionImage   AltSectionImage[]
   Blog              Blog?
+  FaqSection        FaqSection?
 
   @@index([variantId])
   @@index([categoryId])
@@ -572,4 +573,40 @@ model ContactUs {
   isReturn  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model FaqSection {
+  id              String           @id @default(cuid())
+  title           String? // Section başlığı ekledim
+  description     String? // Section açıklaması ekledim
+  questions       FaqQuestion[] // İsim daha açıklayıcı
+  image           Image?           @relation(fields: [imageId], references: [id])
+  imageId         String?          @unique
+  isActive        Boolean          @default(true) // Genel aktivasyon kontrolü
+  displaySettings DisplaySettings? // Görünürlük ayarları için ayrı bir model
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt // Güncelleme tarihi ekledim
+}
+
+model FaqQuestion {
+  id        String     @id @default(cuid())
+  question  String
+  answer    String     @db.Text // Uzun cevaplar için Text tipi
+  isActive  Boolean    @default(true)
+  order     Int        @default(0)
+  section   FaqSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  sectionId String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model DisplaySettings {
+  id           String     @id @default(cuid())
+  faqSection   FaqSection @relation(fields: [faqSectionId], references: [id], onDelete: Cascade)
+  faqSectionId String     @unique
+  isMainPage   Boolean    @default(false)
+  isHeader     Boolean    @default(false)
+  isFooter     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }

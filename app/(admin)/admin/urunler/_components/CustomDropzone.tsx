@@ -6,13 +6,9 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { Control, useController } from "react-hook-form";
 import { IoClose, IoCloudUpload, IoImage, IoVideocam } from "react-icons/io5";
-const VIDEO_TYPES = {
-  "video/*": [".mp4", ".mov", ".avi"],
-};
+const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/x-msvideo"];
 
-const IMAGE_TYPES = {
-  "image/*": [".png", ".jpg", ".jpeg"],
-};
+const IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 
 interface CustomDropzoneProps {
   name: string;
@@ -34,11 +30,13 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
   const [previews, setPreviews] = useState<
     { url: string; file: FileWithPath }[]
   >([]);
-
+  const ACCEPTED_EXTENSIONS = {
+    images: ["PNG", "JPG", "JPEG"],
+    videos: ["MP4", "MOV", "AVI"],
+  };
   const ACCEPTED_MIME_TYPES = videosEnabled
-    ? [...Object.values(IMAGE_TYPES)[0], ...Object.values(VIDEO_TYPES)[0]]
-    : [...Object.values(IMAGE_TYPES)[0]];
-
+    ? [...IMAGE_TYPES, ...VIDEO_TYPES]
+    : IMAGE_TYPES;
   const {
     field: { onChange, value },
     fieldState: { error },
@@ -101,9 +99,6 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
         maxSize={MAX_FILE_SIZE}
         maxFiles={maxFiles}
         accept={ACCEPTED_MIME_TYPES}
-        onReject={(files) => {
-          console.log("rejected files", files);
-        }}
       >
         <Group
           justify="center"
@@ -126,13 +121,10 @@ const CustomDropzone: React.FC<CustomDropzoneProps> = ({
           </Dropzone.Idle>
 
           <div>
-            <Text size="xl" inline>
-              Dosyaları buraya sürükleyip bırakın veya seçmek için tıklayın
-            </Text>
             <Text size="sm" c="dimmed" inline mt={7}>
               {videosEnabled
-                ? `Görseller (PNG, JPG, JPEG) ve videolar (MP4, MOV, AVI) kabul edilir.`
-                : `Görseller (PNG, JPG, JPEG) kabul edilir.`}
+                ? `Görseller (${ACCEPTED_EXTENSIONS.images.join(", ")}) ve videolar (${ACCEPTED_EXTENSIONS.videos.join(", ")}) kabul edilir.`
+                : `Görseller (${ACCEPTED_EXTENSIONS.images.join(", ")}) kabul edilir.`}
               Maksimum {maxFiles * 10} MB. En fazla {maxFiles} dosya
               yüklenebilir
             </Text>

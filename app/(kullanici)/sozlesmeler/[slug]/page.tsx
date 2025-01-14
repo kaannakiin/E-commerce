@@ -1,22 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { Params } from "@/types/types";
 import { slugify } from "@/utils/SlugifyVariants";
-import { ECommerceAgreements } from "@prisma/client";
-import { notFound } from "next/navigation";
-import React, { cache } from "react";
 import {
-  Paper,
-  Title,
-  Text,
   Container,
   Group,
+  Paper,
+  Text,
+  Title,
   TypographyStylesProvider,
 } from "@mantine/core";
-import { RiCalendarLine, RiRefreshLine } from "react-icons/ri";
+import { ECommerceAgreements } from "@prisma/client";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { cache } from "react";
+import { RiCalendarLine, RiRefreshLine } from "react-icons/ri";
 
-// HTML içeriğini güvenli bir şekilde parse etmek için
 const createMarkup = (html: string) => {
   return { __html: html };
 };
@@ -58,7 +58,35 @@ const feedPage = cache(async (slug: ECommerceAgreements) => {
     return notFound();
   }
 });
+export async function generateMetadata({
+  params,
+}: {
+  params: Params;
+}): Promise<Metadata> {
+  const slug = (await params).slug;
+  const agreementType = getAgreementTypeFromSlug(slug);
+  if (!agreementType) {
+    return notFound();
+  }
+  const data = await feedPage(agreementType);
 
+  return {
+    title: `${data?.title}`,
+
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: {
+        index: false,
+        follow: false,
+      },
+    },
+    other: {
+      "X-Robots-Tag": "noindex, nofollow",
+    },
+  };
+}
 const PolicyUserPage = async ({ params }: { params: Params }) => {
   const slug = (await params).slug;
   const agreementType = getAgreementTypeFromSlug(slug);

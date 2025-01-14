@@ -85,8 +85,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         },
       }),
     ]);
-
-    // Variants için kontrol ve dönüşüm
     const variantsUrls =
       variantsData?.length > 0
         ? variantsData.map((variant): MetadataRoute.Sitemap[number] => ({
@@ -108,7 +106,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const categoriesUrls =
       categoriesData?.length > 0
         ? categoriesData.map((category): MetadataRoute.Sitemap[number] => ({
-            url: sanitizeUrl(`${baseUrl}/category/${category.slug}`),
+            url: sanitizeUrl(`${baseUrl}/categories/${category.slug}`),
             lastModified: new Date(category.updatedAt),
             priority: 0.9,
             changeFrequency: "weekly" as const,
