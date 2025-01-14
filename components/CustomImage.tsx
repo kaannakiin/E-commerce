@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { twMerge } from "tailwind-merge"; // className'leri daha iyi yönetmek için
+import { twMerge } from "tailwind-merge";
 
 type CustomImageProps = {
   src: string;
@@ -11,24 +11,27 @@ type CustomImageProps = {
   sizes?: string;
   className?: string;
   objectFit?: "cover" | "contain";
+  richText?: boolean;
   onLoad?(): void;
   onError?(): void;
 };
 
 const CustomImage = ({
   src,
-  quality = 75,
+  quality = 80, // NewRecordAsset'teki varsayılan değer ile eşleştirildi
   priority = false,
   alt = "Image",
   sizes = "100vw",
   className = "",
   objectFit = "cover",
+  richText = false,
   onLoad,
   onError,
 }: CustomImageProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [imgSrc, setImgSrc] = useState(src);
+
   useEffect(() => {
     setLoading(true);
     setError(false);
@@ -52,10 +55,14 @@ const CustomImage = ({
     src: string;
   }) => {
     const params = new URLSearchParams({
+      url: safeEncodeURIComponent(src),
       width: width.toString(),
       quality: quality.toString(),
-      url: safeEncodeURIComponent(src),
     });
+
+    if (richText) {
+      params.append("richText", "true");
+    }
 
     return `/api/user/asset/get-image?${params.toString()}`;
   };
@@ -65,6 +72,10 @@ const CustomImage = ({
       url: safeEncodeURIComponent(src),
       thumbnail: "true",
     });
+
+    if (richText) {
+      params.append("richText", "true");
+    }
 
     return `/api/user/asset/get-image?${params.toString()}`;
   };
@@ -85,6 +96,7 @@ const CustomImage = ({
     objectFit === "cover" ? "object-cover" : "object-contain",
     className,
   );
+
   if (error) {
     return (
       <div className="relative flex h-full w-full items-center justify-center bg-gray-100">

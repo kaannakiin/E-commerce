@@ -6,6 +6,7 @@ import { useMediaQuery } from "@mantine/hooks";
 import Link from "next/link";
 import classes from "./modules/CategoryCarousels.module.css";
 import { FeedCategoriesType } from "./FeedCategoryCarousels";
+import { BiLeftArrowAlt, BiRightArrowAlt } from "react-icons/bi";
 
 interface CardProps {
   image: string;
@@ -19,10 +20,11 @@ function Card({ image, title, category, slug }: CardProps) {
     <Paper
       shadow="md"
       p="xl"
-      component={Link}
-      href={`/categories/${slug}`}
+      radius="md"
       style={{ backgroundImage: `url(${image})` }}
       className={classes.card}
+      component={Link}
+      href={`/categories/${slug}`}
     >
       <div>
         <Text c={"secondary.9"} className={classes.category} size="xs">
@@ -68,14 +70,15 @@ export function CategoryCarousels({
 
   return (
     <Carousel
-      slideSize={{ base: "100%", sm: "33%" }}
-      slideGap={{ sm: "xl" }}
+      slideSize={{ base: "100%", sm: "25%" }}
+      slideGap={{ base: 2, sm: "xl" }}
       align="start"
-      slidesToScroll={mobile ? 1 : 3}
-      withControls={mobile ? true : false}
-      withIndicators={mobile ? false : true}
-      classNames={{ indicator: classes.indicator }}
-      className="mb-2"
+      slidesToScroll={mobile ? 1 : 4}
+      previousControlIcon={<BiLeftArrowAlt size={16} />}
+      nextControlIcon={<BiRightArrowAlt size={16} />}
+      classNames={{
+        control: "!rounded-none !border !border-black border-solid",
+      }}
     >
       {slides}
     </Carousel>

@@ -11,11 +11,9 @@ import {
   Button,
   Card,
   ColorSwatch,
-  Group,
   Paper,
   Text,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -36,7 +34,6 @@ const ProductCard = ({
     product.discount,
     product.product.taxRate,
   );
-  const matches = useMediaQuery("(min-width: 56.25em)");
   const [isFave, setIsFave] = useState(isFavorited);
   const pathname = usePathname();
   const isInFavoritesPage = pathname === "/hesabim/favoriler";
@@ -61,6 +58,7 @@ const ProductCard = ({
         <Carousel
           withIndicators={product.Image.length > 1}
           withControls={false}
+          draggable={product.Image.length > 1}
           classNames={{
             indicator: styles.indicator,
           }}
