@@ -14,7 +14,6 @@ import { VariantType } from "@prisma/client";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-// Önce interface'leri güncelleyelim
 export interface CategoryVariant {
   id: string;
   type: VariantType;
@@ -229,7 +228,6 @@ const feedCat = cache(
           })
         : [];
 
-      // Alt kategorileri getir
       const childCategories = await prisma.category.findMany({
         where: {
           googleCategory: {
@@ -291,6 +289,7 @@ const feedCat = cache(
               select: {
                 name: true,
                 taxRate: true,
+                active: true,
                 shortDescription: true,
                 categories: {
                   select: {
@@ -312,7 +311,9 @@ const feedCat = cache(
       ]);
 
       return {
-        categoryVariants,
+        categoryVariants: categoryVariants.filter(
+          (variant) => variant.product.active,
+        ),
         count,
         category,
         parentCategories,
@@ -427,7 +428,7 @@ const page = async (props: { params: Params; searchParams: SearchParams }) => {
             {response.category.description}
           </Text>
         </Paper>
-      )}  
+      )}
 
       <FilterDrawer count={response.count} />
       <div className="mt-6">
