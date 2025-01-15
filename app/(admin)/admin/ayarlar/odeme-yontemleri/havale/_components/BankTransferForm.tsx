@@ -1,15 +1,17 @@
 "use client";
 import ControlledRichEditor from "@/app/(admin)/admin/blog/_components/RichEditor";
 import {
-  paymentMethodsForm,
-  PaymentMethodsFormValues,
+  BankTransferForAdminSchema,
+  PaymentMethodsForAdminFormValues,
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  Alert,
   Button,
   Grid,
   NumberInput,
   Select,
+  Switch,
   TextInput,
   Tooltip,
 } from "@mantine/core";
@@ -21,6 +23,7 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BankTransferFormProps } from "../page";
+import { BsInfoCircle } from "react-icons/bs";
 
 const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
   const [dialogState, setDialogState] = useState<{
@@ -32,12 +35,14 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
     message: "",
     type: "success",
   });
+
   const {
     control,
     handleSubmit,
+    watch,
     formState: { isSubmitting, errors },
-  } = useForm<PaymentMethodsFormValues>({
-    resolver: zodResolver(paymentMethodsForm),
+  } = useForm<PaymentMethodsForAdminFormValues>({
+    resolver: zodResolver(BankTransferForAdminSchema),
     defaultValues: {
       type: PaymentChannels.transfer,
       title: data?.title || "Havale / EFT",
@@ -47,10 +52,16 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
       orderChangeType: data?.orderChangeType || "minus",
       orderChange: data?.orderChange,
       orderChangeDiscountType: data?.orderChangeDiscountType || "FIXED",
+      isFunctioning: data?.isFunctioning ?? true,
     },
   });
+
+  const isFunctioning = watch("isFunctioning");
   const { push, refresh } = useRouter();
-  const onSubmit: SubmitHandler<PaymentMethodsFormValues> = async (data) => {
+
+  const onSubmit: SubmitHandler<PaymentMethodsForAdminFormValues> = async (
+    data,
+  ) => {
     try {
       await BankTransferAction(data).then((res) => {
         if (res.success) {
@@ -83,16 +94,38 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="flex items-center justify-end">
+      <Alert variant="light" color="gray" c={"black"} icon={<BsInfoCircle />}>
+        Fiyat değiştirme özelliği aktif olduğunda, bu ödeme yöntemini seçen
+        müşterilerin sepet tutarlarına belirlediğiniz oranda indirim ya da ek
+        ücret yansıtılacaktır. Bu özellik pasif olduğunda hiçbir fiyat
+        değişikliği uygulanmayacaktır.
+      </Alert>
+      <div className="flex items-center justify-between">
+        <Controller
+          control={control}
+          name="isFunctioning"
+          render={({ field: { value, onChange, ...field } }) => (
+            <Switch
+              {...field}
+              checked={value}
+              onChange={(event) => onChange(event.currentTarget.checked)}
+              label={
+                value ? "Fiyat değiştirme aktif" : "Fiyat değiştirme pasif"
+              }
+            />
+          )}
+        />
         <Button type="submit" loading={isSubmitting}>
           Kaydet
         </Button>
       </div>
+
       <Controller
         control={control}
         name="type"
-        render={({ field }) => <select hidden />}
+        render={({ field }) => <select hidden {...field} />}
       />
+
       <Controller
         control={control}
         name="title"
@@ -100,6 +133,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
           <TextInput
             {...field}
             label="Ödeme Yöntemi Adı"
+            error={errors.title?.message}
             rightSection={
               <Tooltip
                 color="primary.9"
@@ -111,6 +145,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
           />
         )}
       />
+
       <Grid>
         <Grid.Col span={6}>
           <Controller
@@ -121,6 +156,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
                 {...field}
                 label="Minimum sepet tutarı"
                 min={0}
+                disabled={!isFunctioning}
                 hideControls
                 error={errors.minAmount?.message}
                 max={Number.MAX_SAFE_INTEGER}
@@ -144,6 +180,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
               <NumberInput
                 {...field}
                 hideControls
+                disabled={!isFunctioning}
                 error={errors.maxAmount?.message}
                 label="Maksimum sepet tutarı"
                 rightSection={
@@ -159,6 +196,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
           />
         </Grid.Col>
       </Grid>
+
       <Grid justify="flex-start" align="flex-end">
         <Grid.Col span={6}>
           <Controller
@@ -167,6 +205,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
             render={({ field }) => (
               <Select
                 {...field}
+                disabled={!isFunctioning}
                 error={errors.orderChangeType?.message}
                 description="Sipariş tutarına indirim ya da arttırım yapabilirsiniz."
                 classNames={{
@@ -194,6 +233,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
             render={({ field }) => (
               <Select
                 {...field}
+                disabled={!isFunctioning}
                 error={errors.orderChangeDiscountType?.message}
                 label="Değişim Tipi"
                 data={[
@@ -216,6 +256,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
               <NumberInput
                 {...field}
                 error={errors.orderChange?.message}
+                disabled={!isFunctioning}
                 label="Değişim Miktarı"
                 hideControls
                 min={0}
@@ -225,6 +266,7 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
           />
         </Grid.Col>
       </Grid>
+
       <div className="space-y-1">
         <span className="flex flex-row items-center gap-1">
           Açıklama
@@ -236,7 +278,11 @@ const BankTransferForm = ({ data }: { data: BankTransferFormProps | null }) => {
           </Tooltip>
         </span>
         <ControlledRichEditor control={control} name="description" />
+        {errors.description && (
+          <p className="text-sm text-red-500">{errors.description.message}</p>
+        )}
       </div>
+
       <FeedbackDialog
         isOpen={dialogState.isOpen}
         onClose={() => setDialogState((prev) => ({ ...prev, isOpen: false }))}

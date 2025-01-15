@@ -530,6 +530,7 @@ model PaymentMethods {
   type                    PaymentChannels  @unique
   title                   String
   description             String?
+  isFunctioning           Boolean?
   iyzicoAPIKEY            String?
   iyzicoSECRETKEY         String?
   tamiMERCHANTNUMBER      String?

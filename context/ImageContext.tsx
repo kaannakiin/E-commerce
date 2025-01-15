@@ -25,7 +25,10 @@ const ImageProvider: FC<ImageContextProps> = ({ children }) => {
   const [images, setImages] = useState<string[]>([]);
 
   const updateImages = (data: string[]) => {
-    setImages([...data, ...images]);
+    setImages((prevImages) => {
+      const newUniqueImages = data.filter((url) => !prevImages.includes(url));
+      return [...newUniqueImages, ...prevImages];
+    });
   };
 
   const removeOldImage = (secureUrl: string) => {

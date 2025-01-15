@@ -13,8 +13,11 @@ export default function robots(): MetadataRoute.Robots {
           "/api/*",
           "/auth/*",
           "/hesabim/*",
+          "/hesabim",
           "/sepet",
           "/odeme",
+          "sifremi-unuttum",
+          "sifremi-unuttum/*",
           "/arama", // Arama sonuç sayfaları
           "/*?sort=*", // Sıralama parametreleri
           "/*?filter=*", // Filtre parametreleri

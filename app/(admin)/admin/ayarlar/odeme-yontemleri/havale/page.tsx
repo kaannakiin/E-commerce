@@ -12,6 +12,7 @@ export type BankTransferFormProps = Prisma.PaymentMethodsGetPayload<{
     orderChangeType: true;
     orderChange: true;
     orderChangeDiscountType: true;
+    isFunctioning: true;
   };
 }>;
 const feedPage = cache(async () => {
@@ -26,6 +27,7 @@ const feedPage = cache(async () => {
         orderChangeType: true,
         orderChange: true,
         orderChangeDiscountType: true,
+        isFunctioning: true,
       },
     });
     if (!data) return null;

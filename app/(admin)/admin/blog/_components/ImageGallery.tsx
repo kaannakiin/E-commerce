@@ -6,7 +6,7 @@ import { Group, Modal, rem, Text } from "@mantine/core";
 import { Dropzone, DropzoneProps, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import "@mantine/dropzone/styles.css";
 import { useDisclosure } from "@mantine/hooks";
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { HiOutlinePhoto } from "react-icons/hi2";
 import { IoCloudUploadOutline, IoImageOutline } from "react-icons/io5";
 import { LiaTimesSolid } from "react-icons/lia";
@@ -24,18 +24,32 @@ const ImageGallery = ({ onImageSelect, ...props }: ImageGalleryProps) => {
   const updateImages = image?.updateImages;
   const removeOldImage = image?.removeOldImage;
   const [loading, setLoading] = useState(false);
+  const dropzoneRef = useRef(null);
 
   const onDrop = async (data) => {
+    if (!data.imageFiles || data.imageFiles.length === 0) return;
+
     try {
       setLoading(true);
+
       const res = await NewRecordAsset(
         data.imageFiles[0],
         "richText",
         false,
         false,
       );
+
       if (res.success) {
-        updateImages([res.secureUrl, ...images]);
+        if (updateImages && images) {
+          if (!images.includes(res.secureUrl)) {
+            updateImages([res.secureUrl, ...images]);
+          }
+        }
+
+        // Dropzone'u resetle
+        if (dropzoneRef.current) {
+          dropzoneRef.current.reset();
+        }
       }
     } catch (error) {
       console.error("Resim yükleme hatası:", error);
@@ -80,12 +94,14 @@ const ImageGallery = ({ onImageSelect, ...props }: ImageGalleryProps) => {
           blur: 3,
         }}
       >
-        {loading && <MainLoader type="oval" />}
+        {loading && <MainLoader type="oval" opacity={1} />}
         <div className="h-full min-h-full w-full min-w-full p-4">
           <Dropzone
+            ref={dropzoneRef}
             onDrop={(files) => onDrop({ imageFiles: files })}
             maxSize={10 * 1024 * 1024}
             maxFiles={1}
+            multiple={false}
             accept={IMAGE_MIME_TYPE}
             {...props}
           >

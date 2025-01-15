@@ -29,7 +29,6 @@ export type BankTransferDetailProps = Prisma.PaymentMethodsGetPayload<{
 }>;
 const feedPage = cache(async (userId: string | null | undefined) => {
   try {
-    // userId yoksa sadece banka transferi bilgisini döndür
     if (!userId) {
       const bankTransfer = await prisma.paymentMethods.findUnique({
         where: {
@@ -43,6 +42,7 @@ const feedPage = cache(async (userId: string | null | undefined) => {
           orderChangeType: true,
           orderChange: true,
           orderChangeDiscountType: true,
+          isFunctioning: true,
         },
       });
       return { bankTransfer, feedAddress: null };
@@ -62,6 +62,7 @@ const feedPage = cache(async (userId: string | null | undefined) => {
           orderChangeType: true,
           orderChange: true,
           orderChangeDiscountType: true,
+          isFunctioning: true,
         },
       }),
       prisma.user.findUnique({
