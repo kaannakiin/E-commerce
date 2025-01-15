@@ -3,14 +3,15 @@ import React from "react";
 
 interface MainLoaderProps {
   type?: "dots" | "bars" | "oval";
+  opacity?: number;
 }
 
-const MainLoader = ({ type = "dots" }: MainLoaderProps) => {
+const MainLoader = ({ type = "dots", opacity = 0.7 }: MainLoaderProps) => {
   return (
     <LoadingOverlay
       visible
       zIndex={1000}
-      overlayProps={{ opacity: 0.7 }}
+      overlayProps={{ opacity ,}}
       loaderProps={{ type: type, color: "primary", size: "lg" }}
     />
   );

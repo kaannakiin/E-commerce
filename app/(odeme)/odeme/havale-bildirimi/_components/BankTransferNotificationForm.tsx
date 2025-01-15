@@ -1,7 +1,7 @@
 "use client";
 import {
-  BankTransferFormValues,
-  BankTransferSchema,
+  BankTransferFormforUserRegisterValues,
+  BankTransferforUserRegisterSchema,
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -33,8 +33,8 @@ const BankTransferNotificationForm = ({
     setError,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<BankTransferFormValues>({
-    resolver: zodResolver(BankTransferSchema),
+  } = useForm<BankTransferFormforUserRegisterValues>({
+    resolver: zodResolver(BankTransferforUserRegisterSchema),
     defaultValues: {
       transferFirstName: "",
       transferLastName: "",
@@ -42,7 +42,9 @@ const BankTransferNotificationForm = ({
     },
   });
   const { push } = useRouter();
-  const onSubmit: SubmitHandler<BankTransferFormValues> = async (data) => {
+  const onSubmit: SubmitHandler<BankTransferFormforUserRegisterValues> = async (
+    data,
+  ) => {
     try {
       await createBankTransferNotification(data, orderNumber).then((res) => {
         if (res.success) {

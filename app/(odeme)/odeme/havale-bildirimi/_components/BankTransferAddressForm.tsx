@@ -1,7 +1,7 @@
 "use client";
 import {
-  BankTransferAddressFormValues,
-  BankTransferAddressSchema,
+  BankTransferForUserAddressFormValues,
+  BankTransferForUserAddressSchema,
 } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -96,8 +96,8 @@ const BankTransferAddressForm = ({
     setError,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<BankTransferAddressFormValues>({
-    resolver: zodResolver(BankTransferAddressSchema),
+  } = useForm<BankTransferForUserAddressFormValues>({
+    resolver: zodResolver(BankTransferForUserAddressSchema),
     defaultValues: {
       aggrements: false,
     },
@@ -235,9 +235,9 @@ const BankTransferAddressForm = ({
     };
     checkOrderAndSetStep();
   }, [searchParams, push]);
-  const onAddressSubmit: SubmitHandler<BankTransferAddressFormValues> = async (
-    formData,
-  ) => {
+  const onAddressSubmit: SubmitHandler<
+    BankTransferForUserAddressFormValues
+  > = async (formData) => {
     try {
       const response = await createBankTransfer({
         data: formData,

@@ -5,9 +5,9 @@ import { calculatePrice } from "@/lib/calculatePrice";
 import { generateOrderNumber } from "@/lib/İyzico/helper/helper";
 import { prisma } from "@/lib/prisma";
 import {
-  BankTransferAddressFormValues,
-  BankTransferAddressSchema,
-  BankTransferFormValues,
+  BankTransferForUserAddressFormValues,
+  BankTransferForUserAddressSchema,
+  BankTransferFormforUserRegisterValues,
   IdForEverythingType,
   VariantIdQtyItemType,
   variantIdQtySchema,
@@ -21,7 +21,7 @@ export async function createBankTransfer({
   discountCode,
   addressId,
 }: {
-  data: BankTransferAddressFormValues;
+  data: BankTransferForUserAddressFormValues;
   items: VariantIdQtyItemType[];
   discountCode?: string;
   addressId?: IdForEverythingType;
@@ -142,7 +142,7 @@ export async function createBankTransfer({
         firstName,
         lastName,
         phone,
-      } = BankTransferAddressSchema.parse(data);
+      } = BankTransferForUserAddressSchema.parse(data);
       await prisma.order.create({
         data: {
           orderNumber: orderNumber,
@@ -208,7 +208,7 @@ export async function createBankTransfer({
   }
 }
 export async function createBankTransferNotification(
-  data: BankTransferFormValues,
+  data: BankTransferFormforUserRegisterValues,
   orderNumber: string,
 ): Promise<{ success: boolean; message: string }> {
   try {

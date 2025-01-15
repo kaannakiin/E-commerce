@@ -22,6 +22,7 @@ export async function generateMetadata(params: {
       title: page === 1 ? "Blog Yazıları " : `Blog Yazıları - ${page}`,
       description: "En güncel blog yazılarımızı keşfedin. ",
     },
+
     alternates: {
       canonical: page === 1 ? `${domain}/blog` : `${domain}/blog?page=${page}`,
     },

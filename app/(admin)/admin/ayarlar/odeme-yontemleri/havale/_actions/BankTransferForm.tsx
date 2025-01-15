@@ -3,13 +3,13 @@
 import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { prisma } from "@/lib/prisma";
 import {
-  paymentMethodsForm,
-  PaymentMethodsFormValues,
+  BankTransferForAdminSchema,
+  PaymentMethodsForAdminFormValues,
 } from "@/zodschemas/authschema";
 import { PaymentChannels } from "@prisma/client";
 
 export async function BankTransferAction(
-  data: PaymentMethodsFormValues,
+  data: PaymentMethodsForAdminFormValues,
 ): Promise<{
   success: boolean;
   message: string;
@@ -19,10 +19,8 @@ export async function BankTransferAction(
     if (!session) {
       return { success: false, message: "Yetkisiz Erişim" };
     }
-
     const {
       description,
-
       maxAmount,
       minAmount,
       orderChange,
@@ -30,8 +28,9 @@ export async function BankTransferAction(
       orderChangeType,
       testMode,
       title,
+      isFunctioning,
       type,
-    } = paymentMethodsForm.parse(data);
+    } = BankTransferForAdminSchema.parse(data);
     const payment = await prisma.paymentMethods.findUnique({
       where: {
         type: type as PaymentChannels,
@@ -51,7 +50,7 @@ export async function BankTransferAction(
           orderChangeType,
           maxAmount,
           minAmount,
-
+          isFunctioning,
           testMode,
         },
       });
@@ -68,6 +67,7 @@ export async function BankTransferAction(
           orderChange,
           orderChangeDiscountType,
           orderChangeType,
+          isFunctioning,
         },
       });
       return { success: true, message: "Ödeme yöntemi başarıyla eklendi" };

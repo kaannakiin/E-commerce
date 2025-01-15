@@ -3,7 +3,6 @@ import { cache } from "react";
 import ProductCard from "./ProductCard";
 import { Paper } from "@mantine/core";
 
-// Cache'lenmiş veri çekme fonksiyonu
 const feedFeaturedProduct = cache(async () => {
   try {
     const products = await prisma.variant.findMany({
@@ -29,13 +28,13 @@ const feedFeaturedProduct = cache(async () => {
         value: true,
         discount: true,
         createdAt: true,
-
         product: {
           select: {
             name: true,
             description: true,
             shortDescription: true,
             taxRate: true,
+            active: true,
             categories: {
               select: {
                 name: true,
@@ -54,7 +53,11 @@ const feedFeaturedProduct = cache(async () => {
     if (!products.length) {
       return null;
     }
-    return { products };
+    const filteredProducts = products.filter(
+      (product) => product.product.active,
+    );
+
+    return { products: filteredProducts };
   } catch (error) {
     return {
       error:

@@ -1694,7 +1694,7 @@ export const policyFormSchema = z.object({
 });
 export type PolicyFormValues = z.infer<typeof policyFormSchema>;
 
-export const paymentMethodsForm = z
+export const BankTransferForAdminSchema = z
   .object({
     title: z
       .string({ message: "Bu alan zorunludur" })
@@ -1704,23 +1704,25 @@ export const paymentMethodsForm = z
       required_error: "Ödeme yöntemi seçmelisiniz",
       invalid_type_error: "Geçersiz ödeme yöntemi",
     }),
+    isFunctioning: z.boolean().default(true),
     orderChange: z
-      .number({ message: "Bu alan gereklidir" })
-      .min(0, { message: "Büyüklük 0'dan küçük olamaz" })
-      .max(Number.MAX_SAFE_INTEGER, {
-        message: "Büyüklük çok büyük",
-      }),
-    orderChangeType: z.enum([OrderChangeType.minus, OrderChangeType.plus], {
-      required_error: "Bu alan gereklidir",
-      invalid_type_error: "Geçersiz ödeme yöntemi",
-    }),
-    orderChangeDiscountType: z.enum(
-      [DiscountType.FIXED, DiscountType.PERCENTAGE],
-      {
+      .number({
+        required_error: "Bu alan gereklidir",
+        invalid_type_error: "Bu alan gereklidir",
+      })
+      .nullable(),
+    orderChangeType: z
+      .enum([OrderChangeType.minus, OrderChangeType.plus], {
+        required_error: "Bu alan gereklidir",
+        invalid_type_error: "Geçersiz ödeme yöntemi",
+      })
+      .nullable(),
+    orderChangeDiscountType: z
+      .enum([DiscountType.FIXED, DiscountType.PERCENTAGE], {
         required_error: "Bu alan gereklidir",
         invalid_type_error: "Geçersiz değişim türü",
-      },
-    ),
+      })
+      .nullable(),
     description: z
       .string()
       .nullable()
@@ -1729,7 +1731,6 @@ export const paymentMethodsForm = z
       .refine(
         (value) => {
           if (value === null || value === undefined) return true;
-          // Güvenlik kontrolü - zararlı tagları ve attributeleri kontrol et
           const forbiddenPatterns = [
             /<script/i,
             /<iframe/i,
@@ -1754,11 +1755,10 @@ export const paymentMethodsForm = z
       .refine(
         (value) => {
           if (value === null || value === undefined) return true;
-          // İçerik uzunluğu kontrolü
           const strippedContent = value
-            .replace(/<[^>]*>/g, "") // HTML tagları temizle
-            .replace(/&nbsp;/g, " ") // &nbsp; karakterlerini boşluğa çevir
-            .replace(/\s+/g, " ") // Birden fazla boşluğu teke indir
+            .replace(/<[^>]*>/g, "")
+            .replace(/&nbsp;/g, " ")
+            .replace(/\s+/g, " ")
             .trim();
 
           return strippedContent.length >= MIN_CONTENT_LENGTH;
@@ -1785,7 +1785,6 @@ export const paymentMethodsForm = z
       .refine(
         (value) => {
           if (value === null || value === undefined) return true;
-          // Link kontrolü - tüm linklerin geçerli olduğundan emin ol
           const linkMatches = value.match(/href=["'](.*?)["']/g);
           if (!linkMatches) return true;
 
@@ -1798,7 +1797,7 @@ export const paymentMethodsForm = z
               new URL(url);
               return true;
             } catch {
-              return url.startsWith("/") || url.startsWith("#"); // İç linkler için
+              return url.startsWith("/") || url.startsWith("#");
             }
           });
         },
@@ -1809,13 +1808,12 @@ export const paymentMethodsForm = z
       .refine(
         (value) => {
           if (value === null || value === undefined) return true;
-          // İçeriğin dengeli HTML taglarına sahip olduğunu kontrol et
           const stack = [];
           const selfClosingTags = ["img", "br", "hr", "input"];
           const tags = value.match(/<\/?[^>]+>/g) || [];
 
           for (const tag of tags) {
-            if (tag.match(/<\/?[^>]+\/>/)) continue; // Self-closing tagları atla
+            if (tag.match(/<\/?[^>]+\/>/)) continue;
 
             if (tag.startsWith("</")) {
               const closeTag = tag.match(/<\/([^>]+)>/)[1];
@@ -1839,6 +1837,54 @@ export const paymentMethodsForm = z
     minAmount: z.number().nullable(),
     maxAmount: z.number().nullable(),
   })
+  .superRefine((data, ctx) => {
+    if (data.isFunctioning) {
+      // orderChange zorunlu kontrolü
+      if (data.orderChange === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Bu alan zorunludur",
+          path: ["orderChange"],
+        });
+      }
+
+      // orderChangeType zorunlu kontrolü
+      if (data.orderChangeType === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Bu alan zorunludur",
+          path: ["orderChangeType"],
+        });
+      }
+
+      // orderChangeDiscountType zorunlu kontrolü
+      if (data.orderChangeDiscountType === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Bu alan zorunludur",
+          path: ["orderChangeDiscountType"],
+        });
+      }
+
+      // minAmount zorunlu kontrolü
+      if (data.minAmount === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Bu alan zorunludur",
+          path: ["minAmount"],
+        });
+      }
+
+      // maxAmount zorunlu kontrolü
+      if (data.maxAmount === null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Bu alan zorunludur",
+          path: ["maxAmount"],
+        });
+      }
+    }
+  })
   .refine(
     (data) => {
       if (data.minAmount === null || data.maxAmount === null) return true;
@@ -1861,7 +1907,9 @@ export const paymentMethodsForm = z
       path: ["orderChange"],
     },
   );
-export type PaymentMethodsFormValues = z.infer<typeof paymentMethodsForm>;
+export type PaymentMethodsForAdminFormValues = z.infer<
+  typeof BankTransferForAdminSchema
+>;
 
 export const richTextImageUploadSchema = z.object({
   imageFiles: z.array(z.instanceof(File)).superRefine((files, ctx) => {
@@ -1901,7 +1949,7 @@ export type RichTextImageUploadFormValues = z.infer<
   typeof richTextImageUploadSchema
 >;
 
-export const BankTransferAddressSchema = z
+export const BankTransferForUserAddressSchema = z
   .object({
     firstName: z
       .string({ message: "Bu alan boş olamaz" })
@@ -1943,11 +1991,11 @@ export const BankTransferAddressSchema = z
     message: "Sözleşmeleri kabul etmelisiniz",
     path: ["aggrements"],
   });
-export type BankTransferAddressFormValues = z.infer<
-  typeof BankTransferAddressSchema
+export type BankTransferForUserAddressFormValues = z.infer<
+  typeof BankTransferForUserAddressSchema
 >;
 
-export const BankTransferSchema = z.object({
+export const BankTransferforUserRegisterSchema = z.object({
   transferFirstName: z
     .string({ message: "Bu alan boş olamaz" })
     .min(2, "Ad en az 2 karakter olmalıdır")
@@ -1965,7 +2013,9 @@ export const BankTransferSchema = z.object({
       "Geçerli bir saat giriniz (Örnek: 15:15)",
     ),
 });
-export type BankTransferFormValues = z.infer<typeof BankTransferSchema>;
+export type BankTransferFormforUserRegisterValues = z.infer<
+  typeof BankTransferforUserRegisterSchema
+>;
 export const ContactUsSchema = z.object({
   name: z
     .string({ message: "Bu alan boş olamaz" })
