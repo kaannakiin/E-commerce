@@ -44,6 +44,7 @@ const feedPage = cache(async (slug: string) => {
         cancelProcessDate: true,
         cancelReason: true,
         paymentType: true,
+        BankTransferNotification: true,
         OrderItems: {
           select: {
             id: true,
@@ -192,6 +193,7 @@ const page = async (params: { params: Params }) => {
           maskedCardNumber={order.maskedCardNumber}
           paymentDate={order.paymentDate}
           paymentStatus={order.paymentStatus}
+          bankTransferNotification={order.BankTransferNotification[0]}
         />
       </div>
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
