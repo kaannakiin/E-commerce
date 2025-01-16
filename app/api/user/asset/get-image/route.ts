@@ -4,13 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import sharp from "sharp";
 
-// Constants aligned with NewRecordAsset
 const ASSET_DIR = path.join(process.cwd(), "assets");
 const RICH_TEXT_ASSET_DIR = path.join(process.cwd(), "rich-tech-assets");
-const DEFAULT_QUALITY = 80; // Aligned with NewRecordAsset quality
-const MAX_WIDTH = 1920; // Aligned with NewRecordAsset resize
-const THUMBNAIL_QUALITY = 20; // Aligned with NewRecordAsset thumbnail quality
-const OG_QUALITY = 85; // Aligned with NewRecordAsset og quality
+const DEFAULT_QUALITY = 80;
+const MAX_WIDTH = 1920;
+const THUMBNAIL_QUALITY = 20;
+const OG_QUALITY = 85;
+const EMAIL_QUALITY = 85;
 
 interface ProcessImageOptions {
   width?: number;
@@ -19,6 +19,7 @@ interface ProcessImageOptions {
   og?: boolean;
   favicon?: boolean;
   richText?: boolean;
+  forEmail?: boolean;
 }
 
 async function processImage(
@@ -31,12 +32,26 @@ async function processImage(
     thumbnail = false,
     og = false,
     favicon = false,
+    forEmail = false,
   } = options;
 
   try {
     const imageBuffer = await fs.readFile(filePath);
     let imageProcessor = sharp(imageBuffer);
 
+    // Email için özel işleme
+    if (forEmail) {
+      return await imageProcessor
+        .jpeg({
+          quality: EMAIL_QUALITY,
+          progressive: true,
+        })
+        .withMetadata({ orientation: 1 })
+        .toColorspace("srgb")
+        .toBuffer();
+    }
+
+    // Mevcut işlemler aynen devam ediyor
     if (favicon) {
       return await imageProcessor
         .png({ quality: 80, compressionLevel: 7 })
@@ -110,6 +125,7 @@ async function processImage(
   }
 }
 
+// API route handler - /api/user/asset/get-image
 export async function GET(req: NextRequest) {
   try {
     const url = req.nextUrl.searchParams.get("url");
@@ -122,6 +138,7 @@ export async function GET(req: NextRequest) {
     const og = req.nextUrl.searchParams.get("og") === "true";
     const favicon = req.nextUrl.searchParams.get("favicon") === "true";
     const richText = req.nextUrl.searchParams.get("richText") === "true";
+    const forEmail = req.nextUrl.searchParams.get("forEmail") === "true";
 
     if (!url) {
       return NextResponse.json(
@@ -130,22 +147,15 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (url.includes("..") || url.includes("/")) {
+    // URL güvenlik kontrolü
+    if (url.includes("..")) {
       return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
     }
 
-    // Determine correct asset directory
     const baseDir = richText ? RICH_TEXT_ASSET_DIR : ASSET_DIR;
 
-    // Determine correct file name based on type
-    const fileName = url;
-    const actualFileName = og
-      ? fileName.replace(/\.webp$/, "-og.webp")
-      : thumbnail
-        ? fileName.replace(/\.webp$/, "-thumbnail.webp")
-        : fileName;
-
-    const filePath = path.join(baseDir, actualFileName);
+    // Dosya yolu oluşturma
+    const filePath = path.join(baseDir, url);
 
     if (!existsSync(filePath)) {
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
@@ -158,10 +168,14 @@ export async function GET(req: NextRequest) {
       og,
       favicon,
       richText,
+      forEmail,
     });
 
+    // Content-Type'ı forEmail durumuna göre ayarla
+    const contentType = forEmail ? "image/jpeg" : "image/webp";
+
     const headers = {
-      "Content-Type": "image/webp",
+      "Content-Type": contentType,
       "Cache-Control": "public, max-age=31536000, stale-while-revalidate=86400",
       "Cross-Origin-Resource-Policy": "cross-origin",
       "Content-Security-Policy":

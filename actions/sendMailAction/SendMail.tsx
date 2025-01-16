@@ -173,7 +173,7 @@ export async function sendOrderCreatedEmail({
     try {
       const storeInfo = await getLogoUrl();
       if (storeInfo.url)
-        url = `${baseUrl}/api/user/asset/get-image?url=${storeInfo.url}&width=200&height=42&quality=70`;
+        url = `${baseUrl}/api/user/asset/get-image?url=${storeInfo.url}&forEmail=true`;
       if (storeInfo.storeName) storeName = storeInfo.storeName;
     } catch (logoError) {
       console.warn(
@@ -289,7 +289,7 @@ export async function sendBankTransferConfirmedEmail({
     try {
       const storeInfo = await getLogoUrl();
       if (storeInfo.url)
-        url = `${baseUrl}/api/user/asset/get-image?url=${storeInfo.url}&width=200&height=42&quality=70`;
+        url = `${baseUrl}/api/user/asset/get-image?url=${storeInfo.url}&forEmail=true`;
       if (storeInfo.storeName) storeName = storeInfo.storeName;
     } catch (logoError) {
       console.warn(
@@ -387,7 +387,7 @@ export async function SendWelcomeEmail({ toEmail }: SendWelcomeEmailProps) {
     try {
       const storeInfo = await getLogoUrl();
       if (storeInfo.url)
-        url = `${baseUrl}/api/user/asset/get-image?url=${storeInfo.url}&width=200&height=42&quality=70`;
+        url = `${baseUrl}/api/user/asset/get-image?url=${storeInfo.url}&forEmail=true`;
       if (storeInfo.storeName) storeName = storeInfo.storeName;
     } catch (logoError) {
       console.warn(
