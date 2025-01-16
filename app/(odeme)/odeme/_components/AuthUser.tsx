@@ -1,17 +1,20 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import AddressForm from "@/app/(kullanici)/hesabim/adres-defterim/_components/AddressForm";
+import { useStore } from "@/store/store";
 import {
-  Tabs,
-  UnstyledButton,
-  Grid,
-  Card,
   ActionIcon,
-  Text,
-  Modal,
+  Card,
   Checkbox,
+  Grid,
+  Modal,
   Paper,
+  Tabs,
+  Text,
+  UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   FaCreditCard,
   FaEdit,
@@ -21,11 +24,7 @@ import {
 } from "react-icons/fa";
 import { MdAdd } from "react-icons/md";
 import { Address, BankTransferDetailProps } from "../page";
-import AddressForm from "@/app/(kullanici)/hesabim/adres-defterim/_components/AddressForm";
-import PaymentForm from "./PaymentForm";
-import { useRouter, useSearchParams } from "next/navigation";
 import AccordionForPayment from "./AccordionForPayment";
-import { useStore } from "@/store/store";
 
 const AuthUser = ({
   addresses,
@@ -134,24 +133,25 @@ const AuthUser = ({
 
                   <div className="mb-2 flex items-center gap-2">
                     <FaUser size={16} className="flex-shrink-0" />
-                    <Text size="sm" className="truncate font-extrabold">
-                      {address.name.charAt(0).toUpperCase() +
-                        address.name.slice(1).toLowerCase()}
-                      {address.surname.charAt(0).toUpperCase() +
-                        address.surname.slice(1).toLowerCase()}
+                    <Text
+                      size="sm"
+                      className="truncate font-bold"
+                      tt="capitalize"
+                    >
+                      {address.name + " " + address.surname}
                     </Text>
                   </div>
 
                   <div className="mb-2 flex items-center gap-2">
                     <FaPhone size={16} className="flex-shrink-0" />
-                    <Text size="sm" className="font-extrabold">
+                    <Text size="sm" className="font-bold">
                       {address.phone}
                     </Text>
                   </div>
 
                   <div className="flex flex-1 gap-2">
                     <FaMapMarkerAlt size={16} className="mt-1 flex-shrink-0" />
-                    <p className="line-clamp-2 text-sm font-extrabold text-gray-500">
+                    <p className="line-clamp-2 text-sm font-bold text-gray-500">
                       {address.addressDetail}, {address.district} /
                       {address.city}
                     </p>
@@ -201,21 +201,12 @@ const AuthUser = ({
       </Tabs.Panel>
 
       <Tabs.Panel value="payment">
-        {bankTransferData ? (
-          (bankTransferData.maxAmount === null ||
-            totalFinalPrice <= bankTransferData.maxAmount) &&
-          (bankTransferData.minAmount === null ||
-            totalFinalPrice >= bankTransferData.minAmount) ? (
-            <AccordionForPayment
-              data={bankTransferData}
-              defaultAddressId={defaultAddressId}
-            />
-          ) : (
-            <PaymentForm address={defaultAddressId} />
-          )
-        ) : (
-          <PaymentForm address={defaultAddressId} />
-        )}
+        {bankTransferData && bankTransferData.description ? (
+          <AccordionForPayment
+            data={bankTransferData}
+            defaultAddressId={defaultAddressId}
+          />
+        ) : null}
       </Tabs.Panel>
     </Tabs>
   );

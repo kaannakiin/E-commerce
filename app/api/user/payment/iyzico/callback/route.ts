@@ -1,17 +1,36 @@
 import { deleteAddress } from "@/app/(kullanici)/hesabim/adres-defterim/_actions/AddressActions";
 import {
   AuthUserCreateOrder,
+  CheckSignature,
   groupedItemTransactions,
   NonAuthUserCreateOrder,
 } from "@/lib/İyzico/helper/helper";
 import { iyzico } from "@/lib/İyzico/iyzicoClient";
+import CryptoJS from "crypto-js";
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
     const data = await req.formData();
-    const mdStatus = data.get("mdStatus") as string;
+    const status = data.get("status") as string;
     const paymentId = data.get("paymentId") as string;
+    const conversationData = data.get("conversationData") as string;
+    const conversationId = data.get("conversationId") as string;
+    const iyzicoSignature = data.get("signature") as string;
+    const mdStatus = data.get("mdStatus") as string;
+    const signature = generateResponseCallbackSignature({
+      conversationData,
+      conversationId,
+      mdStatus,
+      paymentId,
+      status,
+    });
+    const valid = CheckSignature(signature, iyzicoSignature);
+    if (!valid) {
+      return Response.redirect(
+        new URL("/odeme", process.env.NEXT_PUBLIC_APP_URL),
+      );
+    }
     const addressId = req.nextUrl.searchParams.get("ai");
     const nonAuthAddressId = req.nextUrl.searchParams.get("nai");
     const discountCode = (req.nextUrl.searchParams.get("di") as string) || null;
@@ -84,4 +103,24 @@ export async function POST(req: NextRequest) {
       new URL("/odeme", process.env.NEXT_PUBLIC_APP_URL),
     );
   }
+}
+
+function generateResponseCallbackSignature({
+  conversationData,
+  conversationId,
+  mdStatus,
+  paymentId,
+  status,
+}: {
+  conversationData?: string;
+  conversationId: string;
+  mdStatus: string;
+  paymentId: string;
+  status: string;
+}) {
+  const secretKey = process.env.IYZICO_SECRET_KEY;
+  const data = `${conversationData}:${conversationId}:${mdStatus}:${paymentId}:${status}`;
+  const encryptedData = CryptoJS.HmacSHA256(data, secretKey);
+  const hashedSignature = CryptoJS.enc.Hex.stringify(encryptedData);
+  return hashedSignature;
 }

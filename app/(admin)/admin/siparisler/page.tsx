@@ -53,6 +53,7 @@ const feedOrderPage = async (
   endDate?: string,
   search?: string,
   status?: OrderStatus,
+  orderPaymentType?: string,
 ) => {
   const isValidDate = (dateString?: string): boolean => {
     if (!dateString) return false;
@@ -68,6 +69,14 @@ const feedOrderPage = async (
         { address: { email: { contains: search } } },
         { orderNumber: { contains: search } },
       ],
+    }),
+    ...(orderPaymentType && {
+      paymentType:
+        orderPaymentType === "bankTransfer"
+          ? { equals: "BANK_TRANSFER" }
+          : orderPaymentType === "creditcards"
+            ? { not: "BANK_TRANSFER" }
+            : undefined, // 'allPayment' durumunda hiçbir filtreleme yapmaz
     }),
   };
 
@@ -160,7 +169,7 @@ const OrderPage = async (props: {
   const endDate = (searchParams.endDate as string) || "";
   const search = (searchParams.search as string) || "";
   const status = (searchParams.status as OrderStatus) || undefined;
-
+  const orderPaymentType = (searchParams.pm as string) || "allProducts";
   const { orders, totalPages } = await feedOrderPage(
     skip,
     limit,
@@ -168,6 +177,7 @@ const OrderPage = async (props: {
     endDate,
     search,
     status,
+    orderPaymentType,
   );
 
   return (

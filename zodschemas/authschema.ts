@@ -2102,3 +2102,150 @@ export const FaqSectionSchema = z.object({
     .min(1, { message: "En az bir soru eklemelisiniz" }),
 });
 export type FaqSectionFormValues = z.infer<typeof FaqSectionSchema>;
+
+//CUSTOMİZEEMAİLSCHEMAS
+const baseEmailSchema = z.object({
+  subject: z.string().min(1, "Konu başlığı gereklidir"),
+  senderName: z.string().min(1, "Gönderen adı gereklidir"),
+  senderEmail: z.string().email("Geçerli bir email adresi giriniz"),
+  templateEnabled: z.boolean().default(true),
+});
+const orderBaseSchema = z.object({
+  showOrderNumber: z.boolean().default(true),
+  showOrderDate: z.boolean().default(true),
+  showOrderItems: z.boolean().default(true),
+  showOrderTotal: z.boolean().default(true),
+  showShippingAddress: z.boolean().default(true),
+  showBillingAddress: z.boolean().default(true),
+  customMessage: z.string().optional(),
+});
+export const emailSchemas = {
+  ORDER_CREATED: baseEmailSchema.extend({
+    // ...orderBaseSchema.shape,
+    showPaymentMethod: z.boolean().default(true),
+    showEstimatedDeliveryDate: z.boolean().default(true),
+    showCancelInstructions: z.boolean().default(true),
+  }),
+
+  // Sipariş Onaylandı
+  ORDER_ACCEPTED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showProcessingTime: z.boolean().default(true),
+    showTrackingInstructions: z.boolean().default(true),
+  }),
+
+  // Sipariş İptal Edildi
+  ORDER_CANCELLED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showCancellationReason: z.boolean().default(true),
+    showRefundInfo: z.boolean().default(true),
+    showReorderInstructions: z.boolean().default(true),
+  }),
+
+  // Sipariş Faturası
+  ORDER_INVOICE: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showTaxDetails: z.boolean().default(true),
+    showPaymentDetails: z.boolean().default(true),
+    attachPdfInvoice: z.boolean().default(true),
+  }),
+
+  // Sipariş Teslim Edildi
+  ORDER_DELIVERED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showDeliveryDate: z.boolean().default(true),
+    showFeedbackLink: z.boolean().default(true),
+    showReturnInstructions: z.boolean().default(true),
+  }),
+
+  // Sipariş İade Edildi
+  ORDER_REFUNDED: baseEmailSchema.extend({
+    showRefundAmount: z.boolean().default(true),
+    showRefundMethod: z.boolean().default(true),
+    showRefundDate: z.boolean().default(true),
+    showOriginalOrderDetails: z.boolean().default(true),
+    refundNotes: z.string().optional(),
+  }),
+
+  // İade Talebi
+  ORDER_REFUND_REQUESTED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showReturnReason: z.boolean().default(true),
+    showReturnInstructions: z.boolean().default(true),
+    showReturnDeadline: z.boolean().default(true),
+    returnInstructions: z.string().optional(),
+  }),
+
+  // İade Reddedildi
+  ORDER_REFUND_REJECTED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showRejectionReason: z.boolean().default(true),
+    showAppealInstructions: z.boolean().default(true),
+    rejectionNotes: z.string().optional(),
+  }),
+
+  // Havale/EFT Bilgileri
+  ORDER_BANKTRANSFER_CREATED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showBankAccounts: z.boolean().default(true),
+    showTransferInstructions: z.boolean().default(true),
+    showPaymentDeadline: z.boolean().default(true),
+    transferInstructions: z.string().optional(),
+  }),
+
+  // Havale/EFT Onaylandı
+  ORDER_BANKTRANSFER_ACCEPTED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showTransferDetails: z.boolean().default(true),
+    showProcessingTimeline: z.boolean().default(true),
+  }),
+
+  // Havale/EFT Reddedildi
+  ORDER_BANKTRANSFER_REJECTED: baseEmailSchema.extend({
+    ...orderBaseSchema.shape,
+    showRejectionReason: z.boolean().default(true),
+    showAlternativePaymentMethods: z.boolean().default(true),
+    rejectionNotes: z.string().optional(),
+  }),
+
+  // Kargo Oluşturuldu
+  SHIPPING_CREATED: baseEmailSchema.extend({
+    showTrackingNumber: z.boolean().default(true),
+    showTrackingLink: z.boolean().default(true),
+    showCarrierInfo: z.boolean().default(true),
+    showEstimatedDeliveryDate: z.boolean().default(true),
+    showPackageDetails: z.boolean().default(true),
+  }),
+
+  // Kargo Teslim Edildi
+  SHIPPING_DELIVERED: baseEmailSchema.extend({
+    showDeliveryDate: z.boolean().default(true),
+    showDeliveryConfirmation: z.boolean().default(true),
+    showFeedbackRequest: z.boolean().default(true),
+    showReturnPolicy: z.boolean().default(true),
+  }),
+
+  // Şifre Sıfırlama
+  PASSWORD_RESET: baseEmailSchema.extend({
+    showResetLink: z.boolean().default(true),
+    showExpirationTime: z.boolean().default(true),
+    showSecurityTips: z.boolean().default(true),
+    resetLinkValidHours: z.number().min(1).default(24),
+  }),
+
+  // Hoş Geldiniz Mesajı
+  WELCOME_MESSAGE: baseEmailSchema.extend({
+    showAccountDetails: z.boolean().default(true),
+    showNextSteps: z.boolean().default(true),
+    showFeaturedProducts: z.boolean().default(true),
+    showWelcomeDiscount: z.boolean().default(true),
+    welcomeDiscountCode: z.string().optional(),
+    discountExpirationDays: z.number().optional(),
+  }),
+  OTHER: baseEmailSchema,
+};
+type EmailTemplateType = keyof typeof emailSchemas;
+
+export type EmailSchemaType = {
+  [K in EmailTemplateType]: z.infer<(typeof emailSchemas)[K]>;
+};

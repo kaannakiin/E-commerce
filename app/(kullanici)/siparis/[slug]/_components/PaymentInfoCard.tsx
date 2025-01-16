@@ -1,5 +1,10 @@
 import { Badge, Card, Divider, Group, Stack, Title, Text } from "@mantine/core";
-import { PaymentStatus, PaymentType, UserCancelReason } from "@prisma/client";
+import {
+  BankTransferNotification,
+  PaymentStatus,
+  PaymentType,
+  UserCancelReason,
+} from "@prisma/client";
 import { formatCancelReason, formatPaymentStatusWithColor } from "@/lib/format";
 import { TbCreditCard, TbCalendar, TbAlertCircle } from "react-icons/tb";
 import React from "react";
@@ -14,6 +19,7 @@ interface PaymentInfoCardProps {
   cancelProcessDate: Date | null;
   cancelReason: UserCancelReason | null;
   paymentType: PaymentType;
+  bankTransferNotification: BankTransferNotification | null;
 }
 
 const PaymentInfoCard = (props: PaymentInfoCardProps) => {
@@ -57,7 +63,19 @@ const PaymentInfoCard = (props: PaymentInfoCardProps) => {
               </Text>
             )}
           </Group>
-
+          {props.bankTransferNotification && (
+            <Group gap="xs" align="center">
+              <Text size="sm" c={"dimmed"} tt="capitalize">
+                Havale/EFT Bildirimi:{" "}
+                {props.bankTransferNotification.name +
+                  " " +
+                  props.bankTransferNotification.surname}
+              </Text>
+              <Text size="sm" c={"dimmed"} tt="capitalize">
+                Havale Zamanı: {props.bankTransferNotification.transactionTime}{" "}
+              </Text>
+            </Group>
+          )}
           {props.isCancelled && (
             <Group gap="xs" align="center">
               <TbAlertCircle size={20} style={{ color: "red" }} />

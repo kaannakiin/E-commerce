@@ -16,6 +16,7 @@ const feedPage = cache(async () => {
         orderChangeType: true,
         orderChange: true,
         orderChangeDiscountType: true,
+        isFunctioning: true,
       },
     });
     if (!havale) return notFound();

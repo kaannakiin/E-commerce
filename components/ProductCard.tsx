@@ -143,6 +143,7 @@ const ProductCard = ({
           )}
           <Button
             component={Link}
+            scroll={true}
             href={product.slug ? `/${product.slug}` : "/"}
             radius="md"
             size="xs"

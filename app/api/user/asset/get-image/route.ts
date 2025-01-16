@@ -163,7 +163,9 @@ export async function GET(req: NextRequest) {
     const headers = {
       "Content-Type": "image/webp",
       "Cache-Control": "public, max-age=31536000, stale-while-revalidate=86400",
-      "Cross-Origin-Resource-Policy": "same-site",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+      "Content-Security-Policy":
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;",
     };
 
     return new NextResponse(processedImage, { headers });

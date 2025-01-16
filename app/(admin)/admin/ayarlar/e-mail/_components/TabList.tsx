@@ -10,20 +10,27 @@ const TabList = () => {
     <Tabs defaultValue="orders" variant="pills" color="gray">
       <Tabs.List>
         <Tabs.Tab value="orders">Siparişler</Tabs.Tab>
+        <Tabs.Tab value="payment">Ödeme</Tabs.Tab>
         <Tabs.Tab value="ship">Kargo</Tabs.Tab>
         <Tabs.Tab value="refunds">İadeler</Tabs.Tab>
         <Tabs.Tab value="user">Müşteri</Tabs.Tab>
       </Tabs.List>
+
       <Tabs.Panel value="orders" className="py-2">
-        <Card
-          value={EmailTemplateType.ORDER_CANCELLED}
-          title="Sipariş İptal Edildi"
-          text="Siparişin iptal edilmesi durumunda müşteriye gönderilir."
-        />
         <Card
           value={EmailTemplateType.ORDER_CREATED}
           title="Sipariş Oluşturuldu"
           text="Müşteri, siparişini verdikten sonra müşteriye gönderilir."
+        />
+        <Card
+          value={EmailTemplateType.ORDER_ACCEPTED}
+          title="Sipariş Onaylandı"
+          text="Sipariş onaylandığında müşteriye gönderilir."
+        />
+        <Card
+          value={EmailTemplateType.ORDER_CANCELLED}
+          title="Sipariş İptal Edildi"
+          text="Siparişin iptal edilmesi durumunda müşteriye gönderilir."
         />
         <Card
           value={EmailTemplateType.ORDER_INVOICE}
@@ -36,6 +43,25 @@ const TabList = () => {
           text="Sipariş teslim edildi durumuna geçtiğinde müşteriye gönderilir."
         />
       </Tabs.Panel>
+
+      <Tabs.Panel value="payment" className="py-2">
+        <Card
+          value={EmailTemplateType.ORDER_BANKTRANSFER_CREATED}
+          title="Havale/EFT Bilgileri"
+          text="Havale/EFT bilgileri girildiğinde müşteriye gönderilir."
+        />
+        <Card
+          value={EmailTemplateType.ORDER_BANKTRANSFER_ACCEPTED}
+          title="Havale/EFT Onaylandı"
+          text="Havale/EFT ödemesi onaylandığında müşteriye gönderilir."
+        />
+        <Card
+          value={EmailTemplateType.ORDER_BANKTRANSFER_REJECTED}
+          title="Havale/EFT Reddedildi"
+          text="Havale/EFT ödemesi reddedildiğinde müşteriye gönderilir."
+        />
+      </Tabs.Panel>
+
       <Tabs.Panel value="ship" className="py-2">
         <Card
           value={EmailTemplateType.SHIPPING_CREATED}
@@ -48,33 +74,35 @@ const TabList = () => {
           text="Kargo teslim edildiğinde müşteriye gönderilir."
         />
       </Tabs.Panel>
+
       <Tabs.Panel value="refunds" className="py-2">
+        <Card
+          value={EmailTemplateType.ORDER_REFUND_REQUESTED}
+          title="İade Talebi"
+          text="Müşteri iade talebinde bulunduğunda müşteriye gönderilir."
+        />
         <Card
           value={EmailTemplateType.ORDER_REFUNDED}
           title="Sipariş İade Edildi"
           text="Müşterinin siparişi için para iadesi yapılırsa müşteriye gönderilir."
         />
         <Card
-          value={EmailTemplateType.REFUND_REQUESTED}
-          title="İade Talep Edildi"
-          text="Müşteri, siparişin iade talebinde bulunduysa müşteriye gönderilir."
-        />
-        <Card
-          value={EmailTemplateType.REFUND_REJECTED}
-          title="İade Talebi Reddedildi"
-          text="Müşterinin iade talebi reddedilirse müşteriye gönderilir."
+          value={EmailTemplateType.ORDER_REFUND_REJECTED}
+          title="İade Reddedildi"
+          text="İade talebi reddedildiğinde müşteriye gönderilir."
         />
       </Tabs.Panel>
+
       <Tabs.Panel value="user" className="py-2">
-        <Card
-          value={EmailTemplateType.PASSWORD_RESET}
-          title="Şifre Sıfırlama"
-          text="Müşteri, hesap parolasını sıfırlamak istediğinde müşteriye gönderilir."
-        />
         <Card
           value={EmailTemplateType.WELCOME_MESSAGE}
           title="Müşteri Hoş Geldin Mesajı"
           text="Müşteri, ilk hesap oluşturduğunda kendisine otomatik olarak gönderilir."
+        />
+        <Card
+          value={EmailTemplateType.PASSWORD_RESET}
+          title="Şifre Sıfırlama"
+          text="Müşteri, hesap parolasını sıfırlamak istediğinde müşteriye gönderilir."
         />
       </Tabs.Panel>
     </Tabs>
@@ -82,6 +110,7 @@ const TabList = () => {
 };
 
 export default TabList;
+
 interface CardProps {
   title: string;
   text: string;
@@ -102,7 +131,7 @@ const Card: React.FC<CardProps> = ({ title, text, value }) => {
         <h4 className="sm:text-md text-sm font-semibold text-gray-800">
           {title}
         </h4>
-        <p className="text-xs text-gray-600 sm:text-sm">{text} </p>
+        <p className="text-xs text-gray-600 sm:text-sm">{text}</p>
       </div>
     </Paper>
   );
