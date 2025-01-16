@@ -24,6 +24,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { IMaskInput } from "react-imask";
+
 const CheckoutForm = () => {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -327,13 +328,8 @@ const CheckoutForm = () => {
                     minRows={2}
                     maxRows={4}
                     error={errors.address?.street?.message}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      const text = e.clipboardData.getData("text");
-                      field.onChange(text.trim());
-                    }}
                   />
-                )}
+                )}  
               />
             </Grid.Col>
           </Grid>

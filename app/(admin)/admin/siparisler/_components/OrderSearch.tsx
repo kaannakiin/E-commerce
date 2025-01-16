@@ -1,9 +1,10 @@
 import SearchInput from "@/components/SearchBar";
-import { Group, Select } from "@mantine/core";
+import { Select } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, PaymentType } from "@prisma/client";
 import "dayjs/locale/tr";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FaRegCalendarAlt } from "react-icons/fa";
 
 const OrderSearchHeader = () => {
   const params = useSearchParams();
@@ -39,29 +40,59 @@ const OrderSearchHeader = () => {
     }
     router.replace(`${pathname}?${newParams.toString()}`);
   };
-
+  const onSelectPaymentChange = (value: string) => {
+    const newParams = new URLSearchParams(params.toString());
+    if (value && value !== "allPayment") {
+      newParams.set("page", "1");
+      newParams.set("pm", value);
+    } else {
+      newParams.delete("pm");
+    }
+    router.replace(`${pathname}?${newParams.toString()}`);
+  };
   return (
-    <Group
-      align="center"
-      justify="space-between"
-      py={"md"}
+    <div
       style={{ backgroundColor: "white" }}
-      className="w-full"
+      className="flex w-full flex-col py-5 lg:flex-row"
     >
       <SearchInput
-        className="w-1/4"
-        placeholder="Sipariş Numarası ile arama yapabilirsiniz."
+        className="w-full pb-5 lg:w-1/4"
+        placeholder="Sipariş numarası, kullanıcı adı, e-posta"
       />
       <div className="flex flex-col justify-end gap-5 lg:flex-1 lg:flex-row">
+        <Select
+          allowDeselect
+          data={[
+            { value: "allPayment", label: "Tüm Ödeme Yöntemleri" },
+            { value: "bankTransfer", label: "Havale / EFT" },
+            {
+              value: "creditcards",
+              label: "Kredi Kartı",
+            },
+          ]}
+          styles={{
+            input: {
+              border: "none",
+              backgroundColor: "#f8f9fa",
+              "&:focus": {
+                border: "1px solid #228be6",
+              },
+            },
+          }}
+          value={params.get("pm") || "allPayment"}
+          onChange={onSelectPaymentChange}
+        />
         <DatePickerInput
           type="range"
           placeholder="Tarih aralığı seçiniz"
           valueFormat="DD/MM/YYYY"
           locale="tr"
+          variant="filled"
           onChange={(value) => {
             dateOnChange(value as [Date | null, Date | null]);
           }}
           clearable
+          leftSection={<FaRegCalendarAlt />}
           hideOutsideDates
           maxDate={new Date()}
           styles={{
@@ -76,6 +107,7 @@ const OrderSearchHeader = () => {
           }}
         />
         <Select
+          allowDeselect
           data={[
             { value: "all", label: "Tümü" },
             { value: OrderStatus.PENDING, label: "Beklemede" },
@@ -100,7 +132,7 @@ const OrderSearchHeader = () => {
           }}
         />
       </div>
-    </Group>
+    </div>
   );
 };
 

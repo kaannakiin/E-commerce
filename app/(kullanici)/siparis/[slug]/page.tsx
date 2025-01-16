@@ -85,6 +85,7 @@ const feedPage = cache(async (slug: string) => {
         cancelProcessDate: true,
         paymentType: true,
         cancelReason: true,
+        BankTransferNotification: true,
         OrderItems: {
           select: {
             id: true,
@@ -216,17 +217,17 @@ const OrderDetailPage = async (params: { params: Params }) => {
                 </Group>
               </Fragment>
             )}
-
             <Divider />
-
-            {/* Toplam Tutar */}
             <Group justify="space-between" wrap="nowrap">
               <Group gap="xs">
                 <TbCreditCard size={20} color="#666666" />
                 <Text>Sepet Tutarı</Text>
               </Group>
               <Text size="xl" fw={700}>
-                {formattedPrice(order.total)}
+                {order.BankTransferNotification &&
+                order.BankTransferNotification.length > 0
+                  ? `${formattedPrice(order.BankTransferNotification[0].orderChangeType === "minus" ? order.total - order.BankTransferNotification[0].orderChange : order.total + order.BankTransferNotification[0].orderChange)}`
+                  : `${formattedPrice(order.total)}`}
               </Text>
             </Group>
           </Stack>
@@ -249,6 +250,12 @@ const OrderDetailPage = async (params: { params: Params }) => {
           paymentDate={order.paymentDate}
           paymentStatus={order.paymentStatus}
           paymentType={order.paymentType}
+          bankTransferNotification={
+            order.BankTransferNotification &&
+            order.BankTransferNotification.length > 0
+              ? order.BankTransferNotification[0]
+              : null
+          }
         />
       </div>
       <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">

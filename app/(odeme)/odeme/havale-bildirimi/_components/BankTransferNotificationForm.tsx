@@ -22,12 +22,19 @@ import { IoCopyOutline } from "react-icons/io5";
 import { createBankTransferNotification } from "../_actions/BankTransfer";
 import MainLoader from "@/components/MainLoader";
 import { useRouter } from "next/navigation";
-
+import { DiscountType, OrderChangeType } from "@prisma/client";
+interface BankTransferNotificationFormProps {
+  orderNumber: string;
+  priceChange: {
+    type: OrderChangeType;
+    discountType: DiscountType;
+    amount: number;
+  } | null;
+}
 const BankTransferNotificationForm = ({
   orderNumber,
-}: {
-  orderNumber: string;
-}) => {
+  priceChange,
+}: BankTransferNotificationFormProps) => {
   const {
     control,
     setError,
@@ -46,13 +53,15 @@ const BankTransferNotificationForm = ({
     data,
   ) => {
     try {
-      await createBankTransferNotification(data, orderNumber).then((res) => {
-        if (res.success) {
-          push(`/siparis/${orderNumber}`);
-        } else {
-          setError("root", { message: res.message });
-        }
-      });
+      await createBankTransferNotification(data, orderNumber, priceChange).then(
+        (res) => {
+          if (res.success) {
+            push(`/siparis/${orderNumber}`);
+          } else {
+            setError("root", { message: res.message });
+          }
+        },
+      );
     } catch (error) {}
   };
   if (isSubmitting) return <MainLoader />;

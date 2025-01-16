@@ -7,11 +7,11 @@ import {
   Title,
   TypographyStylesProvider,
 } from "@mantine/core";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BsBank2, BsCreditCard2Front } from "react-icons/bs";
 import { BankTransferDetailProps } from "../page";
-import PaymentForm from "./PaymentForm";
 import CheckoutForm from "./CheckoutForm";
-import { useRouter, useSearchParams } from "next/navigation";
+import PaymentForm from "./PaymentForm";
 
 interface AccordionForPaymentProps {
   data: BankTransferDetailProps;
@@ -37,7 +37,7 @@ const AccordionForPayment = ({
           </Text>
         </div>
 
-        <Accordion variant="contained" radius="md">
+        <Accordion variant="separated" radius="md" defaultValue="creditCard">
           <Accordion.Item value="bankTransfer">
             <Accordion.Control icon={<BsBank2 size={20} />}>
               <div className="flex flex-col">
@@ -45,26 +45,25 @@ const AccordionForPayment = ({
                 <Text size="sm" c="dimmed">
                   Banka havalesi ile güvenli ödeme
                 </Text>
-                {data?.orderChange &&
-                data?.orderChangeDiscountType &&
-                data?.orderChangeType &&
-                data?.orderChangeType === "minus" ? (
-                  <Text size="sm" c="dimmed">
-                    Havale ile ödeme yöntemini seçtiğiniz takdirde{" "}
-                    {data.orderChangeDiscountType === "PERCENTAGE"
-                      ? data.orderChange + "%"
-                      : data.orderChange + " TL"}{" "}
-                    indirim kazanırsınız
-                  </Text>
-                ) : (
-                  <Text size="sm" c={"dimmed"}>
-                    Havale ile ödeme yöntemini seçtiğiniz takdirde
-                    {data?.orderChangeDiscountType === "PERCENTAGE"
-                      ? data?.orderChange + "%"
-                      : data?.orderChange + " TL"}
-                    komisyon ödeyebilirsiniz.
-                  </Text>
-                )}
+                {data?.isFunctioning ? (
+                  data?.orderChangeType === "minus" ? (
+                    <Text size="sm" c="dimmed">
+                      Havale ile ödeme yöntemini seçtiğiniz takdirde{" "}
+                      {data.orderChangeDiscountType === "PERCENTAGE"
+                        ? data.orderChange + "%"
+                        : data.orderChange + " TL"}{" "}
+                      indirim kazanırsınız
+                    </Text>
+                  ) : (
+                    <Text size="sm" c={"dimmed"}>
+                      Havale ile ödeme yöntemini seçtiğiniz takdirde
+                      {data?.orderChangeDiscountType === "PERCENTAGE"
+                        ? data?.orderChange + "%"
+                        : data?.orderChange + " TL"}{" "}
+                      komisyon ödeyebilirsiniz.
+                    </Text>
+                  )
+                ) : null}
               </div>
             </Accordion.Control>
             <Accordion.Panel>

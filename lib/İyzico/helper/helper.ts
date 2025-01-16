@@ -4,15 +4,22 @@ import {
   IdForEverythingType,
   VariantIdQtyItemType,
 } from "@/zodschemas/authschema";
-import { createHash } from "crypto";
+import { EmailTemplateType, VariantType } from "@prisma/client";
+import { createHash, timingSafeEqual } from "crypto";
+import { differenceInDays } from "date-fns";
 import {
   basketItems,
   CardType,
   GroupedItems,
   itemTransactions,
 } from "../types";
-import { UserCancelReason, VariantType } from "@prisma/client";
-import { differenceInDays } from "date-fns";
+import { render } from "@react-email/render";
+import {
+  ButtonTemplateProps,
+  MyTemplateProps,
+  ProductTemplateProps,
+  SimpleTemplateProps,
+} from "@/emails/MyTemplate";
 export const isWithinRefundPeriod = (paymentDate: Date) => {
   const REFUND_PERIOD_DAYS = 14; // or whatever your refund policy states
   const daysSincePayment = differenceInDays(new Date(), paymentDate);
@@ -317,7 +324,7 @@ export async function AuthUserCreateOrder({
     return orderNumber;
   } catch (error) {
     console.error("Order creation error:", error);
-    throw error; // Hatayı yukarı fırlat
+    throw error;
   }
 }
 export function generateOrderNumber(): string {
@@ -341,15 +348,15 @@ export async function findByPaymentIdAndUpdate(paymentId: string): Promise<{
   message: string;
   email?: string;
   product?: {
-    url: string;
+    productImageUrl: string;
     name: string;
-    description: string;
     price: number;
     quantity: number;
     value: string;
     type: VariantType;
     unit?: string;
   }[];
+  orderNumber?: string;
 }> {
   try {
     if (!paymentId) {
@@ -392,15 +399,15 @@ export async function findByPaymentIdAndUpdate(paymentId: string): Promise<{
       success: true,
       message: "Sipariş başarıyla güncellendi",
       email: order.user ? order.user.email : order.address.email,
+      orderNumber: order.orderNumber,
       product: order.OrderItems.map((item) => {
         return {
           name: item.variant.product.name,
-          description: item.variant.product.shortDescription,
           price: item.price,
           quantity: item.quantity,
           type: item.variant.type,
           unit: item.variant.unit,
-          url: item.variant.Image[0].url,
+          productImageUrl: item.variant.Image[0].url,
           value: item.variant.value,
         };
       }),
@@ -533,5 +540,157 @@ export async function createTempatureAddress(addressInfo: {
     return address.id;
   } catch (error) {
     throw error;
+  }
+}
+export function CheckSignature(requestSign, signature) {
+  if (!requestSign || !signature) {
+    return false;
+  }
+  const isValid = timingSafeEqual(
+    Buffer.from(requestSign),
+    Buffer.from(signature),
+  );
+  return isValid;
+}
+
+export const createTemplateProps = (
+  slug: EmailTemplateType,
+): MyTemplateProps => {
+  const productTemplateTypes: EmailTemplateType[] = [
+    EmailTemplateType.ORDER_CREATED,
+    EmailTemplateType.ORDER_CANCELLED,
+    EmailTemplateType.ORDER_INVOICE,
+    EmailTemplateType.ORDER_DELIVERED,
+    EmailTemplateType.ORDER_ACCEPTED,
+    EmailTemplateType.ORDER_REFUNDED,
+    EmailTemplateType.ORDER_REFUND_REQUESTED,
+    EmailTemplateType.ORDER_REFUND_REJECTED,
+    EmailTemplateType.ORDER_BANKTRANSFER_ACCEPTED,
+    EmailTemplateType.SHIPPING_CREATED,
+    EmailTemplateType.SHIPPING_DELIVERED,
+  ];
+
+  const buttonTemplateTypes: EmailTemplateType[] = [
+    EmailTemplateType.PASSWORD_RESET,
+    EmailTemplateType.WELCOME_MESSAGE,
+  ];
+  const simpleTemplateTypes: EmailTemplateType[] = [
+    EmailTemplateType.ORDER_BANKTRANSFER_CREATED,
+    EmailTemplateType.ORDER_BANKTRANSFER_REJECTED,
+    EmailTemplateType.OTHER,
+  ];
+
+  if (productTemplateTypes.includes(slug)) {
+    return {
+      type: slug as (typeof productTemplateTypes)[number],
+      logoUrl: "",
+      testMode: true,
+      products: [
+        {
+          productImageUrl: "",
+          name: "Test Product",
+          quantity: 1,
+          type: VariantType.COLOR,
+          price: 100,
+          value: "#000000",
+        },
+      ],
+    } as ProductTemplateProps;
+  }
+
+  if (buttonTemplateTypes.includes(slug)) {
+    return {
+      type: slug as (typeof buttonTemplateTypes)[number],
+      logoUrl: "",
+      testMode: true,
+      buttonUrl: "/",
+    } as ButtonTemplateProps;
+  }
+
+  return {
+    type: slug as (typeof simpleTemplateTypes)[number],
+    logoUrl: "",
+    testMode: true,
+  } as SimpleTemplateProps;
+};
+export function createEmailTemplateProps(
+  type: EmailTemplateType,
+  baseProps: {
+    logoUrl: string;
+    testMode?: boolean;
+    products?: {
+      productImageUrl: string;
+      name: string;
+      quantity: number;
+      type: VariantType;
+      price: number;
+      unit?: string;
+      value: string;
+    }[];
+    buttonUrl?: string;
+  },
+): MyTemplateProps {
+  const {
+    logoUrl,
+    testMode = false,
+    products = [],
+    buttonUrl = "",
+  } = baseProps;
+  const productTemplateTypes: EmailTemplateType[] = [
+    EmailTemplateType.ORDER_CREATED,
+    EmailTemplateType.ORDER_CANCELLED,
+    EmailTemplateType.ORDER_INVOICE,
+    EmailTemplateType.ORDER_DELIVERED,
+    EmailTemplateType.ORDER_ACCEPTED,
+    EmailTemplateType.ORDER_REFUNDED,
+    EmailTemplateType.ORDER_REFUND_REQUESTED,
+    EmailTemplateType.ORDER_REFUND_REJECTED,
+    EmailTemplateType.ORDER_BANKTRANSFER_ACCEPTED,
+    EmailTemplateType.SHIPPING_CREATED,
+    EmailTemplateType.SHIPPING_DELIVERED,
+  ];
+  const buttonTemplateTypes: EmailTemplateType[] = [
+    EmailTemplateType.PASSWORD_RESET,
+    EmailTemplateType.WELCOME_MESSAGE,
+  ];
+  const simpleTemplateTypes: EmailTemplateType[] = [
+    EmailTemplateType.ORDER_BANKTRANSFER_CREATED,
+    EmailTemplateType.ORDER_BANKTRANSFER_REJECTED,
+    EmailTemplateType.OTHER,
+  ];
+
+  switch (true) {
+    case productTemplateTypes.includes(type): {
+      if (!products.length) {
+        throw new Error(`Template type ${type} requires products array`);
+      }
+      return {
+        type: type as ProductTemplateProps["type"],
+        logoUrl,
+        testMode,
+        products,
+      } as ProductTemplateProps;
+    }
+    case buttonTemplateTypes.includes(type): {
+      if (!buttonUrl) {
+        throw new Error(`Template type ${type} requires buttonUrl`);
+      }
+      return {
+        type: type as ButtonTemplateProps["type"],
+        logoUrl,
+        testMode,
+        buttonUrl,
+      } as ButtonTemplateProps;
+    }
+    case simpleTemplateTypes.includes(type): {
+      return {
+        type: type as SimpleTemplateProps["type"],
+        logoUrl,
+        testMode,
+      } as SimpleTemplateProps;
+    }
+
+    default:
+      throw new Error(`Unsupported template type: ${type}`);
   }
 }

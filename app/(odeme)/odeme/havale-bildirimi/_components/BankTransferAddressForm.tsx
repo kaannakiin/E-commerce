@@ -1,4 +1,8 @@
 "use client";
+import { DiscountCheck } from "@/actions/user/discount-check";
+import MainLoader from "@/components/MainLoader";
+import { formattedPrice } from "@/lib/format";
+import { useStore } from "@/store/store";
 import {
   BankTransferForUserAddressFormValues,
   BankTransferForUserAddressSchema,
@@ -12,24 +16,21 @@ import {
   Grid,
   InputBase,
   Select,
+  Text,
   Textarea,
   TextInput,
   TypographyStylesProvider,
 } from "@mantine/core";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { IMaskInput } from "react-imask";
 import { BankTransferDetailProps } from "../../page";
-import { useStore } from "@/store/store";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { DiscountCheck } from "@/actions/user/discount-check";
-import { formattedPrice } from "@/lib/format";
 import { createBankTransfer } from "../_actions/BankTransfer";
 import {
   GetAddresById,
   OrderNumberCheck,
 } from "../_actions/BankTransferHelperActions";
-import MainLoader from "@/components/MainLoader";
 import BankTransferNotificationForm from "./BankTransferNotificationForm";
 
 const BankTransferAddressForm = ({
@@ -49,7 +50,6 @@ const BankTransferAddressForm = ({
     success: false,
   });
 
-  const [tab, setTab] = useState<1 | 2>(1);
   const items = useStore((state) => state.items);
   const totalFinalPrice = useStore((store) => store.totalFinalPrice);
   const [formStep, setFormStep] = useState<"address" | "transfer">("address");
@@ -147,10 +147,8 @@ const BankTransferAddressForm = ({
       try {
         const defaultValues = await GetAddresById(ai);
         if (defaultValues) {
-          // Önce il için gerekli state'leri ayarla
           setSelectedProvince(defaultValues.city);
 
-          // İlçeleri yükle
           const response = await fetch(
             `https://turkiyeapi.dev/api/v1/provinces?name=${defaultValues.city}`,
           );
@@ -200,7 +198,6 @@ const BankTransferAddressForm = ({
     };
     fetchProvinces();
   }, []);
-  // useEffect için yeni bir kontrol fonksiyonu yazalım
   useEffect(() => {
     const step = searchParams.get("step");
     const orderNo = searchParams.get("on");
@@ -215,12 +212,10 @@ const BankTransferAddressForm = ({
         try {
           const result = await OrderNumberCheck(orderNo);
           if (!result.success) {
-            // Order number geçersizse adres adımına dön
             push("/odeme/havale-bildirimi?step=address", { scroll: false });
             setFormStep("address"); // formStep'i burada güncelliyoruz
             return;
           }
-          // Order number geçerliyse transfer adımına geç
           setFormStep("transfer");
           setOrderDetails({
             number: orderNo,
@@ -235,6 +230,21 @@ const BankTransferAddressForm = ({
     };
     checkOrderAndSetStep();
   }, [searchParams, push]);
+  const orderChangeAmount = (totalPrice: number) => {
+    if (!data.description || !data) return totalPrice;
+    if (data.orderChangeType && data.isFunctioning) {
+      if (data.orderChangeType === "minus") {
+        return data.orderChangeDiscountType == "FIXED"
+          ? totalPrice - data.orderChange
+          : totalPrice - totalPrice * (data.orderChange / 100);
+      } else {
+        return data.orderChangeDiscountType == "FIXED"
+          ? totalPrice + data.orderChange
+          : totalPrice + totalPrice * (data.orderChange / 100);
+      }
+    }
+    return totalPrice;
+  };
   const onAddressSubmit: SubmitHandler<
     BankTransferForUserAddressFormValues
   > = async (formData) => {
@@ -245,6 +255,7 @@ const BankTransferAddressForm = ({
           variantId: item.variantId,
           quantity: item.quantity,
         })),
+        addressId: searchParams.get("ai") || null,
         discountCode: discount.success ? searchParams.get("discountCode") : "",
       });
 
@@ -285,9 +296,12 @@ const BankTransferAddressForm = ({
       >
         {formStep == "address" ? (
           <div className="space-y-4">
-            <div className="">
-              Toplam Tutar: {formattedPrice(totalFinalPrice - discountPrice)}
-            </div>
+            <Text className="text-lg font-semibold">
+              Toplam Tutar:{" "}
+              {formattedPrice(
+                orderChangeAmount(totalFinalPrice - discountPrice),
+              )}
+            </Text>
             <form onSubmit={handleSubmit(onAddressSubmit)}>
               <Grid>
                 <Grid.Col span={6}>
@@ -546,7 +560,18 @@ const BankTransferAddressForm = ({
             </form>
           </div>
         ) : (
-          <BankTransferNotificationForm orderNumber={orderDetails.number} />
+          <BankTransferNotificationForm
+            orderNumber={orderDetails.number}
+            priceChange={
+              data.isFunctioning
+                ? {
+                    amount: data.orderChange,
+                    discountType: data.orderChangeDiscountType,
+                    type: data.orderChangeType,
+                  }
+                : null
+            }
+          />
         )}
       </Card>
     </div>
@@ -554,43 +579,3 @@ const BankTransferAddressForm = ({
 };
 
 export default BankTransferAddressForm;
-{
-  /* <Grid.Col span={12}>
-              <Switch
-                checked={isSameNameEnabled}
-                onChange={(event) =>
-                  setIsSameNameEnabled(event.currentTarget.checked)
-                }
-                description="Ad Soyad Aynı"
-                className="w-fit"
-              />
-            </Grid.Col> */
-}
-{
-  /* <Grid.Col span={6}>
-              <Controller
-                control={control}
-                name="transferFirstName"
-                render={({ field }) => (
-                  <TextInput
-                    {...field}
-                    description="Havale Yapan Kullanıcı Ad"
-                    disabled={isSameNameEnabled}
-                  />
-                )}
-              />
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Controller
-                control={control}
-                name="transferLastName"
-                render={({ field }) => (
-                  <TextInput
-                    {...field}
-                    description="Havale Yapan Kullanıcı Soyad"
-                    disabled={isSameNameEnabled}
-                  />
-                )}
-              />
-            </Grid.Col> */
-}

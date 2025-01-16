@@ -1,6 +1,7 @@
 "use server";
 
 import { DiscountCheck } from "@/actions/user/discount-check";
+import { auth } from "@/auth";
 import { calculatePrice } from "@/lib/calculatePrice";
 import { generateOrderNumber } from "@/lib/İyzico/helper/helper";
 import { prisma } from "@/lib/prisma";
@@ -12,6 +13,7 @@ import {
   VariantIdQtyItemType,
   variantIdQtySchema,
 } from "@/zodschemas/authschema";
+import { DiscountType, OrderChangeType } from "@prisma/client";
 import { headers } from "next/headers";
 import { ZodError } from "zod";
 
@@ -29,7 +31,6 @@ export async function createBankTransfer({
   try {
     const header = await headers();
     const ip = header.get("x-forwarded-for") || header.get("x-real-ip");
-
     variantIdQtySchema.parse(items);
     const variants = await prisma.variant.findMany({
       where: { id: { in: items.map((item) => item.variantId) } },
@@ -210,6 +211,11 @@ export async function createBankTransfer({
 export async function createBankTransferNotification(
   data: BankTransferFormforUserRegisterValues,
   orderNumber: string,
+  priceChange: {
+    type: OrderChangeType;
+    discountType: DiscountType;
+    amount: number;
+  } | null,
 ): Promise<{ success: boolean; message: string }> {
   try {
     const order = await prisma.order.findUnique({
@@ -232,6 +238,11 @@ export async function createBankTransferNotification(
         surname: data.transferLastName,
         orderNumber: orderNumber,
         transactionTime: data.transferTime,
+        ...(priceChange && {
+          orderChange: priceChange.amount,
+          orderChangeType: priceChange.type as OrderChangeType,
+          orderChangeDiscountType: priceChange.discountType as DiscountType,
+        }),
       },
     });
     return {

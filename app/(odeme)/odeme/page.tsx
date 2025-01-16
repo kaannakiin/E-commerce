@@ -25,6 +25,7 @@ export type BankTransferDetailProps = Prisma.PaymentMethodsGetPayload<{
     orderChangeType: true;
     orderChange: true;
     orderChangeDiscountType: true;
+    isFunctioning: true;
   };
 }>;
 const feedPage = cache(async (userId: string | null | undefined) => {
@@ -48,7 +49,6 @@ const feedPage = cache(async (userId: string | null | undefined) => {
       return { bankTransfer, feedAddress: null };
     }
 
-    // userId varsa tüm bilgileri getir
     const [bankTransfer, feedAddress] = await Promise.all([
       prisma.paymentMethods.findUnique({
         where: {
@@ -112,7 +112,11 @@ export default async function CheckoutPage() {
           <div className="w-full md:sticky md:top-8 md:w-[600px]">
             {!session?.user ? (
               <div className="rounded-lg bg-gray-50 p-6 shadow-sm">
-                <AccordionForPayment data={bankTransfer} />
+                {bankTransfer && bankTransfer.description ? (
+                  <AccordionForPayment data={bankTransfer} />
+                ) : (
+                  <CheckoutForm />
+                )}
               </div>
             ) : (
               <AuthUser

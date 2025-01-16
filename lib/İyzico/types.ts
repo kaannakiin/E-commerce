@@ -19,6 +19,8 @@ export interface paymentRequest {
   callbackUrl?: string;
   price: number;
   paidPrice: number;
+  basketId: string;
+  conversationId: string;
   buyer: {
     id: string;
     name: string;
@@ -121,6 +123,8 @@ export interface SuccessPaymentResponse {
   installment: number;
   paymentId: string;
   fraudStatus: number;
+  conversationId: string;
+  basketId: string;
   merchantCommissionRate: number;
   merchantCommissionRateAmount: number;
   iyziCommissionFee: number;
@@ -132,6 +136,7 @@ export interface SuccessPaymentResponse {
   lastFourDigits: string;
   currency: "TRT";
   itemTransactions: itemTransactions[];
+  signature: string;
 }
 export interface Check3D {
   paymentId: string;

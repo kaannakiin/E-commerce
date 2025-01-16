@@ -50,7 +50,6 @@ const EmailSettingsForm = ({
     data: NoReplyEmailSettingsType,
   ) => {
     await EmailSettingsAction(data);
-    // Submit logic here
   };
 
   return (

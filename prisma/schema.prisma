@@ -13,7 +13,6 @@ model SalerInfo {
   storeDescription String?
   address          String?
 
-  //logo
   logoId String? @unique // Sadece bir logo olabilmesi için @unique
   logo   Image?  @relation(fields: [logoId], references: [id])
 
@@ -465,13 +464,18 @@ enum EmailTemplateType {
   ORDER_CREATED // Sipariş Oluşturuldu: Yeni bir sipariş verildiğinde gönderilir
   ORDER_INVOICE // Sipariş Faturası: Sipariş faturası oluşturulduğunda gönderilir
   ORDER_DELIVERED // Sipariş Teslim Edildi: Sipariş müşteriye ulaştığında gönderilir
+  ORDER_ACCEPTED // Sipariş Onaylandı: Sipariş onaylandığında gönderilir // NEW
+  ORDER_REFUNDED // Sipariş İade Edildi: Sipariş bedeli iade edildiğinde gönderilir
+  ORDER_REFUND_REQUESTED // İade Talebi: Müşteri iade talebinde bulunduğunda gönderilir
+  ORDER_REFUND_REJECTED // İade Reddedildi: İade talebi reddedildiğinde gönderilir
+  ORDER_BANKTRANSFER_CREATED // Havale/EFT Bilgileri girildiğinde gönderilir: Havale/EFT bilgileri gönderilir
+  ORDER_BANKTRANSFER_ACCEPTED // Havale/EFT Onaylandı: Havale/EFT ödemesi onaylandığında gönderilir
+  ORDER_BANKTRANSFER_REJECTED // Havale/EFT Reddedildi: Havale/EFT ödemesi reddedildiğinde gönderilir
   SHIPPING_CREATED // Kargo Oluşturuldu: Sipariş kargoya verildiğinde gönderilir
   SHIPPING_DELIVERED // Kargo Teslim Edildi: Kargo teslim edildiğinde gönderilir
-  ORDER_REFUNDED // Sipariş İade Edildi: Sipariş bedeli iade edildiğinde gönderilir
-  REFUND_REQUESTED // İade Talebi: Müşteri iade talebinde bulunduğunda gönderilir
-  REFUND_REJECTED // İade Reddedildi: İade talebi reddedildiğinde gönderilir
   PASSWORD_RESET // Şifre Sıfırlama: Kullanıcı şifre sıfırlama talep ettiğinde gönderilir
   WELCOME_MESSAGE // Hoş Geldiniz Mesajı: Yeni üye olan kullanıcılara gönderilir
+  OTHER // Diğer
 }
 
 model Blog {
@@ -557,9 +561,12 @@ model BankTransferNotification {
   orderNumber String
   order       Order  @relation(fields: [orderNumber], references: [orderNumber])
 
-  name            String
-  surname         String
-  transactionTime String
+  name                    String
+  surname                 String
+  transactionTime         String
+  orderChange             Float?
+  orderChangeType         OrderChangeType?
+  orderChangeDiscountType DiscountType?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

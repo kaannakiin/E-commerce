@@ -1,8 +1,10 @@
 import { DiscountCheck } from "@/actions/user/discount-check";
 import { deleteAddress } from "@/app/(kullanici)/hesabim/adres-defterim/_actions/AddressActions";
 import { auth } from "@/auth";
+import CryptoJS from "crypto-js";
 import {
   AuthUserCreateOrder,
+  CheckSignature,
   createTempatureAddress,
   findAddressForIyzıco,
   findProductForIyzico,
@@ -18,6 +20,7 @@ import {
 } from "@/zodschemas/authschema";
 import { createId } from "@paralleldrive/cuid2";
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 function errorHandler(code: string) {
   switch (code) {
     case "12":
@@ -91,6 +94,8 @@ export async function POST(req: NextRequest) {
       const paymentRequest: paymentRequest = {
         locale: "tr",
         paymentChannel: "WEB",
+        basketId: createId(),
+        conversationId: createId(),
         paymentGroup: "PRODUCT",
         price: price,
         paidPrice: discount.success
@@ -162,13 +167,29 @@ export async function POST(req: NextRequest) {
         if (discountCode) {
           paymentRequest.callbackUrl += `&di=${discountCode}`;
         }
+
         const request = await iyzico.payment3D(paymentRequest);
+
         if (request.status === "failure") {
           await deleteAddress(addressId);
           return NextResponse.json(
             {
               status: 400,
               message: errorHandler(request.errorCode).toString(),
+            },
+            { status: 400 },
+          );
+        }
+        const signature = generateResponse3DSignature({
+          conversationId: request.conversationId,
+          paymentId: request.paymentId,
+        });
+        const valid = CheckSignature(request.signature, signature);
+        if (!valid) {
+          return NextResponse.json(
+            {
+              status: 400,
+              message: "Ödeme doğrulama hatası",
             },
             { status: 400 },
           );
@@ -187,11 +208,31 @@ export async function POST(req: NextRequest) {
         );
       } else {
         const request = await iyzico.paymentNon3D(paymentRequest);
+
         if (request.status !== "success") {
           return NextResponse.json(
             {
               status: 400,
               message: errorHandler(request.errorCode).toString(),
+            },
+            { status: 400 },
+          );
+        }
+        const signature = generateResponseNon3DSignature({
+          paymentId: request.paymentId,
+          currency: "TRY",
+          basketId: request.basketId,
+          conversationId: request.conversationId,
+          paidPrice: request.paidPrice,
+          price: request.price,
+        });
+        const valid = CheckSignature(request.signature, signature);
+
+        if (!valid) {
+          return NextResponse.json(
+            {
+              status: 400,
+              message: "Ödeme doğrulama hatası",
             },
             { status: 400 },
           );
@@ -289,6 +330,8 @@ export async function POST(req: NextRequest) {
       const paymentRequest: paymentRequest = {
         paymentChannel: "WEB",
         paymentGroup: "PRODUCT",
+        conversationId: createId(),
+        basketId: createId(),
         locale: "tr",
         price: price,
         paidPrice: discount.success
@@ -329,7 +372,20 @@ export async function POST(req: NextRequest) {
             { status: 400 },
           );
         }
-
+        const signature = generateResponse3DSignature({
+          conversationId: request.conversationId,
+          paymentId: request.paymentId,
+        });
+        const valid = CheckSignature(request.signature, signature);
+        if (!valid) {
+          return NextResponse.json(
+            {
+              status: 400,
+              message: "Ödeme doğrulama hatası",
+            },
+            { status: 400 },
+          );
+        }
         const htmlContent = atob(request.threeDSHtmlContent);
         return NextResponse.json(
           {
@@ -343,11 +399,30 @@ export async function POST(req: NextRequest) {
         );
       } else {
         const request = await iyzico.paymentNon3D(paymentRequest);
+
         if (request.status !== "success") {
           return NextResponse.json(
             {
               status: 400,
               message: errorHandler(request.errorCode).toString(),
+            },
+            { status: 400 },
+          );
+        }
+        const signature = generateResponseNon3DSignature({
+          paymentId: request.paymentId,
+          currency: "TRY",
+          basketId: request.basketId,
+          conversationId: request.conversationId,
+          paidPrice: request.paidPrice,
+          price: request.price,
+        });
+        const valid = CheckSignature(request.signature, signature);
+        if (!valid) {
+          return NextResponse.json(
+            {
+              status: 400,
+              message: "Ödeme doğrulama hatası",
             },
             { status: 400 },
           );
@@ -383,4 +458,30 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+}
+
+interface PaymentRequest {
+  paymentId: string;
+  currency: string;
+  basketId: string;
+  conversationId: string;
+  paidPrice: number;
+  price: number;
+}
+function generateResponseNon3DSignature(params: PaymentRequest) {
+  const secretKey = process.env.IYZICO_SECRET_KEY;
+  const data = `${params.paymentId}:${params.currency}:${params.basketId}:${params.conversationId}:${params.paidPrice}:${params.price}`;
+  const encryptedData = CryptoJS.HmacSHA256(data, secretKey);
+  const hashedSignature = CryptoJS.enc.Hex.stringify(encryptedData);
+  return hashedSignature;
+}
+function generateResponse3DSignature(params: {
+  paymentId: string;
+  conversationId: string;
+}) {
+  const secretKey = process.env.IYZICO_SECRET_KEY;
+  const data = `${params.paymentId}:${params.conversationId}`;
+  const encryptedData = CryptoJS.HmacSHA256(data, secretKey);
+  const hashedSignature = CryptoJS.enc.Hex.stringify(encryptedData);
+  return hashedSignature;
 }
