@@ -2,11 +2,36 @@ import { existsSync } from "fs";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
+import { rateLimiter } from "@/lib/rateLimitRedis";
 
 const ASSET_DIR = path.join(process.cwd(), "assets");
 
 export async function GET(req: NextRequest) {
   try {
+    const ip =
+      req.headers.get("x-real-ip") ||
+      req.headers.get("x-forwarded-for") ||
+      "::1";
+    const rateLimit = await rateLimiter(ip, {
+      limit: 50,
+      windowInMinutes: 30,
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          reset: rateLimit.reset,
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
+          },
+        },
+      );
+    }
     const url = req.nextUrl.searchParams.get("url");
     const quality = req.nextUrl.searchParams.get("quality") || "high";
 

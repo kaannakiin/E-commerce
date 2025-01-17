@@ -95,7 +95,7 @@ const UserInfoForm = ({
   const onPasswordSubmit: SubmitHandler<UpdatePasswordType> = async (
     data: UpdatePasswordType,
   ) => {
-    const res = await UpdatePassword(data); // UpdatePassword fonksiyonunu oluşturmanız gerekecek
+    const res = await UpdatePassword(data);
     if (res.success) {
       setDialogState({ isOpen: true, message: res.message, type: "success" });
     } else {

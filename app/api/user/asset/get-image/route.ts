@@ -1,3 +1,4 @@
+import { rateLimiter } from "@/lib/rateLimitRedis";
 import { existsSync } from "fs";
 import fs from "fs/promises";
 import { NextRequest, NextResponse } from "next/server";
@@ -125,9 +126,33 @@ async function processImage(
   }
 }
 
-// API route handler - /api/user/asset/get-image
 export async function GET(req: NextRequest) {
   try {
+    const ip =
+      req.headers.get("x-real-ip") ||
+      req.headers.get("x-forwarded-for") ||
+      "::1";
+    const rateLimit = await rateLimiter(ip, {
+      limit: 50,
+      windowInMinutes: 30,
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          reset: rateLimit.reset,
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
+          },
+        },
+      );
+    }
+
     const url = req.nextUrl.searchParams.get("url");
     const width = parseInt(req.nextUrl.searchParams.get("width") || "0", 10);
     const quality = parseInt(
@@ -139,7 +164,6 @@ export async function GET(req: NextRequest) {
     const favicon = req.nextUrl.searchParams.get("favicon") === "true";
     const richText = req.nextUrl.searchParams.get("richText") === "true";
     const forEmail = req.nextUrl.searchParams.get("forEmail") === "true";
-
     if (!url) {
       return NextResponse.json(
         { error: "Image URL is required" },
@@ -171,7 +195,6 @@ export async function GET(req: NextRequest) {
       forEmail,
     });
 
-    // Content-Type'ı forEmail durumuna göre ayarla
     const contentType = forEmail ? "image/jpeg" : "image/webp";
 
     const headers = {

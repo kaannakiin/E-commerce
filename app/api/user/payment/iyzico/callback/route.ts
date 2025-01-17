@@ -6,11 +6,36 @@ import {
   NonAuthUserCreateOrder,
 } from "@/lib/İyzico/helper/helper";
 import { iyzico } from "@/lib/İyzico/iyzicoClient";
+import { rateLimiter } from "@/lib/rateLimitRedis";
 import CryptoJS from "crypto-js";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
+    const userIp =
+      req.headers.get("x-real-userIp") ||
+      req.headers.get("x-forwarded-for") ||
+      "::1";
+    const rateLimit = await rateLimiter(userIp, {
+      limit: 50,
+      windowInMinutes: 30,
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          reset: rateLimit.reset,
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
+          },
+        },
+      );
+    }
     const data = await req.formData();
     const status = data.get("status") as string;
     const paymentId = data.get("paymentId") as string;

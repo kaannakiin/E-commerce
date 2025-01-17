@@ -47,7 +47,7 @@ export async function UpdateUser(data: UpdateUserInfoType): Promise<{
       data: {
         email,
         name,
-        phone,
+        ...(phone && { phone }),
         surname,
       },
     });
