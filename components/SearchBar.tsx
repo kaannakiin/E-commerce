@@ -47,6 +47,7 @@ const SearchInput = ({
       className={className}
       placeholder={placeholder}
       size={size}
+      classNames={{ root: "w-full" }}
       defaultValue={params.get(searchKey) ?? ""}
       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
         updateSearch(e.currentTarget.value)

@@ -9,6 +9,7 @@ import { SessionProvider } from "next-auth/react";
 import Script from "next/script";
 import { cache, Fragment } from "react";
 import "./globals.css";
+import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 
 const DEFAULT_SETTINGS = {
   title: "%100 Sertifikalı Sağlıklı Yaşam Marketi",
@@ -29,8 +30,10 @@ const feedLayout = cache(async () => {
           image: { select: { url: true } },
           themeColor: true,
           favicon: { select: { url: true } },
-          googleId: true,
-          googleVerification: true,
+          googleAnalytics: true,
+          googleAnalyticsIsEnabled: true,
+          googleTagManager: true,
+          googleTagManagerIsEnabled: true,
           themeColorSecondary: true,
         },
       }),
@@ -178,25 +181,16 @@ export default async function RootLayout({
     generateShades(secondColor, 0.05),
   ] as MantineColorsTuple;
   const theme = createAppTheme(primaryColors, secondaryColor);
-
   return (
     <html lang="tr" suppressHydrationWarning className="bg-white">
+      {data?.googleTagManagerIsEnabled && data?.googleTagManager && (
+        <GoogleTagManager gtmId={data?.googleTagManager} />
+      )}
+      {data?.googleAnalyticsIsEnabled && data?.googleAnalytics && (
+        <GoogleAnalytics gaId={data?.googleAnalytics} />
+      )}
       <head>
         <ColorSchemeScript forceColorScheme="light" />
-        <Fragment>
-          <Script
-            src="https://www.googletagmanager.com/gtag/js?id=G-332N0X54S6"
-            async
-          />
-          <Script id="google-analytics">
-            {`
-             window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-332N0X54S6');
-          `}
-          </Script>
-        </Fragment>
       </head>
       <body>
         <SessionProvider>

@@ -3,18 +3,16 @@ import { UnstyledButton } from "@mantine/core";
 import Link from "next/link";
 import {
   CiCircleChevDown,
-  CiCreditCard1,
   CiImageOn,
   CiMenuBurger,
-  CiShoppingTag,
-  CiViewBoard,
-  CiViewList,
+  CiUser,
   CiViewTable,
 } from "react-icons/ci";
-import { TfiLayoutSlider } from "react-icons/tfi";
-import { TbContract } from "react-icons/tb";
-import { MdOutlinePayment } from "react-icons/md";
 import { FaQuestion } from "react-icons/fa";
+import { MdOutlinePayment } from "react-icons/md";
+import { RiAdvertisementLine } from "react-icons/ri";
+import { TbContract } from "react-icons/tb";
+import { TfiLayoutSlider } from "react-icons/tfi";
 
 interface MenuButtonProps {
   icon: React.ReactNode;
@@ -104,11 +102,16 @@ const SettingsPage = () => {
       href: "/admin/ayarlar/faq-section",
     },
     {
-      icon: <CiCreditCard1 className="h-6 w-6 text-primary-600" />,
-      title: "Ödeme Sayfası Tasarımı",
-      description: "Ödeme sayfası tasarımını yönetin.",
-      href: "/admin/ayarlar/temalar",
-      disabled: true,
+      icon: <CiUser className="h-6 w-6 text-primary-600" />,
+      title: "Kullanıcı ve Rol Yönetimi",
+      description: "Kullanıcı ve rol yönetimini düzenleyin.",
+      href: "/admin/ayarlar/hesaplar",
+    },
+    {
+      icon: <RiAdvertisementLine className="h-6 w-6 text-primary-600" />,
+      title: "Reklam ve Google Yönetimi",
+      description: "Reklam ve google yönetimini düzenleyin.",
+      href: "/admin/ayarlar/google-settings",
     },
   ];
 
@@ -122,7 +125,6 @@ const SettingsPage = () => {
             title={item.title}
             href={item.href}
             description={item.description}
-            disabled={item.disabled}
           />
         ))}
       </div>

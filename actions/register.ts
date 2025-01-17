@@ -1,5 +1,5 @@
 "use server";
-
+import { headers } from "next/headers";
 import { getUserByEmail } from "@/lib/getUser";
 import { prisma } from "@/lib/prisma";
 import { RegisterSchema, RegisterSchemaType } from "@/zodschemas/authschema";
@@ -22,7 +22,17 @@ export const Register = async (data: RegisterSchemaType) => {
     if (password !== confirmPassword) {
       return { error: "Şifreler eşleşmiyor" };
     }
-
+    const headersList = await headers();
+    const ip =
+      headersList.get("x-real-ip") || headersList.get("x-forwarded-for");
+    const locationResponse = await fetch(
+      `https://ip-api.com/json/${ip}?fields=49169`,
+    );
+    const locationInfo: {
+      status: "success" | "fail";
+      country: string;
+      city: string;
+    } = await locationResponse.json();
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.create({
@@ -32,6 +42,10 @@ export const Register = async (data: RegisterSchemaType) => {
         surname,
         password: hashedPassword,
         ...(phone && { phone }),
+        ...(locationInfo.status === "success" && {
+          country: locationInfo.country,
+          city: locationInfo.city,
+        }),
       },
     });
     const senderEmail = await SendWelcomeEmail({ toEmail: email });

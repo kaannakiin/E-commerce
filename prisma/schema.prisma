@@ -41,6 +41,8 @@ model User {
   password         String
   emailVerified    DateTime?
   image            String?
+  country          String?
+  city             String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   Adress           Address[]
@@ -233,13 +235,21 @@ enum AssetType {
 }
 
 model MainSeoSettings {
-  id                  String  @id @default(cuid())
-  image               Image?  @relation("MainImage", fields: [imageId], references: [id])
-  imageId             String? @unique
-  favicon             Image?  @relation("Favicon", fields: [faviconId], references: [id])
-  faviconId           String? @unique
-  googleId            String? //for google-analytics 
-  googleVerification  String? // Google site doğrulama kodu için yeni alan
+  id                 String  @id @default(cuid())
+  image              Image?  @relation("MainImage", fields: [imageId], references: [id])
+  imageId            String? @unique
+  favicon            Image?  @relation("Favicon", fields: [faviconId], references: [id])
+  faviconId          String? @unique
+  googleId           String? //for google-analytics 
+  googleVerification String? // Google site doğrulama kodu için yeni alan
+
+  googleAnalytics           String?
+  googleAnalyticsIsEnabled  Boolean @default(false)
+  googleTagManager          String?
+  googleTagManagerIsEnabled Boolean @default(false)
+  metaPixel                 String?
+  metaPixelIsEnabled        Boolean @default(false)
+
   title               String
   description         String
   themeColor          String

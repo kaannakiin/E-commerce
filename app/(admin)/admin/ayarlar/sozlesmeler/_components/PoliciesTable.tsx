@@ -1,15 +1,15 @@
 "use client";
-import { ActionIcon, Button, Table } from "@mantine/core";
-import React, { useState } from "react";
-import { PoliciesType } from "../page";
+import FeedbackDialog from "@/components/FeedbackDialog";
+import { Button, Table } from "@mantine/core";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { agreementLabels } from "./PolicyForm";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { deletePolicy } from "../_actions/PoliciesActions";
-import { useRouter } from "next/navigation";
-import FeedbackDialog from "@/components/FeedbackDialog";
+import { PoliciesType } from "../page";
+import { agreementLabels } from "./PolicyForm";
 
 interface PoliciesTableProps {
   data: PoliciesType[];
