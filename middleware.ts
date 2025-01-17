@@ -6,8 +6,7 @@ import authConfig from "./auth.config";
 const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
-  const { nextUrl } = req;
-
+  const { nextUrl, headers } = req;
   const login = !!req.auth;
   const isAdmin =
     req.auth?.user?.role === Role.SUPERADMIN ||

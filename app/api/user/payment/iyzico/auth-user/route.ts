@@ -1,7 +1,6 @@
 import { DiscountCheck } from "@/actions/user/discount-check";
 import { deleteAddress } from "@/app/(kullanici)/hesabim/adres-defterim/_actions/AddressActions";
 import { auth } from "@/auth";
-import CryptoJS from "crypto-js";
 import {
   AuthUserCreateOrder,
   CheckSignature,
@@ -14,13 +13,14 @@ import {
 } from "@/lib/İyzico/helper/helper";
 import { iyzico } from "@/lib/İyzico/iyzicoClient";
 import { paymentRequest } from "@/lib/İyzico/types";
+import { rateLimiter } from "@/lib/rateLimitRedis";
 import {
   AuthUserPaymentDataSchema,
   NonAuthPaymentDataSchema,
 } from "@/zodschemas/authschema";
 import { createId } from "@paralleldrive/cuid2";
+import CryptoJS from "crypto-js";
 import { NextRequest, NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
 function errorHandler(code: string) {
   switch (code) {
     case "12":
@@ -42,7 +42,29 @@ function errorHandler(code: string) {
 export async function POST(req: NextRequest) {
   try {
     const ip =
-      req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for");
+      req.headers.get("x-real-ip") ||
+      req.headers.get("x-forwarded-for") ||
+      "::1";
+    const rateLimit = await rateLimiter(ip, {
+      limit: 50,
+      windowInMinutes: 30,
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          reset: rateLimit.reset,
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
+          },
+        },
+      );
+    }
     const session = await auth();
     if (!session) {
       const data = await req.json();

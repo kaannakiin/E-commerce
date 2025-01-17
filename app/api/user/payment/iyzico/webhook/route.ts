@@ -1,6 +1,6 @@
 import { sendOrderCreatedEmail } from "@/actions/sendMailAction/SendMail";
 import { findByPaymentIdAndUpdate } from "@/lib/İyzico/helper/helper";
-import crypto from "crypto";
+import { rateLimiter } from "@/lib/rateLimitRedis";
 import { NextRequest, NextResponse } from "next/server";
 interface DataProps {
   paymentConversationId: string;
@@ -39,9 +39,30 @@ interface DataProps {
 }
 export async function POST(req: NextRequest) {
   try {
-    const header = req.headers.get("x-iyz-signature");
-    const headerv3 = req.headers.get("x-iyz-signature-v3");
-
+    const userIp =
+      req.headers.get("x-real-userIp") ||
+      req.headers.get("x-forwarded-for") ||
+      "::1";
+    const rateLimit = await rateLimiter(userIp, {
+      limit: 50,
+      windowInMinutes: 30,
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          error: "Too many requests",
+          reset: rateLimit.reset,
+        },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": rateLimit.limit.toString(),
+            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+            "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
+          },
+        },
+      );
+    }
     const data: DataProps = await req.json();
     if (
       data.status === "SUCCESS" &&
@@ -55,22 +76,6 @@ export async function POST(req: NextRequest) {
           message: "Payment Id boş olamaz",
         });
       }
-      const secretKey = process.env.IYZICO_SECRET_KEY;
-      const key =
-        secretKey +
-        data.iyziEventType +
-        data.paymentId +
-        data.paymentConversationId +
-        data.status;
-      const hmac256 = crypto
-        .createHmac("sha256", secretKey)
-        .update(key)
-        .digest("hex");
-      console.log(hmac256);
-      console.log(header);
-      console.log(header === hmac256);
-      console.log(headerv3, "headerv3");
-      console.log(headerv3 === hmac256, "headerv3 === hmac256");
 
       const updateOrder = await findByPaymentIdAndUpdate(paymentId.toString());
       if (!updateOrder.success) {
