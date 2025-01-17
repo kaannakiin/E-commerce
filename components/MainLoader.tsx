@@ -6,12 +6,12 @@ interface MainLoaderProps {
   opacity?: number;
 }
 
-const MainLoader = ({ type = "dots", opacity = 0.7 }: MainLoaderProps) => {
+const MainLoader = ({ type = "oval", opacity = 0.7 }: MainLoaderProps) => {
   return (
     <LoadingOverlay
       visible
       zIndex={1000}
-      overlayProps={{ opacity ,}}
+      overlayProps={{ opacity }}
       loaderProps={{ type: type, color: "primary", size: "lg" }}
     />
   );

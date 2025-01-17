@@ -2249,3 +2249,42 @@ type EmailTemplateType = keyof typeof emailSchemas;
 export type EmailSchemaType = {
   [K in EmailTemplateType]: z.infer<(typeof emailSchemas)[K]>;
 };
+
+const baseServiceSchema = z.object({
+  isEnabled: z.boolean().default(false),
+});
+export const googleAnalyticsSchema = baseServiceSchema.extend({
+  measurementId: z
+    .string()
+    .trim()
+    .regex(/^G-[A-Z0-9]+$/, {
+      message: "Ölçüm ID 'G-' ile başlamalıdır.",
+    })
+    .min(1, "Ölçüm ID zorunludur"),
+});
+export const googleTagManagerSchema = baseServiceSchema.extend({
+  containerId: z
+    .string()
+    .trim()
+    .regex(/^GTM-[A-Z0-9]+$/, {
+      message:
+        "Container ID 'GTM-' ile başlamalı ve sonrasında en az bir karakter içermelidir. Örnek: GTM-XXXXXXX",
+    })
+    .optional()
+    .transform((val) => val || ""),
+});
+export const metaPixelSchema = baseServiceSchema.extend({
+  pixelId: z
+    .string({ message: "Bu alan zorunludur" })
+    .trim()
+    .min(1, "Pixel ID zorunludur"),
+});
+export const analyticsSettingsSchema = z.object({
+  googleAnalytics: googleAnalyticsSchema,
+  googleTagManager: googleTagManagerSchema,
+  metaPixel: metaPixelSchema,
+});
+export type AnalyticsSettings = z.infer<typeof analyticsSettingsSchema>;
+export type GoogleAnalyticsSettings = z.infer<typeof googleAnalyticsSchema>;
+export type GoogleTagManagerSettings = z.infer<typeof googleTagManagerSchema>;
+export type MetaPixelSettings = z.infer<typeof metaPixelSchema>;

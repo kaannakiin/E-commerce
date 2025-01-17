@@ -29,7 +29,6 @@ export function AuthenticationImage() {
   const callbackUrl = decodeURIComponent(params.get("callbackUrl") || "/");
   const { replace, push } = useRouter();
 
-  // Login Form Controller
   const {
     control: loginControl,
     handleSubmit: LoginHandleSubmit,
@@ -44,7 +43,6 @@ export function AuthenticationImage() {
     },
   });
 
-  // Register Form Controller
   const {
     control: registerControl,
     handleSubmit: RegisterHandleSubmit,
@@ -124,11 +122,11 @@ export function AuthenticationImage() {
             <Tabs.Tab value="giris">Giriş Yap</Tabs.Tab>
             <Tabs.Tab value="kayit">Kayıt Ol</Tabs.Tab>
           </Tabs.List>
-          <div className="min-h-[250px]">
+          <div className="h-full min-h-[250px] w-full">
             {LoginIsSubmitting || RegisterIsSubmitting ? (
               <Tabs.Panel
                 value="giris"
-                className="flex h-full items-center justify-center"
+                className="flex h-full w-full items-center justify-center"
               >
                 <MainLoader />
               </Tabs.Panel>

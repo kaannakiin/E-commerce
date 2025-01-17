@@ -25,6 +25,7 @@ import {
 import { MdAdd } from "react-icons/md";
 import { Address, BankTransferDetailProps } from "../page";
 import AccordionForPayment from "./AccordionForPayment";
+import PaymentForm from "./PaymentForm";
 
 const AuthUser = ({
   addresses,
@@ -206,7 +207,9 @@ const AuthUser = ({
             data={bankTransferData}
             defaultAddressId={defaultAddressId}
           />
-        ) : null}
+        ) : (
+          <PaymentForm address={defaultAddressId} />
+        )}
       </Tabs.Panel>
     </Tabs>
   );

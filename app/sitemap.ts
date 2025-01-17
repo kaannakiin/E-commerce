@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { slugify } from "@/utils/SlugifyVariants";
 import { MetadataRoute } from "next";
 function sanitizeUrl(url: string): string {
   return url
@@ -22,17 +23,12 @@ interface StaticPage {
 }
 const STATIC_PAGES: StaticPage[] = [
   { path: "", priority: 1.0, changeFrequency: "daily" }, // Ana sayfa
-  { path: "kategori", priority: 0.9, changeFrequency: "weekly" },
   { path: "hakkimizda", priority: 0.7, changeFrequency: "monthly" },
   { path: "iletisim", priority: 0.7, changeFrequency: "monthly" },
-  { path: "gizlilik-politikasi", priority: 0.5, changeFrequency: "monthly" },
-  { path: "satis-sozlesmesi", priority: 0.5, changeFrequency: "monthly" },
+  { path: "tum-urunler", priority: 0.7, changeFrequency: "daily" },
 ];
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    "https://8495-31-223-89-243.ngrok-free.app";
-
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
   const staticPages: MetadataRoute.Sitemap = STATIC_PAGES.map(
     ({ path, priority, changeFrequency }) => ({
       url: sanitizeUrl(`${baseUrl}/${path}`),
@@ -43,48 +39,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   try {
-    const [variantsData, categoriesData, blogsData] = await Promise.all([
-      prisma.variant.findMany({
-        where: {
-          isPublished: true,
-          softDelete: false,
-        },
-        select: {
-          slug: true,
-          updatedAt: true,
-          Image: {
-            select: { url: true },
+    const [policies, variantsData, categoriesData, blogsData] =
+      await Promise.all([
+        prisma.policies.findMany(),
+        prisma.variant.findMany({
+          where: {
+            isPublished: true,
+            softDelete: false,
           },
-          product: {
-            select: { shortDescription: true },
+          select: {
+            slug: true,
+            updatedAt: true,
+            Image: {
+              select: { url: true },
+            },
+            product: {
+              select: { shortDescription: true },
+            },
           },
-        },
-      }),
-      prisma.category.findMany({
-        where: {
-          active: true,
-        },
-        select: {
-          slug: true,
-          updatedAt: true,
-          images: {
-            select: { url: true },
+        }),
+        prisma.category.findMany({
+          where: {
+            active: true,
           },
-        },
-      }),
-      prisma.blog.findMany({
-        where: {
-          active: true,
-        },
-        select: {
-          slug: true,
-          updatedAt: true,
-          image: {
-            select: { url: true },
+          select: {
+            slug: true,
+            updatedAt: true,
+            images: {
+              select: { url: true },
+            },
           },
-        },
-      }),
-    ]);
+        }),
+        prisma.blog.findMany({
+          where: {
+            active: true,
+          },
+          select: {
+            slug: true,
+            updatedAt: true,
+            image: {
+              select: { url: true },
+            },
+          },
+        }),
+      ]);
     const variantsUrls =
       variantsData?.length > 0
         ? variantsData.map((variant): MetadataRoute.Sitemap[number] => ({
@@ -102,7 +100,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           }))
         : [];
 
-    // Categories için kontrol ve dönüşüm
     const categoriesUrls =
       categoriesData?.length > 0
         ? categoriesData.map((category): MetadataRoute.Sitemap[number] => ({
@@ -119,7 +116,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             ),
           }))
         : [];
-
+    const policiesUrls =
+      policies?.length > 0
+        ? policies.map((policy) => ({
+            url: sanitizeUrl(`${baseUrl}/sozlesmeler/${slugify(policy.type)}`),
+            lastModified: new Date(policy.updatedAt),
+            priority: 0.9,
+            changeFrequency: "yearly" as const,
+          }))
+        : [];
     // Blogs için kontrol ve dönüşüm
     const blogUrls =
       blogsData?.length > 0
@@ -142,9 +147,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     return [
       ...staticPages,
+      ...(policiesUrls?.map((item) => ({
+        ...item,
+        url: encodeURI(item.url),
+      })) || []),
       ...(categoriesUrls?.map((item) => ({
         ...item,
         url: encodeURI(item.url),
+        images: item.images?.map((img) => encodeURI(img)),
       })) || []),
       ...(variantsUrls?.map((item) => ({
         ...item,
