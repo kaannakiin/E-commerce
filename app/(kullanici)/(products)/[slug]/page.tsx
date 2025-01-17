@@ -68,6 +68,7 @@ const getPageData = cache(async (variantSlug: string) => {
       slug: variantSlug,
       softDelete: false,
       isPublished: true,
+      product: { active: true },
     },
     include: {
       product: {

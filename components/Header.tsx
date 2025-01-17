@@ -60,6 +60,7 @@ const feedHeader = cache(async () => {
         softDelete: false,
         isPublished: true,
         isSpotlightFeatured: true,
+        product: { active: true },
       },
       select: {
         slug: true,
@@ -122,7 +123,7 @@ const feedHeader = cache(async () => {
       salerInfo: salerInfo?.logo?.url,
       blogCount: blogCount ? true : false,
       faqSectionVisible:
-        faqSection?.isActive && faqSection?.displaySettings?.isHeader,  
+        faqSection?.isActive && faqSection?.displaySettings?.isHeader,
     };
   } catch (error) {
     console.error("Header data fetch error:", error);
