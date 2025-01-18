@@ -1,8 +1,8 @@
+import { auth } from "@/auth";
 import { Avatar, Group, Text } from "@mantine/core";
-import { useSession } from "next-auth/react";
 
-export function UserInfo() {
-  const { data: session } = useSession();
+export default async function UserInfo() {
+  const session = await auth();
 
   return (
     <Group gap="md">

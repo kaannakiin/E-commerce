@@ -27,7 +27,7 @@ const MenuCategory = ({
     return (
       <Link
         href={slug}
-        className="group relative inline-block px-2 py-2 text-lg text-black transition-colors duration-300 hover:text-[var(--mantine-color-primary-6)]"
+        className="group relative inline-block py-2 text-lg text-black transition-colors duration-300 hover:text-[var(--mantine-color-primary-6)]"
       >
         <span className="flex items-center gap-2">
           {MenuName}

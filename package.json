@@ -44,6 +44,7 @@
     "@mantine/dates": "^7.15.1",
     "@mantine/dropzone": "^7.15.1",
     "@mantine/hooks": "^7.15.2",
+    "@mantine/notifications": "^7.16.0",
     "@mantine/spotlight": "^7.15.1",
     "@mantine/tiptap": "^7.15.2",
     "@next/third-parties": "^15.1.2",

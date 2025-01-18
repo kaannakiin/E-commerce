@@ -146,15 +146,15 @@ const Header = async () => {
     ? "/hesabim/favoriler"
     : "/giris?callbackUrl=/hesabim/favoriler";
   return (
-    <header className="relative h-24 w-full">
-      <div className="mx-auto flex h-4 max-w-[1920px] items-center justify-end space-x-1 text-xs text-gray-900">
+    <header className="relative h-20 w-full lg:h-24">
+      <div className="mx-auto hidden h-4 max-w-[1920px] items-center justify-end space-x-1 text-xs text-gray-900 lg:flex">
         <Link href={"/hakkimizda"}>Hakkımızda</Link>
         {faqSectionVisible && (
           <Link href={"/sikca-sorulan-sorular"}>S.S.S</Link>
-        )}{" "}
+        )}
         <Link href={"/iletisim"}>İletisim</Link>
       </div>
-      <div className="mx-auto flex h-20 max-w-[1920px] items-center justify-between px-2 lg:justify-between lg:px-10">
+      <div className="mx-auto flex h-20 max-w-[1920px] items-center justify-between lg:justify-between lg:px-10">
         <div className="hidden w-1/3 flex-row items-center gap-1 lg:flex">
           <MenuCategory
             MenuName="Tüm Ürünler"

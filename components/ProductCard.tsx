@@ -53,7 +53,7 @@ const ProductCard = ({
   };
 
   return (
-    <Card radius="md" withBorder padding="xl">
+    <Card radius="md" withBorder padding="xl" className="h-full">
       <Card.Section>
         <Carousel
           withIndicators={product.Image.length > 1}
@@ -127,10 +127,10 @@ const ProductCard = ({
                 const path = productSlug ? `/${productSlug}` : "/";
                 onClickHeart(path);
               }}
-              size="lg"
-              radius="xl"
-              variant="subtle"
-              className="transition-all duration-200 hover:scale-110"
+              variant={isFave ? "subtle" : "outline"}
+              color="dark"
+              autoContrast
+              radius={"xs"}
             >
               {isInFavoritesPage ? (
                 <LiaTimesSolid size={18} />
@@ -145,9 +145,10 @@ const ProductCard = ({
             component={Link}
             scroll={true}
             href={product.slug ? `/${product.slug}` : "/"}
-            radius="md"
+            color="gray.9"
+            radius={0}
             size="xs"
-            variant="outline"
+            variant="filled"
           >
             Sepete Ekle
           </Button>
