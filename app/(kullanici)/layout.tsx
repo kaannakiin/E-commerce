@@ -5,6 +5,7 @@ import { Divider } from "@mantine/core";
 import { cache, Fragment } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import CustomMarquee from "./_components/CustomMarquee";
+import AffixToTop from "./_components/AffixToTop";
 const feedPage = cache(async () => {
   try {
     const [infoWhatsapp, marquee] = await Promise.all([
@@ -63,6 +64,7 @@ export default async function UserLayout({
         </a>
       )}
       <FooterWrapper />
+      <AffixToTop />
     </Fragment>
   );
 }
