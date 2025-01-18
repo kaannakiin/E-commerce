@@ -1,10 +1,10 @@
 "use client";
-import { Burger, Group, Drawer } from "@mantine/core";
+import { Burger, Drawer, Group } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { UserInfo } from "./userInfo";
-import classes from "./stlyes/Header.module.css";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment } from "react";
+import classes from "./stlyes/Header.module.css";
+import UserInfo from "./userInfo";
 
 const links = [
   {
