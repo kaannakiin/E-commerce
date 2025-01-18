@@ -16,14 +16,14 @@ const ShoppingProduct = ({ item }: { item: CartVariant }) => {
 
   return (
     <li className="flex py-6">
-      <div className="size-24 shrink-0 overflow-hidden rounded-md border border-gray-200 lg:size-32">
+      <div className="size-32 shrink-0 overflow-hidden rounded-md border border-gray-200">
         <CustomImage
           src={item.imageUrl}
           alt="denmee"
           className="size-full object-cover"
         />
       </div>
-      <div className="ml-4 flex flex-1 flex-col">
+      <div className="ml-4 flex flex-1 flex-col gap-1">
         <div className="space-y-1">
           <div className="flex justify-between text-sm font-semibold text-gray-900 lg:text-xl">
             <Title order={3} tt={"capitalize"}>
