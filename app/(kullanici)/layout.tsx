@@ -3,9 +3,9 @@ import Header from "@/components/Header";
 import { prisma } from "@/lib/prisma";
 import { Divider } from "@mantine/core";
 import { cache, Fragment } from "react";
-import { FaWhatsapp } from "react-icons/fa";
-import CustomMarquee from "./_components/CustomMarquee";
 import AffixToTop from "./_components/AffixToTop";
+import AffixWhatsapp from "./_components/AffixWhatsapp";
+import CustomMarquee from "./_components/CustomMarquee";
 const feedPage = cache(async () => {
   try {
     const [infoWhatsapp, marquee] = await Promise.all([
@@ -19,7 +19,7 @@ const feedPage = cache(async () => {
 
     const whatsappNumber = infoWhatsapp?.whatsapp || null;
     return {
-      whatsapp: whatsappNumber, // Direkt string değerini döndür
+      whatsapp: whatsappNumber,
       marquee: {
         text: marquee?.text || "Sepete  %10 indirim kazanın!",
         textColor: marquee?.textColor || "#f7f7f7",
@@ -52,19 +52,9 @@ export default async function UserLayout({
       {marquee && <CustomMarquee {...marquee} />}
       <Divider size="sm" />
       <main className="lg:min-h-[700px]">{children}</main>
-      {whatsapp && (
-        <a
-          href={`https://wa.me/+90${whatsapp.replace(/\D/g, "")}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-[10px] right-4 z-50 rounded-full bg-green-500 p-3 text-white shadow-lg transition-all duration-300 hover:bg-green-600 lg:bottom-[70px]"
-          aria-label="WhatsApp ile iletişime geçin"
-        >
-          <FaWhatsapp size={24} />
-        </a>
-      )}
-      <FooterWrapper />
+      {whatsapp && <AffixWhatsapp url={whatsapp} text="strin" />}
       <AffixToTop />
+      <FooterWrapper />
     </Fragment>
   );
 }

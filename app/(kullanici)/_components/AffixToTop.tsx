@@ -1,7 +1,6 @@
 "use client";
-import React from "react";
+import { ActionIcon, Affix, Transition } from "@mantine/core";
 import { useWindowScroll } from "@mantine/hooks";
-import { ActionIcon, Affix, Button, Text, Transition } from "@mantine/core";
 import { FaArrowUp } from "react-icons/fa";
 
 const AffixToTop = () => {
@@ -9,7 +8,7 @@ const AffixToTop = () => {
 
   return (
     <Affix position={{ bottom: 20, left: 20 }}>
-      <Transition transition="slide-up" mounted={scroll.y > 0}>
+      <Transition transition="slide-up" mounted={scroll.y > 100}>
         {(transitionStyles) => (
           <ActionIcon
             style={transitionStyles}
