@@ -2,6 +2,7 @@
 
 import { signOutUser } from "@/actions/signOut";
 import { Button, Menu } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -17,12 +18,13 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
   const params = useSearchParams();
   const pathname = usePathname();
   const { push, refresh } = useRouter();
-
+  const [opened, { open, close }] = useDisclosure();
   const handleAuth = (tab: "giris" | "kayit") => {
     const currentQuery = params.toString();
     const fullPath = `${pathname}${currentQuery ? `?${currentQuery}` : ""}`;
     const encodedCallbackUrl = encodeURIComponent(fullPath);
     push(`/giris?tab=${tab}&callbackUrl=${encodedCallbackUrl}`);
+    close();
   };
 
   return (
@@ -30,11 +32,12 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
       shadow="xl"
       width={180}
       position="bottom"
-      trigger="click"
+      opened={opened}
+      onClose={close}
       transitionProps={{ transition: "fade-up", duration: 300 }}
     >
       <Menu.Target>
-        <RiUserLine size={28} className="cursor-pointer" />
+        <RiUserLine size={28} className="cursor-pointer" onClick={open} />
       </Menu.Target>
       <Menu.Dropdown>
         {isUser ? (
@@ -50,6 +53,7 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
                 inner:
                   "flex flex-row items-center pl-1  justify-start gap-1 w-full",
               }}
+              onClick={close}
             >
               Hesabım
             </Button>
@@ -65,6 +69,7 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
                   "flex flex-row items-center  pl-1  justify-start gap-1 w-full",
               }}
               leftSection={<RiHeartLine size={18} />}
+              onClick={close}
             >
               Favorilerim
             </Button>
@@ -80,6 +85,7 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
                   "flex flex-row items-center pl-1 justify-start gap-1 w-full",
               }}
               leftSection={<RiFileListLine size={18} />}
+              onClick={close}
             >
               Siparişlerim
             </Button>
@@ -92,7 +98,11 @@ const MenuUser = ({ isUser }: { isUser: boolean }) => {
                 inner:
                   "flex flex-row items-center pl-1 justify-start gap-1 w-full",
               }}
-              onClick={async () => await signOutUser().then(() => refresh())}
+              onClick={async () => {
+                await signOutUser();
+                refresh();
+                close();
+              }}
               leftSection={<RiLogoutBoxLine size={18} />}
             >
               Çıkış yap

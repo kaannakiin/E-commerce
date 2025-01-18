@@ -7,14 +7,12 @@ import {
   Head,
   Html,
   Img,
-  Link,
   Preview,
   Row,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
-import React from "react";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
 
@@ -384,13 +382,11 @@ function ProductsSection({ products, testMode }: GetProductsProps) {
 function HeaderSection({ url }: { url?: string }) {
   return (
     <Section className="py-1">
-      <Link href={baseUrl}>
-        <Img
-          alt="React Email logo"
-          className="h-auto min-h-full w-full object-contain"
-          src={url ? url : "https://placehold.co/200x42?text=Logo"}
-        />
-      </Link>
+      <Img
+        alt="React Email logo"
+        className="h-auto min-h-full w-full object-contain"
+        src={url ? url : "https://placehold.co/200x42?text=Logo"}
+      />
     </Section>
   );
 }

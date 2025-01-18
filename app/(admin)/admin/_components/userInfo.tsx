@@ -1,9 +1,9 @@
-import { auth } from "@/auth";
 import { Avatar, Group, Text } from "@mantine/core";
-
-export default async function UserInfo() {
-  const session = await auth();
-
+interface userInfoProps {
+  name: string;
+  email: string;
+}
+const userInfo = async ({ email, name }: userInfoProps) => {
   return (
     <Group gap="md">
       <Avatar
@@ -13,16 +13,18 @@ export default async function UserInfo() {
           root: { backgroundColor: "white" },
         }}
       >
-        {session?.user?.name?.[0] ?? "A"}
+        A
       </Avatar>
       <div>
         <Text size="sm" fw={500}>
-          {session?.user?.name ?? "Admin User"}
+          {name}
         </Text>
         <Text size="xs" c="dimmed">
-          {session?.user?.email ?? "admin@example.com"}
+          {email}
         </Text>
       </div>
     </Group>
   );
-}
+};
+
+export default userInfo;

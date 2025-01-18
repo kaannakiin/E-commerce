@@ -1,12 +1,12 @@
 // app/(admin)/layout.tsx
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import Provider from "@/providers/ImageProvider";
 import { Box } from "@mantine/core";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import Info from "./_components/Info";
 import { HeaderSearch } from "./_components/AdminHeader";
-import Provider from "@/providers/ImageProvider";
+import Info from "./_components/Info";
 const feedLayout = cache(async () => {
   try {
     const info = await prisma.salerInfo.findFirst();
@@ -28,10 +28,9 @@ export default async function AdminLayout({
     redirect("/auth/signin");
   }
   const info = await feedLayout();
-
   return (
     <Box>
-      <HeaderSearch />
+      <HeaderSearch name={session?.user?.name} email={session?.user?.email} />
 
       <main>
         {info === null ? <Info /> : null}

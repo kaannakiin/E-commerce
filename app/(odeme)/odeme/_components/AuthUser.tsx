@@ -123,8 +123,7 @@ const AuthUser = ({
                     </div>
                     <div className="flex gap-2">
                       <ActionIcon
-                        variant="light"
-                        color="blue"
+                        variant="default"
                         onClick={() => handleEditClick(address)}
                       >
                         <FaEdit size={18} />

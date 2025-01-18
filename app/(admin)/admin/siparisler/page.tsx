@@ -76,7 +76,7 @@ const feedOrderPage = async (
           ? { equals: "BANK_TRANSFER" }
           : orderPaymentType === "creditcards"
             ? { not: "BANK_TRANSFER" }
-            : undefined, // 'allPayment' durumunda hiçbir filtreleme yapmaz
+            : undefined,
     }),
   };
 
