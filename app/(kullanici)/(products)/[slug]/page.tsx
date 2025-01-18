@@ -265,7 +265,6 @@ const ProductsPage = async (params: { params: Params }) => {
                   <h1 className="flex-1 text-3xl font-medium uppercase tracking-tight text-gray-900">
                     {variant.product.name}
                   </h1>
-                  <FavHeart isFavorited={isFavorited} productId={variant.id} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -322,16 +321,18 @@ const ProductsPage = async (params: { params: Params }) => {
 
                 {variant.type === VariantType.WEIGHT && (
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-700">
-                      Ağırlık:
-                    </span>
                     <span className="rounded-md border px-3 py-1 text-sm">
                       {variant.value} {variant.unit}
                     </span>
                   </div>
                 )}
               </div>
-              <AddToCartButton variant={variant} />
+              <div className="flex w-full min-w-full flex-row items-center gap-2">
+                <AddToCartButton variant={variant} />
+                <div className="flex flex-1 items-center">
+                  <FavHeart isFavorited={isFavorited} productId={variant.id} />
+                </div>
+              </div>
               <div className="flex flex-col gap-3 border-t pt-4 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
                   <FaClockRotateLeft />

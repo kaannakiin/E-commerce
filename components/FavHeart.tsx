@@ -22,27 +22,13 @@ const FavHeart = ({ isFavorited, productId }) => {
   return (
     <ActionIcon
       onClick={onClickHeart}
-      className="h-11 w-11"
-      variant="transparent"
-      size={"input-xl"}
+      className="h-10 w-10"
+      variant={isFave ? "subtle" : "outline"}
+      color="dark"
+      autoContrast
+      radius={"xs"}
     >
-      {isFave ? (
-        <FaHeart
-          style={{
-            fontSize: "2rem",
-            fontWeight: 700,
-          }}
-        />
-      ) : (
-        <FaRegHeart
-          style={{
-            fontSize: "2rem",
-            fontWeight: 700,
-            color: "var(--mantine-color-secondary-6)",
-          }}
-          className="group-hover:text-red-500"
-        />
-      )}
+      {isFave ? <FaHeart size={24} /> : <FaRegHeart size={24} />}
     </ActionIcon>
   );
 };

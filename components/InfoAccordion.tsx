@@ -36,12 +36,12 @@ const ProductDetails = ({ richText }: ProductDetailsProps) => {
           <Accordion.Control px={0} py={0}>
             <AccordionLabel
               label="Ürün Açıklaması"
-              icon={<MdOutlineDescription />}
+              icon={<MdOutlineDescription color="black" />}
             />
           </Accordion.Control>
           <Accordion.Panel p={0}>
             <ScrollArea.Autosize
-              mah={180}
+              mah={400}
               type="scroll"
               scrollbarSize={6}
               offsetScrollbars

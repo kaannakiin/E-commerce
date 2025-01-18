@@ -29,7 +29,7 @@ const CategoryCarousel = ({
         {products.map((product) => {
           const { isFavorite, ...productWithoutFavorite } = product;
           return (
-            <Carousel.Slide key={product.id} className="h-full">
+            <Carousel.Slide key={product.id} className="h-auto min-h-full">
               <ProductCard
                 isFavorited={product.isFavorite}
                 product={productWithoutFavorite}

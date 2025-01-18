@@ -1,15 +1,16 @@
 import { generateShades } from "@/lib/colors";
 import { prisma } from "@/lib/prisma";
 import type { MantineColorsTuple } from "@mantine/core";
-import { ColorSchemeScript, MantineProvider, createTheme } from "@mantine/core";
+import { ColorSchemeScript, createTheme, MantineProvider } from "@mantine/core";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
+import { Notifications } from "@mantine/notifications";
+import "@mantine/notifications/styles.css";
+import { GoogleAnalytics, GoogleTagManager } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { SessionProvider } from "next-auth/react";
-import Script from "next/script";
-import { cache, Fragment } from "react";
+import { cache } from "react";
 import "./globals.css";
-import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 
 const DEFAULT_SETTINGS = {
   title: "%100 Sertifikalı Sağlıklı Yaşam Marketi",
@@ -193,15 +194,15 @@ export default async function RootLayout({
         <ColorSchemeScript forceColorScheme="light" />
       </head>
       <body>
-        <SessionProvider>
-          <MantineProvider
-            forceColorScheme="light"
-            defaultColorScheme="light"
-            theme={theme}
-          >
-            {children}
-          </MantineProvider>
-        </SessionProvider>
+        <MantineProvider
+          forceColorScheme="light"
+          defaultColorScheme="light"
+          theme={theme}
+        >
+          <Notifications />
+
+          {children}
+        </MantineProvider>
       </body>
     </html>
   );
