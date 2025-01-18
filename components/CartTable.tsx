@@ -48,10 +48,10 @@ const CartPage = () => {
     );
   }
   return (
-    <div className="flex h-full w-full flex-col gap-4 px-2 py-10 lg:px-10">
+    <div className="mt-4 flex h-full w-full flex-col gap-2 border border-gray-200 px-2 py-10 lg:mx-auto lg:w-2/3 lg:px-10">
       <Title order={2}>Sepetim {`(${items.length})`}</Title>
-      <div className="flex h-full w-full flex-col gap-3 lg:flex-row">
-        <ul className="-my-6 divide-y divide-gray-200 lg:w-2/3" role="list">
+      <div className="flex h-full w-full flex-col gap-10 lg:flex-row">
+        <ul className="-my-6 divide-y divide-gray-200 lg:w-1/2" role="list">
           {items.map((item) => (
             <ShoppingProduct key={item.variantId} item={item} />
           ))}
