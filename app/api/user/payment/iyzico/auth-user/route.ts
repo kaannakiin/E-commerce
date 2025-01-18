@@ -45,26 +45,26 @@ export async function POST(req: NextRequest) {
       req.headers.get("x-real-ip") ||
       req.headers.get("x-forwarded-for") ||
       "::1";
-    const rateLimit = await rateLimiter(ip, {
-      limit: 50,
-      windowInMinutes: 30,
-    });
-    if (!rateLimit.success) {
-      return NextResponse.json(
-        {
-          error: "Too many requests",
-          reset: rateLimit.reset,
-        },
-        {
-          status: 429,
-          headers: {
-            "X-RateLimit-Limit": rateLimit.limit.toString(),
-            "X-RateLimit-Remaining": rateLimit.remaining.toString(),
-            "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
-          },
-        },
-      );
-    }
+    // const rateLimit = await rateLimiter(ip, {
+    //   limit: 50,
+    //   windowInMinutes: 30,
+    // });
+    // if (!rateLimit.success) {
+    //   return NextResponse.json(
+    //     {
+    //       error: "Too many requests",
+    //       reset: rateLimit.reset,
+    //     },
+    //     {
+    //       status: 429,
+    //       headers: {
+    //         "X-RateLimit-Limit": rateLimit.limit.toString(),
+    //         "X-RateLimit-Remaining": rateLimit.remaining.toString(),
+    //         "X-RateLimit-Reset": (rateLimit.reset || 0).toString(),
+    //       },
+    //     },
+    //   );
+    // }
     const session = await auth();
     if (!session) {
       const data = await req.json();

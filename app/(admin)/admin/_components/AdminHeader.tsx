@@ -34,7 +34,7 @@ const links = [
   },
 ];
 
-export function HeaderSearch() {
+export function HeaderSearch({ name, email }: { name: string; email: string }) {
   const [opened, { toggle, close }] = useDisclosure(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -94,7 +94,7 @@ export function HeaderSearch() {
               size="sm"
               hiddenFrom="sm"
             />
-            <UserInfo />
+            <UserInfo name={name} email={email} />
           </Group>
           <Group>
             <Group ml={50} gap={5} className={classes.links} visibleFrom="sm">
