@@ -3,7 +3,7 @@ interface userInfoProps {
   name: string;
   email: string;
 }
-const userInfo = async ({ email, name }: userInfoProps) => {
+const userInfo = ({ email, name }: userInfoProps) => {
   return (
     <Group gap="md">
       <Avatar

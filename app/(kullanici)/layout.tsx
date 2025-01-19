@@ -12,6 +12,7 @@ const feedPage = cache(async () => {
       prisma.salerInfo.findFirst({
         select: {
           whatsapp: true,
+          whatsappStarterText: true,
         },
       }),
       prisma.customMarquee.findFirst(),
@@ -20,6 +21,7 @@ const feedPage = cache(async () => {
     const whatsappNumber = infoWhatsapp?.whatsapp || null;
     return {
       whatsapp: whatsappNumber,
+      whatsappText: infoWhatsapp?.whatsappStarterText || null,
       marquee: {
         text: marquee?.text || "Sepete  %10 indirim kazanın!",
         textColor: marquee?.textColor || "#f7f7f7",
@@ -36,7 +38,7 @@ const feedPage = cache(async () => {
     return {
       whatsapp: null,
       marquee: null,
-      policies: [],
+      whatsappText: null,
     };
   }
 });
@@ -45,14 +47,14 @@ export default async function UserLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { whatsapp, marquee } = await feedPage();
+  const { whatsapp, marquee, whatsappText } = await feedPage();
   return (
     <Fragment>
       <Header />
       {marquee && <CustomMarquee {...marquee} />}
       <Divider size="sm" />
       <main className="lg:min-h-[700px]">{children}</main>
-      {whatsapp && <AffixWhatsapp url={whatsapp} text="strin" />}
+      {whatsapp && <AffixWhatsapp url={whatsapp} text={whatsappText} />}
       <AffixToTop />
       <FooterWrapper />
     </Fragment>

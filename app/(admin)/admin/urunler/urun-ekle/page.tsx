@@ -29,7 +29,7 @@ const feed = cache(async () => {
       },
     }),
     prisma.googleCategory.findMany({
-      where: { level: 1 }, // Ana kategorileri getir
+      where: { level: 1 },
       select: {
         id: true,
         name: true,

@@ -84,7 +84,7 @@ const AffixWhatsapp = ({ url, text }: AffixWhatsappProps) => {
       <Affix position={{ bottom: !cookieAccepted ? 60 : 20, right: 20 }}>
         <ActionIcon
           component="a"
-          href={`https://wa.me/+90${url.replace(/\D/g, "")}`}
+          href={`https://wa.me/90${url.replace(/\D/g, "")}&text=${encodeURIComponent(text)}`}
           target="_blank"
           variant="transparent"
           color="green"
@@ -92,7 +92,6 @@ const AffixWhatsapp = ({ url, text }: AffixWhatsappProps) => {
           <BsWhatsapp size={40} />
         </ActionIcon>
       </Affix>
-
       {!cookieAccepted && (
         <Affix position={{ bottom: 20, right: 20 }}>
           <ActionIcon

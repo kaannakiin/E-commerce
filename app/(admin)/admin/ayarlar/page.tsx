@@ -60,16 +60,16 @@ const SettingsPage = () => {
       href: "/admin/ayarlar/hesap",
     },
     {
+      icon: <CiMenuBurger className="h-6 w-6 text-primary-600" />,
+      title: " Favicon ve Tema Rengi",
+      description: "Anasayfa görselini ve faviconu düzenleyin.",
+      href: "/admin/ayarlar/temalar",
+    },
+    {
       icon: <TfiLayoutSlider className="h-6 w-6 text-primary-600" />,
       title: "Sliderlar",
       description: "Sliderları düzenleyin.",
       href: "/admin/ayarlar/slider",
-    },
-    {
-      icon: <CiMenuBurger className="h-6 w-6 text-primary-600" />,
-      title: "SEO ve Tema Rengi",
-      description: "SEO ve tema rengi düzenleyin.",
-      href: "/admin/ayarlar/temalar",
     },
     {
       icon: <CiImageOn className="h-6 w-6 text-primary-600" />,

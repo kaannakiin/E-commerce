@@ -8,6 +8,7 @@ import {
   VariantType,
 } from "@prisma/client";
 import { z } from "zod";
+
 export const forgotPasswordSchema = z.object({
   email: z
     .string({ message: "Bu alan zorunludur" })
@@ -703,62 +704,54 @@ export type RefundAdminValues = z.infer<typeof refundAdminSchema>;
 export const SalerInfoSchema = z.object({
   storeName: z
     .string({ message: "Bu alan zorunludur." })
+    .trim()
     .min(1, { message: "Bu alan zorunludur." })
     .max(50, { message: "Bu alan en fazla 50 karakter olabilir" }),
   storeDescription: z
     .string({ message: "Bu alan zorunludur" })
+    .trim()
     .min(1, { message: "Bu alan zorunludur." })
     .max(500, "Açıklama en fazla 500 karakter olabilir"),
   address: z
     .string({ message: "Bu alan zorunludur" })
+    .trim()
     .min(1, { message: "Bu alan zorunludur." })
     .max(300, "Adres en fazla 300 karakter olabilir"),
   logo: z
-    .array(z.instanceof(File), { message: "Bu alan zorunludur" })
-    .length(1, "Bir adet fotoğraf eklemelisiniz")
+    .array(z.instanceof(File)) // array içinde File bekle
+    .optional()
+    .nullable()
     .superRefine((files, ctx) => {
-      if (!files || files.length === 0) {
-        ctx.addIssue({
-          code: "custom",
-          message: "Bir fotoğraf eklemelisiniz",
-        });
-      }
+      if (!files) return;
+
       if (files.length > 1) {
         ctx.addIssue({
-          code: "custom",
+          code: z.ZodIssueCode.custom,
           message: "Sadece bir fotoğraf yükleyebilirsiniz",
         });
       }
-      files.forEach((file) => {
-        if (file.size >= MAX_FILE_SIZE) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
-          });
-        }
 
-        const SUPPORTED_FORMATS = [
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "image/gif",
-          "video/mp4",
-        ];
-
-        if (!SUPPORTED_FORMATS.includes(file.type)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
-          });
-        }
-      });
-    })
-    .optional(),
+      const file = files[0];
+      if (file && file.size >= MAX_FILE_SIZE) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${file.name} dosya boyutu 10MB'dan küçük olmalıdır`,
+        });
+      }
+      if (file && !SUPPORTED_FORMATS.includes(file.type)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${file.name} geçersiz dosya formatı. Desteklenen formatlar: .jpg, .jpeg, .png, .webp, .gif`,
+        });
+      }
+    }),
   contactEmail: z
     .string({ message: "Bu alan zorunludur." })
+    .trim()
     .email({ message: "Geçerli bir e-posta adresi giriniz" }),
   contactPhone: z
     .string({ message: "Bu alan zorunludur." })
+    .trim()
     .refine(
       (val) =>
         !val ||
@@ -771,6 +764,7 @@ export const SalerInfoSchema = z.object({
     ),
   whatsapp: z
     .string()
+    .trim()
     .refine(
       (val) =>
         !val ||
@@ -783,14 +777,10 @@ export const SalerInfoSchema = z.object({
     )
     .optional()
     .nullable(),
-  seoTitle: z
-    .string({ message: "Bu alan zorunludur." })
-    .max(60, "SEO başlığı en fazla 60 karakter olabilir"),
-  seoDescription: z
-    .string({ message: "Bu alan zorunludur." })
-    .max(320, "SEO açıklaması en fazla 320 karakter olabilir"),
+  whatsappStarterText: z.string().trim().optional().nullable(),
   instagram: z
     .string()
+    .trim()
     .regex(
       /^[a-zA-Z0-9._]{1,30}$/,
       "Geçerli bir Instagram kullanıcı adı giriniz",
@@ -800,12 +790,14 @@ export const SalerInfoSchema = z.object({
 
   facebook: z
     .string()
+    .trim()
     .regex(/^[a-zA-Z0-9.]{1,50}$/, "Geçerli bir Facebook kullanıcı adı giriniz")
     .optional()
     .nullable(),
 
   pinterest: z
     .string()
+    .trim()
     .min(3, "Pinterest kullanıcı adı en az 3 karakter olmalıdır")
     .max(30, "Pinterest kullanıcı adı en fazla 30 karakter olabilir")
     .regex(
@@ -817,6 +809,7 @@ export const SalerInfoSchema = z.object({
 
   twitter: z
     .string()
+    .trim()
     .max(15, "Twitter kullanıcı adı en fazla 15 karakter olabilir")
     .regex(
       /^[a-zA-Z0-9_]{1,15}$/,
@@ -926,14 +919,7 @@ export const SocialMediaPreviewSchema = z.object({
       });
     })
     .optional(),
-  title: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, { message: "Bu alan boş olamaz" })
-    .max(60, { message: "Başlık en fazla 60 karakter olabilir" }),
-  description: z
-    .string({ message: "Bu alan boş olamaz" })
-    .min(1, { message: "Bu alan boş olamaz" })
-    .max(300, { message: "Açıklama en fazla 300 karakter olabilir" }),
+
   themeColor1: z
     .string({ message: "Bu alan boş olamaz" })
     .min(1, { message: "Bir renk seçmelisiniz" })
@@ -948,8 +934,6 @@ export const SocialMediaPreviewSchema = z.object({
       message: "Geçerli bir HEX renk kodu girilmelidir (örn: #FF0000)",
     })
     .transform((val) => val.toUpperCase()),
-  googleId: z.string().optional().nullable(),
-  googleVerification: z.string().optional().nullable(),
 });
 export type SocialMediaPreviewType = z.infer<typeof SocialMediaPreviewSchema>;
 

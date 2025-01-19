@@ -441,5 +441,115 @@ export async function SendWelcomeEmail({ toEmail }: SendWelcomeEmailProps) {
         },
       };
     }
-  } catch (error) {}
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        message: "Beklenmeyen bir hata oluştu",
+        code: "UNEXPECTED_ERROR",
+        details: error,
+      },
+    };
+  }
+}
+interface SendOrderConfirmedEmailProps {
+  toEmail: string;
+  products: {
+    productImageUrl: string;
+    name: string;
+    quantity: number;
+    type: VariantType;
+    price: number;
+    unit?: string;
+    value: string;
+  }[];
+  orderNumber: string;
+}
+export async function SendOrderConfirmedEmail({
+  toEmail,
+  orderNumber,
+  products,
+}: SendOrderConfirmedEmailProps) {
+  try {
+    const { success, email, nodemailer } = await CreateTransporter();
+    if (!success || !nodemailer || !email) {
+      return {
+        success: false,
+        error: {
+          message: "E-posta sunucusuna bağlanılamadı",
+          code: "TRANSPORTER_ERROR",
+          details: { success, email, nodemailer },
+        },
+      };
+    }
+    let storeName = "Store";
+    let url = "https://placehold.co/200x42?text=Logo";
+    try {
+      const storeInfo = await getLogoUrl();
+      if (storeInfo.url)
+        url = `${baseUrl}/api/user/asset/get-image?url=${storeInfo.url}&forEmail=true`;
+      if (storeInfo.storeName) storeName = storeInfo.storeName;
+    } catch (logoError) {
+      console.warn(
+        "Logo bilgileri alınamadı, varsayılan değerler kullanılıyor:",
+        logoError,
+      );
+    }
+    let renderedHtml: string;
+    try {
+      renderedHtml = await render(
+        <MyTemplate
+          type="ORDER_ACCEPTED"
+          logoUrl={url}
+          products={products}
+          buttonUrl={`${baseUrl}/siparis/${orderNumber}`}
+          testMode={false}
+        />,
+      );
+    } catch (renderError) {
+      console.error("E-posta şablonu render hatası:", renderError);
+      return {
+        success: false,
+        error: {
+          message: "E-posta şablonu oluşturulamadı",
+          code: "TEMPLATE_RENDER_ERROR",
+          details: renderError,
+        },
+      };
+    }
+    try {
+      await nodemailer.sendMail({
+        from: { address: email, name: storeName },
+        to: toEmail,
+        subject: "Siparişiniz Onaylandı",
+        html: renderedHtml,
+        headers: {
+          "X-Priority": "1",
+          "X-MSMail-Priority": "High",
+        },
+      });
+
+      return {
+        success: true,
+      };
+    } catch (sendError) {
+      return {
+        success: false,
+        error: {
+          message: "E-posta gönderilemedi",
+          code: "SEND_ERROR",
+          details: sendError,
+        },
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: {
+        message: "Beklenmeyen bir hata oluştu",
+        code: "UNEXPECTED_ERROR",
+        details: error,
+      },
+    };
+  }
 }

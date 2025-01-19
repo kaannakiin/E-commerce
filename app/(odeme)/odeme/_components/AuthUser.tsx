@@ -1,6 +1,5 @@
 "use client";
 import AddressForm from "@/app/(kullanici)/hesabim/adres-defterim/_components/AddressForm";
-import { useStore } from "@/store/store";
 import {
   ActionIcon,
   Card,
@@ -41,7 +40,6 @@ const AuthUser = ({
     useDisclosure(false);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const totalFinalPrice = useStore((state) => state.totalFinalPrice);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [defaultAddressId, setDefaultAddressId] = useState<string>("");
   const activeTab = searchParams.get("tab") || "address";
@@ -82,16 +80,10 @@ const AuthUser = ({
       <Tabs.Panel value="address" p={8}>
         <UnstyledButton
           onClick={open}
-          className="mb-4 flex w-full items-center justify-center gap-3 rounded-lg bg-primary-900/5 px-4 py-3.5 active:bg-primary-900/15 sm:hover:bg-primary-900/10"
+          className="mb-4 flex w-full items-center justify-center gap-3 bg-primary-900/5 px-4 py-3.5 active:bg-primary-900/15 sm:hover:bg-primary-900/10"
         >
-          <Paper
-            radius={"xl"}
-            bg={"primary.9"}
-            className="flex h-8 w-8 items-center justify-center text-white active:scale-95 sm:group-hover:scale-110"
-          >
-            <MdAdd size={20} />
-          </Paper>
-          <Text size="lg" fw={400} c={"primary.9"}>
+          <MdAdd size={20} />
+          <Text size="lg" fw={400}>
             Yeni Adres Ekle
           </Text>
         </UnstyledButton>
@@ -101,7 +93,7 @@ const AuthUser = ({
               <Card
                 shadow="sm"
                 padding="lg"
-                radius="md"
+                radius="xs"
                 withBorder
                 className={`h-[200px] transition-colors ${defaultAddressId === address.id ? "bg-primary-100" : ""}`}
                 bg={defaultAddressId === address.id ? "primary.2" : undefined}

@@ -19,13 +19,12 @@ model SalerInfo {
   contactEmail String
   contactPhone String
 
-  seoTitle       String?
-  seoDescription String?
-  instagram      String?
-  pinterest      String?
-  facebook       String?
-  whatsapp       String?
-  twitter        String?
+  instagram           String?
+  pinterest           String?
+  facebook            String?
+  whatsapp            String?
+  twitter             String?
+  whatsappStarterText String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -235,13 +234,11 @@ enum AssetType {
 }
 
 model MainSeoSettings {
-  id                 String  @id @default(cuid())
-  image              Image?  @relation("MainImage", fields: [imageId], references: [id])
-  imageId            String? @unique
-  favicon            Image?  @relation("Favicon", fields: [faviconId], references: [id])
-  faviconId          String? @unique
-  googleId           String? //for google-analytics 
-  googleVerification String? // Google site doğrulama kodu için yeni alan
+  id        String  @id @default(cuid())
+  image     Image?  @relation("MainImage", fields: [imageId], references: [id])
+  imageId   String? @unique
+  favicon   Image?  @relation("Favicon", fields: [faviconId], references: [id])
+  faviconId String? @unique
 
   googleAnalytics           String?
   googleAnalyticsIsEnabled  Boolean @default(false)
@@ -250,8 +247,6 @@ model MainSeoSettings {
   metaPixel                 String?
   metaPixelIsEnabled        Boolean @default(false)
 
-  title               String
-  description         String
   themeColor          String
   themeColorSecondary String?
   Image               Image[]
@@ -419,8 +414,8 @@ model OrderItems {
 }
 
 enum OrderStatus {
-  PENDING // Sipariş beklemede
-  PROCESSING // HAZIRLANIYOR
+  PENDING // Webhook bekleniyor
+  PROCESSING // Webhook alındı, işleniyor
   SHIPPED // Kargoya verildi
   CANCELLED // İptal edildi
   COMPLETED // Tamamlandı

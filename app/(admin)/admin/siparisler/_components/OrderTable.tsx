@@ -37,10 +37,10 @@ const OrdersTable = ({
             <Table.Tr>
               <Table.Th>Sipariş Numarası</Table.Th>
               <Table.Th>Kişi bilgi</Table.Th>
+              <Table.Th>Ödeme Türü</Table.Th>
               <Table.Th>Ürün Sayısı</Table.Th>
               <Table.Th>Sipariş Durumu</Table.Th>
               <Table.Th>Ödeme Durumu</Table.Th>
-              <Table.Th>Odeme Türü</Table.Th>
               <Table.Th>Toplam</Table.Th>
               <Table.Th>Sipariş Tarihi</Table.Th>
               <Table.Th className="w-32 text-center">İşlem</Table.Th>

@@ -19,8 +19,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import CustomDropzone from "../../../urunler/_components/CustomDropzone";
-import { DeteleSeoImage, EditTheme } from "../_actions/ThemeAction";
 import { SocialMediaProps } from "../page";
+import {
+  DeleteImageOnMainSeoSettings,
+  EditMainSeoSettings,
+} from "../_actions/ThemeAction";
 
 const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
   const {
@@ -32,8 +35,6 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
     defaultValues: {
       favicon: undefined,
       logo: undefined,
-      title: data?.title || "",
-      description: data?.description || "",
       themeColor1: data?.themeColor || "#2e2e2e",
       themeColor2: data?.themeColorSecondary || "#2e2e2e",
     },
@@ -50,65 +51,64 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
   });
   const { refresh } = useRouter();
 
-  const handleImageDelete = async (url: string, type: "favicon" | "logo") => {
-    await DeteleSeoImage(url, type).then((res) => {
-      if (res.success) {
-        setFeedbackState({
-          isOpen: true,
-          message: res.message,
-          type: "success",
-        });
-      } else {
-        setFeedbackState({
-          isOpen: true,
-          message: res.message,
-          type: "error",
-        });
-      }
-    });
-    refresh();
-  };
-  const onSubmit: SubmitHandler<SocialMediaPreviewType> = async (formData) => {
-    const response = await EditTheme(formData);
-    if (response.success) {
-      setFeedbackState({
-        isOpen: true,
-        message: response.message,
-        type: "success",
+  const handleImageDelete = async (type: "favicon" | "mainPageImage") => {
+    try {
+      await DeleteImageOnMainSeoSettings({
+        type: type === "favicon" ? "favicon" : "mainPageImage",
+      }).then((res) => {
+        if (res.success) {
+          setFeedbackState({
+            isOpen: true,
+            message: res.message,
+            type: "success",
+          });
+        } else {
+          setFeedbackState({
+            isOpen: true,
+            message: res.message,
+            type: "error",
+          });
+        }
       });
+    } catch (error) {
+    } finally {
       refresh();
-    } else {
-      setFeedbackState({
-        isOpen: true,
-        message: response.message,
-        type: "error",
-      });
     }
   };
-
-  const themeColors = [
-    "#2e2e2e",
-    "#868e96",
-    "#fa5252",
-    "#e64980",
-    "#be4bdb",
-    "#7950f2",
-    "#4c6ef5",
-    "#228be6",
-    "#15aabf",
-    "#12b886",
-    "#40c057",
-    "#82c91e",
-    "#fab005",
-    "#fd7e14",
-  ];
+  const onSubmit: SubmitHandler<SocialMediaPreviewType> = async (formData) => {
+    try {
+      await EditMainSeoSettings(formData).then((res) => {
+        if (res.success) {
+          setFeedbackState({
+            isOpen: true,
+            message: res.message,
+            type: "success",
+          });
+        } else {
+          setFeedbackState({
+            isOpen: true,
+            message: res.message,
+            type: "error",
+          });
+        }
+      });
+    } catch (error) {
+      setFeedbackState({
+        isOpen: true,
+        message: "Bir hata oluştu",
+        type: "error",
+      });
+    } finally {
+      refresh();
+    }
+  };
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="mx-auto w-full max-w-3xl"
     >
-      <div className="space-y-8">
+      <div className="space-y-4">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {data?.image?.url ? (
             <div className="relative h-full min-h-52 w-full min-w-52">
@@ -120,7 +120,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               <CloseButton
                 size="sm"
                 className="absolute right-2 top-2 rounded-full bg-white shadow-sm hover:bg-gray-100"
-                onClick={() => handleImageDelete(data.image.url, "logo")}
+                onClick={() => handleImageDelete("mainPageImage")}
               />
             </div>
           ) : (
@@ -144,7 +144,7 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               <CloseButton
                 size="sm"
                 className="absolute right-2 top-2 rounded-full bg-white shadow-sm hover:bg-gray-100"
-                onClick={() => handleImageDelete(data.favicon.url, "favicon")}
+                onClick={() => handleImageDelete("favicon")}
               />
             </div>
           ) : (
@@ -157,7 +157,6 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               <ul className="mb-4 space-y-1.5 text-sm text-gray-500">
                 <li>• Önerilen boyut: 32x32 piksel (genel kullanım)</li>
                 <li>• Yüksek çözünürlük için: 48x48 piksel</li>
-                <li>• Apple Touch Icon için: 180x180 piksel</li>
               </ul>
               <p className="text-sm text-gray-500">
                 PNG formatında, şeffaf arka planlı ve net görünümlü bir ikon
@@ -168,45 +167,6 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
               </div>
             </div>
           )}
-        </div>
-
-        <div className="space-y-6 rounded-lg border bg-white p-6 shadow-sm">
-          <Controller
-            name="title"
-            control={control}
-            render={({ field }) => (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Sayfa Başlığı
-                </label>
-                <TextInput
-                  placeholder="Sitenizin başlığını girin"
-                  className="w-full"
-                  error={errors.title?.message}
-                  {...field}
-                />
-              </div>
-            )}
-          />
-
-          <Controller
-            name="description"
-            control={control}
-            render={({ field }) => (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Ana Sayfa Başlığı
-                </label>
-                <Textarea
-                  placeholder="Ana sayfa açıklamasını girin"
-                  className="w-full"
-                  minRows={4}
-                  error={errors.description?.message}
-                  {...field}
-                />
-              </div>
-            )}
-          />
         </div>
 
         <div className="rounded-lg border bg-white p-6 shadow-sm">
@@ -229,7 +189,6 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
                       format="hex"
                       value={field.value}
                       onChange={field.onChange}
-                      swatches={themeColors}
                       className="w-full"
                       size="sm"
                     />
@@ -256,7 +215,6 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
                       format="hex"
                       value={field.value}
                       onChange={field.onChange}
-                      swatches={themeColors}
                       className="w-full"
                       size="sm"
                     />
@@ -271,56 +229,8 @@ const SocialMedia = ({ data }: { data: SocialMediaProps }) => {
             </div>
           </div>
         </div>
-        <div className="rounded-lg border bg-white p-6 shadow-sm">
-          <h2 className="mb-2 text-base font-medium">Google Ayarları</h2>
-          <p className="mb-4 text-sm text-gray-500">
-            Google Analytics ve Google VerificationID ile sitenizi google&apos;a
-            tanıtabilirsiniz.
-          </p>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Controller
-              control={control}
-              name="googleId"
-              render={(field) => (
-                <TextInput
-                  {...field}
-                  label="Google Analytics ID"
-                  description='"G-" veya "AW-" ile başlayan kod'
-                  error={errors?.googleId?.message}
-                />
-              )}
-            />
-            <Controller
-              control={control}
-              name="googleVerification"
-              render={(field) => (
-                <TextInput
-                  {...field}
-                  label="Google"
-                  description='Google"dan alacağınız kod'
-                  error={errors?.googleVerification?.message}
-                />
-              )}
-            />
-          </div>
-        </div>
-        <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-          <div className="space-y-2 text-sm text-gray-600">
-            <p>
-              • Ana sayfa açıklaması giriniz. Buraya girdiğiniz başlık ve
-              açıklama sosyal medya paylaşımlarında görünecektir.
-            </p>
-            <p>• Önerilen görsel boyutu: 512x512px</p>
-            <p>• Önerilen favicon boyutu: 32x32px</p>
-          </div>
-        </div>
-
-        <div className="flex justify-end pt-4">
-          <Button
-            type="submit"
-            loading={isSubmitting}
-            className="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
-          >
+        <div className="flex justify-end">
+          <Button type="submit" loading={isSubmitting} variant="outline">
             Kaydet
           </Button>
         </div>
