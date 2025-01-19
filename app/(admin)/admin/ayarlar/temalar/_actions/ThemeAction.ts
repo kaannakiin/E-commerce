@@ -1,5 +1,7 @@
 "use server";
+
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { prisma } from "@/lib/prisma";
 import {
@@ -7,156 +9,173 @@ import {
   SocialMediaPreviewType,
 } from "@/zodschemas/authschema";
 
-export async function EditTheme(
-  data: SocialMediaPreviewType,
-): Promise<{ success: boolean; message: string }> {
-  try {
-    // Schema validation
-    const {
-      title,
-      description,
-      favicon,
-      googleId,
-      googleVerification,
-      logo,
-      themeColor1,
-      themeColor2,
-    } = SocialMediaPreviewSchema.parse(data);
-
-    const [faviconResult, logoResult] = await Promise.all([
-      favicon
-        ? NewRecordAsset(favicon[0], "variant", false, false, false, true)
-        : null,
-      logo
-        ? NewRecordAsset(logo[0], "variant", false, false, true, false)
-        : null,
-    ]);
-
-    const faviconUrl = faviconResult?.[0]?.url;
-    const logoUrl = logoResult?.[0]?.url;
-    await prisma.$transaction(async (tx) => {
-      const existingSettings = await tx.mainSeoSettings.findFirst({
-        select: {
-          id: true,
-          image: { select: { url: true } },
-          favicon: { select: { url: true } },
-        },
-      });
-
-      // Prepare common data object
-      const commonData = {
-        description,
-        title,
-        googleId,
-        googleVerification,
-        themeColor: themeColor1,
-        themeColorSecondary: themeColor2,
-        ...(faviconUrl && {
-          favicon: {
-            create: { url: faviconUrl },
-          },
-        }),
-        ...(logoUrl && {
-          image: {
-            create: { url: logoUrl },
-          },
-        }),
-      };
-
-      if (existingSettings) {
-        // Delete existing images if they exist
-        const deletePromises = [];
-        if (existingSettings.image?.url) {
-          deletePromises.push(
-            DeleteImageToAsset(existingSettings.image.url, { isLogo: true }),
-          );
-        }
-        if (existingSettings.favicon?.url) {
-          deletePromises.push(
-            DeleteImageToAsset(existingSettings.favicon.url, {
-              isFavicon: true,
-            }),
-          );
-        }
-
-        if (deletePromises.length > 0) {
-          try {
-            await Promise.all(deletePromises);
-          } catch (error) {
-            console.error("Error deleting existing images:", error);
-            throw new Error("Failed to delete existing images");
-          }
-        }
-
-        // Update existing record
-        await tx.mainSeoSettings.update({
-          where: { id: existingSettings.id },
-          data: commonData,
-        });
-      } else {
-        // Create new record
-        await tx.mainSeoSettings.create({
-          data: commonData,
-        });
-      }
-    });
-
-    return {
-      success: true,
-      message: "Tema başarıyla güncellendi",
-    };
-  } catch (error) {
-    console.error("Tema güncellenirken hata:", {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-
-    return {
-      success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Tema güncellenirken bir hata oluştu",
-    };
-  }
+interface DeleteImageOnMainSeoSettings {
+  type: "favicon" | "mainPageImage";
 }
-export async function DeteleSeoImage(
-  url: string,
-  type: "favicon" | "logo",
-): Promise<{
+export async function DeleteImageOnMainSeoSettings({
+  type,
+}: DeleteImageOnMainSeoSettings): Promise<{
   success: boolean;
   message: string;
 }> {
   try {
-    if (!url) {
+    const session = await isAuthorized();
+    if (!session) {
+      return { success: false, message: "Yetkisiz işlem" };
+    }
+    const image = await prisma.mainSeoSettings.findFirst({
+      include: { favicon: true, image: true },
+    });
+    if (!image) {
       return { success: false, message: "Resim bulunamadı" };
     }
-
     if (type === "favicon") {
-      await prisma.image.delete({
-        where: { url },
-      });
-
-      const deleteResult = await DeleteImageToAsset(url, { isFavicon: true });
-      return deleteResult.success
-        ? { success: true, message: "Resim başarıyla silindi" }
-        : { success: false, message: "Resim silinirken bir hata oluştu" };
+      if (!image.favicon) {
+        return { success: false, message: "Resim bulunamadı" };
+      } else {
+        try {
+          const response = await DeleteImageToAsset(image.favicon.url, {
+            isFavicon: true,
+          });
+          await prisma.mainSeoSettings.update({
+            where: { id: image.id },
+            data: { favicon: { delete: true } },
+          });
+          return {
+            success: true,
+            message: `${response.success ? "Resim silindi" : "Resim silinemedi fakat veritabanı güncellendi"}`,
+          };
+        } catch (error) {
+          return { success: false, message: "Resim silinemedi" };
+        }
+      }
+    } else if (type === "mainPageImage") {
+      if (!image.image) {
+        return { success: false, message: "Resim bulunamadı" };
+      } else {
+        try {
+          const response = await DeleteImageToAsset(image.image.url, {
+            isFavicon: false,
+            type: "variant",
+          });
+          await prisma.mainSeoSettings.update({
+            where: { id: image.id },
+            data: { image: { delete: true } },
+          });
+          return {
+            success: true,
+            message: `${response.success ? "Resim silindi" : "Resim silinemedi fakat veritabanı güncellendi"}`,
+          };
+        } catch (error) {
+          return { success: false, message: "Resim silinemedi" };
+        }
+      }
     }
-
-    if (type === "logo") {
-      await prisma.image.delete({
-        where: { url },
-      });
-
-      const deleteResult = await DeleteImageToAsset(url, { isLogo: true });
-      return deleteResult.success
-        ? { success: true, message: "Resim başarıyla silindi" }
-        : { success: false, message: "Resim silinirken bir hata oluştu" };
-    }
-
-    return { success: false, message: "Geçersiz resim tipi" };
+    return { success: false, message: "Resim bulunamadı" };
   } catch (error) {
-    console.error("Image deletion error:", error);
-    return { success: false, message: "Resim silinirken bir hata oluştu" };
+    return { success: false, message: "Resim silinemedi" };
+  }
+}
+export async function EditMainSeoSettings(
+  data: SocialMediaPreviewType,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const session = await isAuthorized();
+    if (!session) {
+      return { success: false, message: "Yetkisiz işlem" };
+    }
+
+    const mainSeo = await prisma.mainSeoSettings.findFirst({
+      include: { favicon: true, image: true },
+    });
+
+    const { favicon, logo, themeColor1, themeColor2 } =
+      SocialMediaPreviewSchema.parse(data);
+
+    const faviconResult = { success: true, fileName: "" };
+    const logoResult = { success: true, fileName: "" };
+
+    if (favicon?.[0]) {
+      await NewRecordAsset(
+        favicon[0],
+        "variant",
+        false,
+        false,
+        false,
+        true,
+      ).then((res) => {
+        faviconResult.fileName = res.fileName;
+        faviconResult.success = res.success;
+      });
+    }
+
+    if (logo?.[0]) {
+      await NewRecordAsset(logo[0], "variant", true, false, false, false).then(
+        (res) => {
+          logoResult.fileName = res.fileName;
+          logoResult.success = res.success;
+        },
+      );
+    }
+
+    if (!mainSeo) {
+      await prisma.mainSeoSettings.create({
+        data: {
+          themeColor: themeColor1,
+          themeColorSecondary: themeColor2,
+          ...(faviconResult.fileName && {
+            favicon: {
+              create: {
+                url: faviconResult.fileName,
+              },
+            },
+          }),
+          ...(logoResult.fileName && {
+            image: {
+              create: {
+                url: logoResult.fileName,
+              },
+            },
+          }),
+        },
+      });
+    } else {
+      await prisma.mainSeoSettings.update({
+        where: {
+          id: mainSeo.id,
+        },
+        data: {
+          themeColor: themeColor1,
+          themeColorSecondary: themeColor2,
+          ...(faviconResult.fileName && {
+            favicon: {
+              update: {
+                url: faviconResult.fileName,
+              },
+            },
+          }),
+          ...(logoResult.fileName && {
+            image: {
+              update: {
+                url: logoResult.fileName,
+              },
+            },
+          }),
+        },
+      });
+    }
+
+    const anyImageFailed =
+      (favicon?.[0] && !faviconResult.success) ||
+      (logo?.[0] && !logoResult.success);
+
+    return {
+      success: true,
+      message: anyImageFailed
+        ? "Resimler yüklenemedi fakat veritabanı güncellendi"
+        : "Başarılı",
+    };
+  } catch (error) {
+    return { success: false, message: "Bir hata oluştu" };
   }
 }

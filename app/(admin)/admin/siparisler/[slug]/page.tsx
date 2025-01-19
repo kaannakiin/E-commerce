@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import OrderDetailsPage from "../_components/OrderDetail";
 import BankTransferConfirmButton from "../_components/BankTransferConfirmButton";
+import OrderConfirmCheck from "./_components/OrderConfirmCheck";
 
 export type Order = Prisma.OrderGetPayload<{
   select: {
@@ -208,14 +209,22 @@ const OrderDetailPage = async (props: {
 
   return (
     <div className="w-full space-y-1">
-      <Container size="xl" pt={"xs"} className="flex justify-end">
+      <Container
+        size="xl"
+        pt={"xs"}
+        className="flex flex-row justify-end gap-3"
+      >
         {order.paymentType === "BANK_TRANSFER" &&
-          order.status === "PENDING" && (
+          order.status === "PENDING" &&
+          order.paymentStatus === "PENDING" && (
             <BankTransferConfirmButton
               bankTransferNotification={order?.BankTransferNotification[0]}
               orderTotal={order.total}
             />
           )}
+        {order.status === "PENDING" && order.paymentStatus === "SUCCESS" && (
+          <OrderConfirmCheck orderNumber={order.orderNumber} />
+        )}
       </Container>
       <OrderDetailsPage order={order} />
     </div>

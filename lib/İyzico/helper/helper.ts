@@ -390,7 +390,6 @@ export async function findByPaymentIdAndUpdate(paymentId: string): Promise<{
         paymentId: paymentId,
       },
       data: {
-        status: "PROCESSING",
         paymentStatus: "SUCCESS",
         paymentDate: new Date(),
       },

@@ -88,7 +88,7 @@ export const formatRefundStatus = (status: RefundStatus) => {
 };
 const ORDER_STATUS_CONFIGS: Record<OrderStatus, OrderStatusConfig> = {
   PENDING: {
-    text: "Ödeme bekleniyor",
+    text: "Onay Bekliyor",
     color: "yellow",
   },
   PROCESSING: {

@@ -1,135 +1,123 @@
 "use server";
+
 import { DeleteImageToAsset } from "@/lib/deleteImageFile";
+import { isAuthorized } from "@/lib/isAdminorSuperAdmin";
 import { NewRecordAsset } from "@/lib/NewRecordAsset";
 import { prisma } from "@/lib/prisma";
-import { SalerInfoFormValues } from "@/zodschemas/authschema";
+import { SalerInfoFormValues, SalerInfoSchema } from "@/zodschemas/authschema";
 
-// Interface tanımlama
-interface UpdateData {
-  storeName: string;
-  storeDescription: string;
-  address: string;
-  contactEmail: string;
-  contactPhone: string;
-  whatsapp: string;
-  seoTitle: string;
-  seoDescription: string;
-  instagram: string;
-  facebook: string;
-  pinterest: string;
-  twitter: string;
-  logo?: {
-    create: {
-      url: string;
-    };
-  };
-}
-
-const getBaseData = (data: SalerInfoFormValues): UpdateData => ({
-  storeName: data.storeName,
-  storeDescription: data.storeDescription,
-  address: data.address,
-  contactEmail: data.contactEmail,
-  contactPhone: data.contactPhone,
-  whatsapp: data.whatsapp,
-  seoTitle: data.seoTitle,
-  seoDescription: data.seoDescription,
-  instagram: data.instagram,
-  facebook: data.facebook,
-  pinterest: data.pinterest,
-  twitter: data.twitter,
-});
-
-export async function AddInfo(data: SalerInfoFormValues): Promise<{
-  status: boolean;
-  message: string;
-}> {
+export async function AddInfo(
+  data: SalerInfoFormValues,
+): Promise<{ success: boolean; message: string }> {
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      const existingInfo = await tx.salerInfo.findFirst({
-        include: { logo: true },
-      });
+    const session = await isAuthorized();
+    if (!session) return { success: false, message: "Yetkisiz Erişim" };
+    const {
+      address,
+      contactEmail,
+      contactPhone,
+      facebook,
+      instagram,
+      logo,
+      pinterest,
+      storeDescription,
+      storeName,
+      twitter,
+      whatsapp,
+      whatsappStarterText,
+    } = SalerInfoSchema.parse(data);
+    const salerInfo = await prisma.salerInfo.findFirst();
+    let logoUrl = null;
+    if (logo.length > 0) {
+      const uploadResult = await NewRecordAsset(
+        logo[0],
+        "variant",
+        false, // og image gerekli değil
+        false, // thumbnail gerekli değil
+        true, // logo olduğunu belirt
+        false, // favicon değil
+      );
 
-      let logoData = undefined;
-      if (data.logo && data.logo.length > 0) {
-        const processedImages = await NewRecordAsset(
-          data.logo[0],
-          "variant",
-          false,
-          false,
-          true,
-          false,
-        );
-        if (processedImages && processedImages.fileName) {
-          logoData = {
-            url: processedImages.fileName,
-          };
-        }
+      if (uploadResult.success) {
+        logoUrl = uploadResult.fileName;
       }
-
-      if (existingInfo) {
-        const updateData: UpdateData = {
-          ...getBaseData(data),
-        };
-
-        if (logoData) {
-          if (existingInfo.logo?.url) {
-            await DeleteImageToAsset(existingInfo.logo.url, {
-              isLogo: true,
-            });
-          }
-
-          if (existingInfo.logo?.id) {
-            await tx.image.delete({
-              where: { id: existingInfo.logo.id },
-            });
-          }
-
-          updateData.logo = {
-            create: logoData,
-          };
-        }
-
-        await tx.salerInfo.update({
-          where: { id: existingInfo.id },
-          data: updateData,
-        });
-
-        return {
-          success: true,
-          message: "Bilgiler güncellendi",
-        };
-      }
-
-      await tx.salerInfo.create({
+    }
+    if (salerInfo) {
+      await prisma.salerInfo.update({
+        where: { id: salerInfo.id },
         data: {
-          ...getBaseData(data),
-          ...(logoData && {
-            logo: {
-              create: logoData,
-            },
-          }),
+          address,
+          contactEmail,
+          contactPhone,
+          facebook,
+          instagram,
+          logo: logoUrl ? { create: { url: logoUrl } } : undefined,
+          pinterest,
+          storeDescription,
+          storeName,
+          twitter,
+          whatsapp,
+          whatsappStarterText,
         },
       });
-
+    } else {
+      await prisma.salerInfo.create({
+        data: {
+          address,
+          contactEmail,
+          contactPhone,
+          facebook,
+          instagram,
+          logo: logoUrl ? { create: { url: logoUrl } } : undefined,
+          pinterest,
+          storeDescription,
+          storeName,
+          twitter,
+          whatsapp,
+          whatsappStarterText,
+        },
+      });
+    }
+    return { success: true, message: "Başarıyla oluşturuldu." };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      message: "Bir hata oluştu. Lütfen tekrar deneyiniz.",
+    };
+  }
+}
+export async function DeleteImageOnSalerInfo(
+  url: string,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const session = await isAuthorized();
+    if (!session) return { success: false, message: "Yetkisiz Erişim" };
+    const salerInfo = await prisma.salerInfo.findFirst({
+      include: { logo: { select: { url: true } } },
+    });
+    if (!salerInfo || !salerInfo.logo) {
+      return { success: false, message: "Satıcı bilgisi bulunamadı" };
+    }
+    const deleteAsset = await DeleteImageToAsset(url, { isLogo: true });
+    if (salerInfo.logo.url === url) {
+      await prisma.salerInfo.update({
+        where: { id: salerInfo.id },
+        data: { logo: { delete: true } },
+      });
       return {
         success: true,
-        message: "Bilgiler kaydedildi",
+        message: deleteAsset.success
+          ? "Başarılı"
+          : "Resim silindi fakat veritabanında güncelleme yapılamadı.",
       };
-    });
-
-    return {
-      status: result.success,
-      message: result.message,
-    };
+    }
+    return { success: false, message: "Resim bulunamadı" };
   } catch (error) {
-    console.error("AddInfo error:", error);
+    console.log(error);
     return {
-      status: false,
-      message:
-        error instanceof Error
-          ? `İşlem başarısız: ${error.message}`
-          : "Beklenmeyen bir hata oluştu",
+      success: false,
+      message: "Bir hata oluştu. Lütfen tekrar deneyiniz.",
     };
   }
 }

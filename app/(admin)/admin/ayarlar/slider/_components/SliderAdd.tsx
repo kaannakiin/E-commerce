@@ -1,21 +1,21 @@
 "use client";
 
-import { SubmitHandler, useForm, Controller } from "react-hook-form";
+import FeedbackDialog from "@/components/FeedbackDialog";
+import { AddSliderSchema, AddSliderSchemaType } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
+  Paper,
   Stack,
+  Switch,
   TextInput,
   Textarea,
-  Switch,
-  Paper,
 } from "@mantine/core";
-import ImageDropzone from "../../../_components/ImageDropzone";
-import { AddSliderSchemaType, AddSliderSchema } from "@/zodschemas/authschema";
-import { addSliderAction } from "../_actions/SliderAction";
-import FeedbackDialog from "@/components/FeedbackDialog";
-import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Fragment, useState } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
+import CustomDropzone from "../../../urunler/_components/CustomDropzone";
+import { addSliderAction } from "../_actions/SliderAction";
 
 const SliderAdd = () => {
   const [feedbackState, setFeedbackState] = useState<{
@@ -40,7 +40,6 @@ const SliderAdd = () => {
   });
   const { push } = useRouter();
   const {
-    register,
     handleSubmit,
     control,
     formState: { errors, isSubmitting },
@@ -79,14 +78,12 @@ const SliderAdd = () => {
     <Paper shadow="xs" p="xl" className="mx-auto max-w-3xl">
       <form onSubmit={handleSubmit(onSubmit)}>
         <Stack>
-          <ImageDropzone
+          <CustomDropzone
+            control={control}
             name="imageFile"
-            setValue={setValue}
-            trigger={trigger}
-            value={form.watch("imageFile")}
-            error={errors.imageFile?.message}
-            required
-            isNotMultiple
+            isForce
+            maxFiles={1}
+            videosEnabled
           />
           <Controller
             name="alt"

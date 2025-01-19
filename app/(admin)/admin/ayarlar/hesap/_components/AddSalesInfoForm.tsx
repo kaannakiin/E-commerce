@@ -4,12 +4,17 @@ import FeedbackDialog from "@/components/FeedbackDialog";
 import { SalerInfoFormValues, SalerInfoSchema } from "@/zodschemas/authschema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  ActionIcon,
   Button,
   Card,
+  CloseButton,
   Grid,
   InputBase,
+  Stack,
+  Text,
   Textarea,
   TextInput,
+  Title,
 } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -23,14 +28,11 @@ import {
 } from "react-icons/fa";
 import { IMaskInput } from "react-imask";
 import CustomDropzone from "../../../urunler/_components/CustomDropzone";
-import { AddInfo } from "../_actions/SalerInfoAction";
+import { AddInfo, DeleteImageOnSalerInfo } from "../_actions/SalerInfoAction";
 import { info } from "../page";
+import { CiCircleInfo } from "react-icons/ci";
 
-const AddSalesInfoForm = React.memo(function AddSalesInfoForm({
-  info,
-}: {
-  info: info;
-}) {
+const AddSalesInfoForm = ({ info }: { info: info }) => {
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     message: string;
@@ -40,87 +42,119 @@ const AddSalesInfoForm = React.memo(function AddSalesInfoForm({
     message: "",
     type: "success",
   });
-  const defaultValues = {} as SalerInfoFormValues; // Boş başlat
 
-  const { control, handleSubmit, formState, setValue, trigger, watch, reset } =
+  const { control, handleSubmit, formState, reset } =
     useForm<SalerInfoFormValues>({
       resolver: zodResolver(SalerInfoSchema),
-      defaultValues,
+      defaultValues: {
+        address: info?.address,
+        contactEmail: info?.contactEmail,
+        contactPhone: info?.contactPhone,
+        facebook: info?.facebook,
+        instagram: info?.instagram,
+        pinterest: info?.pinterest,
+        storeDescription: info?.storeDescription,
+        storeName: info?.storeName,
+        twitter: info?.twitter,
+        whatsapp: info?.whatsapp,
+        whatsappStarterText: info?.whatsappStarterText,
+      },
     });
 
-  useEffect(() => {
-    if (info) {
-      reset({
-        storeName: info.storeName || "",
-        storeDescription: info.storeDescription || "",
-        address: info.address || "",
-        contactEmail: info.contactEmail || "",
-        contactPhone: info.contactPhone || "",
-        whatsapp: info.whatsapp || "",
-        instagram: info.instagram || "",
-        pinterest: info.pinterest || "",
-        twitter: info.twitter || "",
-        facebook: info.facebook || "",
-        seoTitle: info.seoTitle || "",
-        seoDescription: info.seoDescription || "",
-      });
-    }
-  }, [info, reset]);
   const { refresh } = useRouter();
 
   const onSubmit: SubmitHandler<SalerInfoFormValues> = async (data) => {
-    const formData: SalerInfoFormValues = {
-      ...data,
-      logo: data.logo || [],
-    };
-
-    await AddInfo(formData).then(async (res) => {
-      if (res.status) {
+    await AddInfo(data).then((res) => {
+      if (res.success) {
         setDialogState({
           isOpen: true,
           message: res.message,
           type: "success",
         });
-
-        refresh();
-        reset({}, { keepDefaultValues: true }); // keepDefaultValues opsiyonu eklenmiş
       }
-      if (!res.status) {
+      if (!res.success) {
         setDialogState({
           isOpen: true,
           message: res.message,
           type: "error",
         });
       }
+      refresh();
     });
+  };
+  const SalerInfoDeleteImage = async () => {
+    try {
+      if (!info?.logo?.url) return;
+
+      if (info?.logo.url) {
+        await DeleteImageOnSalerInfo(info.logo.url).then((res) => {
+          if (res.success) {
+            setDialogState({
+              isOpen: true,
+              message: res.message,
+              type: "success",
+            });
+          } else {
+            setDialogState({
+              isOpen: true,
+              message: res.message,
+              type: "error",
+            });
+          }
+        });
+      }
+    } catch (error) {
+    } finally {
+      refresh();
+    }
   };
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Card padding={"xs"} radius="sm" shadow="sm">
-        {info?.logo.url && (
-          <Card.Section className="relative my-4 h-24 w-full">
-            <CustomImage src={info.logo.url} objectFit="contain" />
+      <Stack gap="lg">
+        <Card shadow="sm" p="lg" radius="md" withBorder>
+          <Card.Section withBorder inheritPadding py="xs">
+            <div className="flex items-center gap-2">
+              <CiCircleInfo size={20} />
+              <Title order={3}>Firma Kimliği</Title>
+            </div>
           </Card.Section>
-        )}
-        <div className="flex flex-col">
-          <h1>Logo</h1>
-          <CustomDropzone
-            name="logo"
-            control={control}
-            maxFiles={5}
-            videosEnabled={true}
-          />
-        </div>
 
-        <Grid gutter={{ base: "sm", sm: "md" }}>
-          <Grid.Col span={{ base: 12, md: 12 }}>
+          <Text size="sm" className="mb-6 mt-4 text-gray-600">
+            Bu bölümde firmanızın temel bilgilerini ve görsel kimliğini
+            tanımlayabilirsiniz. Logo ve firma adı gibi temel bilgiler,
+            markanızın dijital yüzünü oluşturur.  
+          </Text>
+
+          {info?.logo?.url && (
+            <Card.Section className="relative my-4 h-24 w-full">
+              <ActionIcon
+                onClick={SalerInfoDeleteImage}
+                variant="transparent"
+                className="absolute right-0 top-0 z-10"
+              >
+                <CloseButton />
+              </ActionIcon>
+              <CustomImage src={info.logo.url} objectFit="contain" />
+            </Card.Section>
+          )}
+
+          <Stack gap="md">
+            {!info?.logo?.url && (
+              <div className="flex flex-col">
+                <h1 className="mb-2 text-sm font-medium">Logo</h1>
+                <CustomDropzone name="logo" control={control} maxFiles={1} />
+              </div>
+            )}
+
             <Controller
               name="storeName"
               control={control}
               render={({ field }) => (
                 <TextInput
                   {...field}
-                  radius="sm"
+                  radius="md"
+                  className="mb-4"
+                  description="Firmanızın resmi adı, tüm platformlarda tutarlı şekilde görünecektir."
                   error={formState.errors?.storeName?.message}
                   label="Firma Adı"
                   placeholder="Firmanızın tam adını giriniz"
@@ -128,17 +162,16 @@ const AddSalesInfoForm = React.memo(function AddSalesInfoForm({
                 />
               )}
             />
-          </Grid.Col>
 
-          <Grid.Col span={{ base: 12, md: 6 }}>
             <Controller
               name="storeDescription"
               control={control}
               render={({ field }) => (
                 <Textarea
                   {...field}
-                  radius="sm"
+                  radius="md"
                   label="Firma Açıklaması"
+                  description="Müşterilerinize firmanızı en iyi şekilde tanıtın. Bu metin SEO açısından önemlidir."
                   error={formState.errors?.storeDescription?.message}
                   placeholder="Firmanızı kısaca tanıtın"
                   minRows={3}
@@ -146,193 +179,221 @@ const AddSalesInfoForm = React.memo(function AddSalesInfoForm({
                 />
               )}
             />
-          </Grid.Col>
+          </Stack>
+        </Card>
 
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <Controller
-              name="address"
-              control={control}
-              render={({ field }) => (
-                <Textarea
-                  {...field}
-                  radius="sm"
-                  error={formState.errors?.address?.message}
-                  label="Firma Adresi"
-                  placeholder="Açık adresinizi giriniz"
-                  minRows={3}
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+        <Card shadow="sm" p="lg" radius="md" withBorder>
+          <Card.Section withBorder inheritPadding py="xs">
+            <div className="flex items-center gap-2">
+              <CiCircleInfo size={20} />
+              <Title order={3}>İletişim Bilgileri</Title>
+            </div>
+          </Card.Section>
 
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Controller
-              name="contactEmail"
-              control={control}
-              render={({ field }) => (
-                <TextInput
-                  {...field}
-                  radius="sm"
-                  error={formState.errors?.contactEmail?.message}
-                  label="Firma Email Adresi"
-                  placeholder="ornek@firma.com"
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+          <Text size="sm" className="mb-6 mt-4 text-gray-600">
+            Müşterilerinizin size kolayca ulaşabilmesi için tüm iletişim
+            kanallarınızı eksiksiz doldurun. Bu bilgiler web sitenizde ve diğer
+            platformlarda görünür olacaktır.
+          </Text>
 
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Controller
-              name="contactPhone"
-              control={control}
-              render={({ field }) => (
-                <InputBase
-                  {...field}
-                  component={IMaskInput}
-                  mask="(500) 000 00 00"
-                  error={formState.errors?.contactPhone?.message}
-                  label="Firma Telefon numarası"
-                  placeholder="(5XX) XXX XX XX"
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Controller
+                name="contactEmail"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius="md"
+                    error={formState.errors?.contactEmail?.message}
+                    label="Firma Email Adresi"
+                    description="Kurumsal iletişim için kullanılacak ana email adresi"
+                    placeholder="info@firma.com"
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
 
-          <Grid.Col span={{ base: 12, sm: 4 }}>
-            <Controller
-              name="whatsapp"
-              control={control}
-              render={({ field }) => (
-                <InputBase
-                  {...field}
-                  component={IMaskInput}
-                  mask="(500) 000 00 00"
-                  error={formState.errors?.whatsapp?.message}
-                  label="Firma Whatsapp numarası"
-                  rightSection={<FaWhatsapp />}
-                  placeholder="(5XX) XXX XX XX"
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6 }}>
+              <Controller
+                name="contactPhone"
+                control={control}
+                render={({ field }) => (
+                  <InputBase
+                    {...field}
+                    component={IMaskInput}
+                    mask="(500) 000 00 00"
+                    error={formState.errors?.contactPhone?.message}
+                    label="Firma Telefon Numarası"
+                    description="Müşteri hizmetleri için ana telefon numarası"
+                    placeholder="(5XX) XXX XX XX"
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
 
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Controller
-              name="instagram"
-              control={control}
-              render={({ field }) => (
-                <TextInput
-                  {...field}
-                  radius="sm"
-                  error={formState.errors?.instagram?.message}
-                  label="Firma Instagram Kullanıcı Adı"
-                  rightSection={<FaInstagram />}
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+            <Grid.Col span={12}>
+              <Controller
+                name="address"
+                control={control}
+                render={({ field }) => (
+                  <Textarea
+                    {...field}
+                    radius="md"
+                    error={formState.errors?.address?.message}
+                    label="Firma Adresi"
+                    description="Fiziksel mağaza veya ofis adresiniz"
+                    placeholder="Açık adresinizi giriniz"
+                    minRows={3}
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
+          </Grid>
+        </Card>
 
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Controller
-              name="pinterest"
-              control={control}
-              render={({ field }) => (
-                <TextInput
-                  {...field}
-                  radius="sm"
-                  error={formState.errors?.pinterest?.message}
-                  label="Firma Pinterest Kullanıcı Adı"
-                  rightSection={<FaPinterest />}
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+        <Card shadow="sm" p="lg" radius="md" withBorder>
+          <Card.Section withBorder inheritPadding py="xs">
+            <div className="flex items-center gap-2">
+              <CiCircleInfo size={20} />
+              <Title order={3}>Sosyal Medya Hesapları</Title>
+            </div>
+          </Card.Section>
 
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Controller
-              name="twitter"
-              control={control}
-              render={({ field }) => (
-                <TextInput
-                  {...field}
-                  radius="sm"
-                  error={formState.errors?.twitter?.message}
-                  label="Firma Twitter Kullanıcı Adı"
-                  rightSection={<FaTwitter />}
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+          <Text size="sm" className="mb-6 mt-4 text-gray-600">
+            Sosyal medya hesaplarınız, müşterilerinizle etkileşim kurmanın en
+            etkili yollarından biridir. Aktif olarak kullandığınız platformları
+            ekleyin.
+          </Text>
 
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Controller
-              name="facebook"
-              control={control}
-              render={({ field }) => (
-                <TextInput
-                  {...field}
-                  radius="sm"
-                  error={formState.errors?.facebook?.message}
-                  label="Firma Facebook Kullanıcı Adı"
-                  rightSection={<FaFacebook />}
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+          <Grid>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Controller
+                name="whatsapp"
+                control={control}
+                render={({ field }) => (
+                  <InputBase
+                    {...field}
+                    component={IMaskInput}
+                    mask="(500) 000 00 00"
+                    error={formState.errors?.whatsapp?.message}
+                    label="WhatsApp İletişim Hattı"
+                    description="Müşteri destek hattı olarak kullanılacak numara"
+                    rightSection={<FaWhatsapp className="text-green-600" />}
+                    placeholder="(5XX) XXX XX XX"
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Controller
+                name="whatsappStarterText"
+                control={control}
+                render={({ field }) => (
+                  <Textarea
+                    {...field}
+                    radius="md"
+                    error={formState.errors?.instagram?.message}
+                    label="Whatsapp Başlangıç Mesajı"
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Controller
+                name="instagram"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius="md"
+                    error={formState.errors?.instagram?.message}
+                    label="Instagram"
+                    description="Kullanıcı adınızı @ işareti olmadan yazın"
+                    rightSection={<FaInstagram className="text-pink-600" />}
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
 
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Controller
-              name="seoTitle"
-              control={control}
-              render={({ field }) => (
-                <Textarea
-                  {...field}
-                  radius="sm"
-                  label="SEO Başlığı"
-                  error={formState.errors?.seoTitle?.message}
-                  placeholder="50-60 karakter arası önerilir"
-                  maxLength={60}
-                  minRows={2}
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Controller
+                name="facebook"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius="md"
+                    error={formState.errors?.facebook?.message}
+                    label="Facebook"
+                    description="Facebook sayfa kullanıcı adınızı girin"
+                    rightSection={<FaFacebook />}
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
 
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Controller
-              name="seoDescription"
-              control={control}
-              render={({ field }) => (
-                <Textarea
-                  {...field}
-                  radius="sm"
-                  label="SEO Açıklaması"
-                  error={formState.errors?.seoDescription?.message}
-                  placeholder="150-160 karakter arası önerilir"
-                  maxLength={160}
-                  minRows={2}
-                  size="sm"
-                />
-              )}
-            />
-          </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Controller
+                name="twitter"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius="md"
+                    error={formState.errors?.twitter?.message}
+                    label="Twitter"
+                    description="Twitter kullanıcı adınızı @ işareti olmadan yazın"
+                    rightSection={<FaTwitter className="text-blue-400" />}
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
 
-          <Grid.Col span={{ base: 12, sm: 6 }}>
-            <Button loading={formState.isSubmitting} type="submit" fullWidth>
-              {info ? "Güncelle" : "Onayla"}
+            <Grid.Col span={{ base: 12, sm: 6 }}>
+              <Controller
+                name="pinterest"
+                control={control}
+                render={({ field }) => (
+                  <TextInput
+                    {...field}
+                    radius="md"
+                    error={formState.errors?.pinterest?.message}
+                    label="Pinterest"
+                    description="Pinterest kullanıcı adınızı girin"
+                    rightSection={<FaPinterest className="text-red-600" />}
+                    size="sm"
+                  />
+                )}
+              />
+            </Grid.Col>
+          </Grid>
+        </Card>
+
+        <Grid justify="flex-end">
+          <Grid.Col span={{ base: 12, sm: 3 }}>
+            <Button
+              loading={formState.isSubmitting}
+              type="submit"
+              fullWidth
+              size="md"
+              variant="outline"
+              color="black"
+            >
+              {info ? "Bilgileri Güncelle" : "Bilgileri Kaydet"}
             </Button>
           </Grid.Col>
         </Grid>
-      </Card>
+      </Stack>
+
       <FeedbackDialog
         isOpen={dialogState.isOpen}
         onClose={() => setDialogState((prev) => ({ ...prev, isOpen: false }))}
@@ -341,6 +402,6 @@ const AddSalesInfoForm = React.memo(function AddSalesInfoForm({
       />
     </form>
   );
-});
+};
 
 export default AddSalesInfoForm;

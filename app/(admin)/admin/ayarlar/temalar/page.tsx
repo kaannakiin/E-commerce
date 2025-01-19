@@ -5,8 +5,6 @@ import SocialMedia from "./_components/SocialMedia";
 export type SocialMediaProps = Prisma.MainSeoSettingsGetPayload<{
   select: {
     id: true;
-    title: true;
-    description: true;
     themeColor: true;
     themeColorSecondary: true;
     favicon: {
@@ -14,8 +12,6 @@ export type SocialMediaProps = Prisma.MainSeoSettingsGetPayload<{
         url: true;
       };
     };
-    googleId: true;
-    googleVerification: true;
     image: {
       select: {
         url: true;
@@ -28,8 +24,6 @@ const feedPage = cache(async () => {
     const feed = await prisma.mainSeoSettings.findFirst({
       select: {
         id: true,
-        title: true,
-        description: true,
         themeColor: true,
         themeColorSecondary: true,
         favicon: {
@@ -37,8 +31,6 @@ const feedPage = cache(async () => {
             url: true,
           },
         },
-        googleId: true,
-        googleVerification: true,
         image: {
           select: {
             url: true,
